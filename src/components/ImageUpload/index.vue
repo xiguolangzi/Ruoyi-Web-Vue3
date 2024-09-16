@@ -93,7 +93,8 @@ watch(() => props.modelValue, val => {
     // 然后将数组转为对象数组
     fileList.value = list.map(item => {
       if (typeof item === "string") {
-        if (item.indexOf(baseUrl) === -1) {
+        // 如果图片路径包含 baseUrl 或者 http开头，则直接使用，否则加上baseUrl
+        if (item.indexOf(baseUrl) === -1 && item.indexOf("http") === -1) {
           item = { name: baseUrl + item, url: baseUrl + item };
         } else {
           item = { name: item, url: item };

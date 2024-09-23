@@ -102,12 +102,16 @@ watch(route, (newRoute) => {
 }, { immediate: true });
 
 function handleLogin() {
+  // 表单预校验 -> 校验表单元素是否符合规则
   proxy.$refs.loginRef.validate(valid => {
+    // 预校验通过
     if (valid) {
+      // 登录按钮 切换成 登陆中状态
       loading.value = true;
       // 勾选了需要记住密码设置在 cookie 中设置记住用户名和密码
       if (loginForm.value.rememberMe) {
         Cookies.set("username", loginForm.value.username, { expires: 30 });
+        // encrypt() 自定义密码加密，一定要更换密钥对 
         Cookies.set("password", encrypt(loginForm.value.password), { expires: 30 });
         Cookies.set("rememberMe", loginForm.value.rememberMe, { expires: 30 });
       } else {
@@ -118,13 +122,16 @@ function handleLogin() {
       }
       // 调用action的登录方法
       userStore.login(loginForm.value).then(() => {
+        // 获取当前路由的查询参数 query
         const query = route.query;
+        // 获取除 redirect 外的其他查询参数
         const otherQueryParams = Object.keys(query).reduce((acc, cur) => {
           if (cur !== "redirect") {
             acc[cur] = query[cur];
           }
           return acc;
         }, {});
+        // 跳转路由 ： http://localhost:8080/login?redirect=/index ->  参数 redirect.value == "/index"
         router.push({ path: redirect.value || "/", query: otherQueryParams });
       }).catch(() => {
         loading.value = false;
@@ -153,6 +160,7 @@ function getCookie() {
   const rememberMe = Cookies.get("rememberMe");
   loginForm.value = {
     username: username === undefined ? loginForm.value.username : username,
+    // decrypt(password) 解析cookie中密码
     password: password === undefined ? loginForm.value.password : decrypt(password),
     rememberMe: rememberMe === undefined ? false : Boolean(rememberMe)
   };

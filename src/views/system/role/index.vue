@@ -148,7 +148,7 @@
             <el-form-item prop="roleKey">
                <template #label>
                   <span>
-                     <el-tooltip content="控制器中定义的权限字符，如：@PreAuthorize(`@ss.hasRole('admin')`)" placement="top">
+                     <el-tooltip content="角色权限字符串，如：@PreAuthorize(`@ss.hasRole('admin')`)中的'admin',多个用英文逗号隔开，如:'caja,contabilidad'" placement="top">
                         <el-icon><question-filled /></el-icon>
                      </el-tooltip>
                      权限字符

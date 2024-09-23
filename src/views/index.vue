@@ -1021,6 +1021,7 @@
 <script setup name="Index">
 const version = ref('3.8.8')
 
+// 在新标签中打开链接
 function goTarget(url) {
   window.open(url, '__blank')
 }

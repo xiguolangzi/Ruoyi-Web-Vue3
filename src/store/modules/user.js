@@ -20,12 +20,18 @@ const useUserStore = defineStore(
         const password = userInfo.password
         const code = userInfo.code
         const uuid = userInfo.uuid
+        // Promise 是 JavaScript 中处理异步操作的一种方式
         return new Promise((resolve, reject) => {
+          // 调用 @/api/login 中的 login 方法
           login(username, password, code, uuid).then(res => {
+            // 设置 cookie中的token
             setToken(res.token)
+            // 重置store中的token
             this.token = res.token
+            // .then 异步调用成功之后的处理 -> resolve() 代表异步调用成功结束
             resolve()
           }).catch(error => {
+            // .catch 异步调用失败之后的处理 -> reject(error) 返回给调用者错误信息
             reject(error)
           })
         })
@@ -33,6 +39,7 @@ const useUserStore = defineStore(
       // 获取用户信息
       getInfo() {
         return new Promise((resolve, reject) => {
+          // 调用 @/api/login 中的 getInfo 方法
           getInfo().then(res => {
             const user = res.user
             const avatar = (user.avatar == "" || user.avatar == null) ? defAva : import.meta.env.VITE_APP_BASE_API + user.avatar;

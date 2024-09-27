@@ -12,10 +12,15 @@ const usePermissionStore = defineStore(
   'permission',
   {
     state: () => ({
+      // 全部路由
       routes: [],
+      // 动态添加的路由
       addRoutes: [],
+      // 默认展示的路由
       defaultRoutes: [],
+      // 顶部栏的路由
       topbarRouters: [],
+      // 侧边栏的路由
       sidebarRouters: []
     }),
     actions: {
@@ -32,12 +37,16 @@ const usePermissionStore = defineStore(
       setSidebarRouters(routes) {
         this.sidebarRouters = routes
       },
+      // 生成路由
       generateRoutes(roles) {
         return new Promise(resolve => {
           // 向后端请求路由数据
           getRouters().then(res => {
+            // 后台返回结果 res.data 的 深拷贝1
             const sdata = JSON.parse(JSON.stringify(res.data))
+            // 后台返回结果 res.data 的 深拷贝2
             const rdata = JSON.parse(JSON.stringify(res.data))
+            // 后台返回结果 res.data 的 深拷贝3
             const defaultData = JSON.parse(JSON.stringify(res.data))
             const sidebarRoutes = filterAsyncRouter(sdata)
             const rewriteRoutes = filterAsyncRouter(rdata, false, true)
@@ -62,23 +71,28 @@ function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
       route.children = filterChildren(route.children)
     }
     if (route.component) {
-      // Layout ParentView 组件特殊处理
+      // Layout、 ParentView、 InnerLink 这3个组件路径特殊处理 -> 绑定指定组件
       if (route.component === 'Layout') {
         route.component = Layout
       } else if (route.component === 'ParentView') {
         route.component = ParentView
       } else if (route.component === 'InnerLink') {
         route.component = InnerLink
+      // 其他组件路径的绑定组件
       } else {
         route.component = loadView(route.component)
       }
     }
+    // 子组件 便利处理 -> 根据组件路径绑定组件
     if (route.children != null && route.children && route.children.length) {
       route.children = filterAsyncRouter(route.children, route, type)
     } else {
+      // 删除子组件
       delete route['children']
+      // 删除重定向
       delete route['redirect']
     }
+    // filter 因为是true 所有原数组没有变化，是指元素组件路径绑定了指定的组件
     return true
   })
 }
@@ -130,12 +144,16 @@ export function filterDynamicRoutes(routes) {
 
 export const loadView = (view) => {
   let res;
+  // 遍历views里面所有的.vue文件 
   for (const path in modules) {
+    // 文件路径，例如 views/system/user/index.vue -> 切割选取结果:"system/user/index"
     const dir = path.split('views/')[1].split('.vue')[0];
+    // 如果 路由组件路径 匹配到文件路径 -> 返回文件路径所对应的组件
     if (dir === view) {
       res = () => modules[path]();
     }
   }
+  // 返回对应组件
   return res;
 }
 

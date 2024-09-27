@@ -42,6 +42,7 @@ const useUserStore = defineStore(
           // 调用 @/api/login 中的 getInfo 方法
           getInfo().then(res => {
             const user = res.user
+            // 获取头像 = "默认路径" 或者 "/dev-api + 头像地址"
             const avatar = (user.avatar == "" || user.avatar == null) ? defAva : import.meta.env.VITE_APP_BASE_API + user.avatar;
 
             if (res.roles && res.roles.length > 0) { // 验证返回的roles是否是一个非空数组

@@ -4,7 +4,6 @@ import Cookies from 'js-cookie'
 
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-import locale from 'element-plus/es/locale/lang/zh-cn'
 
 import '@/assets/styles/index.scss' // global css
 
@@ -43,8 +42,8 @@ import ImagePreview from "@/components/ImagePreview"
 import TreeSelect from '@/components/TreeSelect'
 // 字典标签组件
 import DictTag from '@/components/DictTag'
-
-
+// 国际化
+import i18n from '@/lang/index'
 
 const app = createApp(App)
 
@@ -73,12 +72,15 @@ app.use(pinia)
 app.use(plugins)
 app.use(elementIcons)
 app.component('svg-icon', SvgIcon)
+// 国际化挂载
+app.use(i18n)
+
 
 directive(app)
 
 // 使用element-plus 并且设置全局的大小
 app.use(ElementPlus, {
-  locale: locale,
+  //locale: elementLocales.languageStore.language,
   // 支持 large、default、small
   size: Cookies.get('size') || 'default'
 })

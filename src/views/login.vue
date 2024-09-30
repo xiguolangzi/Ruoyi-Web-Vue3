@@ -2,6 +2,7 @@
   <div class="login">
     <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
       <h3 class="title">Okyun管理系统</h3>
+      <LangSelect class="set-language"></LangSelect>
       <el-form-item prop="username">
         <el-input
           v-model="loginForm.username"
@@ -69,6 +70,7 @@ import { getCodeImg } from "@/api/login";
 import Cookies from "js-cookie";
 import { encrypt, decrypt } from "@/utils/jsencrypt";
 import useUserStore from '@/store/modules/user'
+import LangSelect from "@/components/LangSelect";
 
 const userStore = useUserStore()
 const route = useRoute();
@@ -191,6 +193,12 @@ getCookie();
   background: #ffffff;
   width: 400px;
   padding: 25px 25px 5px 25px;
+  .set-language {
+    height: 40px;
+    color: #000000;
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
   .el-input {
     height: 40px;
     input {

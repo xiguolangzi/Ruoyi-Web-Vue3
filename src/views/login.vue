@@ -1,7 +1,7 @@
 <template>
   <div class="login">
     <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
-      <h3 class="title">Okyun管理系统</h3>
+      <h3 class="title">Ok云管理系统</h3>
       <LangSelect class="set-language"></LangSelect>
       <el-form-item prop="username">
         <el-input
@@ -96,7 +96,7 @@ const loading = ref(false);
 // 验证码开关
 const captchaEnabled = ref(true);
 // 注册开关
-const register = ref(true);
+const register = ref(false);
 const redirect = ref(undefined);
 
 watch(route, (newRoute) => {

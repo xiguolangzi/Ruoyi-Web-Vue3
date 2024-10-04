@@ -2,7 +2,7 @@
     <el-dropdown placement="bottom-end" @command="selectLanguage">
         <!-- 展示给客户，默认看到的 -->
         <span class="el-dropdown-link">
-            {{ $t('lang.language') }}
+            <strong>{{ $t('lang.language') }}</strong>
             <svg-icon :icon-class="languageStore.language" />
             <el-icon><CaretBottom/></el-icon>
         </span>
@@ -53,9 +53,13 @@ const selectLanguage = (key) => {
   display: flex;
   align-items: center;
   // color: $layout-font-color;
-  font-size: 25px;
+  // font-size: 20px;
   border: none !important;  // 隐藏组件el-dropdown 的边框
   outline: none !important;  // 隐藏组件el-dropdown 的边框
+  .svg-icon{
+    margin-left: 5px;
+    font-size: 40px;
+  }
 }
 
 </style>

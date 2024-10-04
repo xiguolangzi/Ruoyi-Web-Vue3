@@ -3,6 +3,17 @@
     <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
       <h3 class="title">Ok云管理系统</h3>
       <LangSelect class="set-language"></LangSelect>
+      <el-form-item prop="taxNumber">
+        <el-input
+          v-model="loginForm.taxNumber"
+          type="text"
+          size="large"
+          auto-complete="off"
+          placeholder="税号"
+        >
+          <template #prefix><svg-icon icon-class="CIF" class="el-input__icon input-icon" /></template>
+        </el-input>
+      </el-form-item>
       <el-form-item prop="username">
         <el-input
           v-model="loginForm.username"
@@ -71,6 +82,8 @@ import Cookies from "js-cookie";
 import { encrypt, decrypt } from "@/utils/jsencrypt";
 import useUserStore from '@/store/modules/user'
 import LangSelect from "@/components/LangSelect";
+import { useLanguageStore } from '@/store/modules/language';
+import { changeLanguage } from '@/api/login';
 
 const userStore = useUserStore()
 const route = useRoute();
@@ -78,6 +91,7 @@ const router = useRouter();
 const { proxy } = getCurrentInstance();
 
 const loginForm = ref({
+  taxNumber:"",
   username: "admin",
   password: "admin123",
   rememberMe: false,
@@ -86,6 +100,10 @@ const loginForm = ref({
 });
 
 const loginRules = {
+  taxNumber: [
+    { required: true, trigger: "blur", message: "请输入您的税号" },
+    { min: 9, max: 9, trigger: "blur", message: "税号长度为9位" }
+  ],
   username: [{ required: true, trigger: "blur", message: "请输入您的账号" }],
   password: [{ required: true, trigger: "blur", message: "请输入您的密码" }],
   code: [{ required: true, trigger: "change", message: "请输入验证码" }]
@@ -98,6 +116,14 @@ const captchaEnabled = ref(true);
 // 注册开关
 const register = ref(false);
 const redirect = ref(undefined);
+// 语言切换后台初始化
+const languageStore = useLanguageStore()
+const javaLang = {
+    zh : "zh_CN",
+    es : "es_ES",
+    en : "en_US"
+  };
+let lang = computed(() => languageStore.language)
 
 watch(route, (newRoute) => {
     redirect.value = newRoute.query && newRoute.query.redirect;
@@ -111,6 +137,7 @@ function handleLogin() {
       // 登录按钮 切换成 登陆中状态
       loading.value = true;
       // 勾选了需要记住密码设置在 cookie 中设置记住用户名和密码
+      Cookies.set("taxNumber", loginForm.value.taxNumber);
       if (loginForm.value.rememberMe) {
         Cookies.set("username", loginForm.value.username, { expires: 30 });
         // encrypt() 自定义密码加密，一定要更换密钥对 
@@ -157,10 +184,12 @@ function getCode() {
 }
 
 function getCookie() {
+  const taxNumber = Cookies.get("taxNumber");
   const username = Cookies.get("username");
   const password = Cookies.get("password");
   const rememberMe = Cookies.get("rememberMe");
   loginForm.value = {
+    taxNumber: taxNumber === undefined ? loginForm.value.taxNumber : taxNumber,
     username: username === undefined ? loginForm.value.username : username,
     // decrypt(password) 解析cookie中密码
     password: password === undefined ? loginForm.value.password : decrypt(password),
@@ -168,6 +197,13 @@ function getCookie() {
   };
 }
 
+function sendLang(){
+  changeLanguage(javaLang[lang.value]).then(res => {
+    console.log("语言切换成功")
+  });
+}
+
+sendLang();
 getCode();
 getCookie();
 </script>
@@ -190,9 +226,36 @@ getCookie();
 .login-form {
   margin-right: 10%;
   border-radius: 6px;
-  background: #ffffff;
+  // background: #ffffff;
   width: 400px;
   padding: 25px 25px 5px 25px;
+  
+  background: rgb(249, 252, 252,0.5);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  &:hover {
+    // transform: translateY(-10px);
+    transform: translate3d(0px,-10px,10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  }
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
+    z-index: -1;
+    transition: all 0.3s ease;
+  }
+  &:hover::before {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  }
+  
   .set-language {
     height: 40px;
     color: #000000;

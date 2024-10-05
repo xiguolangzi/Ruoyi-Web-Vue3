@@ -4,15 +4,16 @@
       <h3 class="title">Ok云管理系统</h3>
       <LangSelect class="set-language"></LangSelect>
       <el-form-item prop="taxNumber">
-        <el-input
+        <el-autocomplete
           v-model="loginForm.taxNumber"
-          type="text"
-          size="large"
-          auto-complete="off"
-          placeholder="税号"
+          :fetch-suggestions="querySearch"
+          clearable
+          class="inline-input w-50"
+          placeholder="Please Input"
+          @select="handleSelect"
         >
           <template #prefix><svg-icon icon-class="CIF" class="el-input__icon input-icon" /></template>
-        </el-input>
+        </el-autocomplete>
       </el-form-item>
       <el-form-item prop="username">
         <el-input
@@ -29,6 +30,7 @@
         <el-input
           v-model="loginForm.password"
           type="password"
+          :show-password=true
           size="large"
           auto-complete="off"
           placeholder="密码"
@@ -115,6 +117,48 @@ const captchaEnabled = ref(true);
 const register = ref(false);
 const redirect = ref(undefined);
 
+// ------ 税号输入处理 -- start
+// 1 建议列表
+const taxRecentList = ref([]);
+// 1.1 从 localStorage 获取存储的税号最近访问记录列表
+const loadTaxRecentList = () => {
+  try {
+    const storedList = localStorage.getItem('taxRecentList');
+    if (storedList) {
+      taxRecentList.value = JSON.parse(storedList);
+    } else {
+      taxRecentList.value = []; // 如果没有找到，初始化为空数组
+    }
+  } catch (e) {
+    console.log('税号存储到localStory异常:', e);
+    taxRecentList.value = [];  // 初始化为空数组，防止后续操作出错
+  }
+};
+// 2 查询建议的函数
+const querySearch = (queryString, cb) => {
+  const results = taxRecentList.value.filter(item => {
+    return item.value.toLowerCase().includes(queryString.toLowerCase());
+  });
+  cb(results);
+};
+// 3 选择建议时的处理
+const handleSelect = (item) => {
+  // 去重，保留唯一值
+  let updatedList = taxRecentList.value.filter(i => i.value !== item.value);
+  // 新选择的值放在最前面
+  updatedList.unshift(item);
+  // 保持最多 5 条记录
+  if (updatedList.length > 5) {
+    updatedList = updatedList.slice(0, 5);
+  }
+  // 更新响应式列表和 localStorage
+  taxRecentList.value = updatedList;
+  localStorage.setItem('taxRecentList', JSON.stringify(updatedList));
+};
+
+// ------ 税号输入处理 -- end
+
+
 watch(route, (newRoute) => {
     redirect.value = newRoute.query && newRoute.query.redirect;
 }, { immediate: true });
@@ -126,8 +170,18 @@ function handleLogin() {
     if (valid) {
       // 登录按钮 切换成 登陆中状态
       loading.value = true;
-      // 存储税号
+      // 存储当前税号
       Cookies.set("taxNumber", loginForm.value.taxNumber, { expires: 30 });
+      // 存储将当前税号存储到税号查询列表
+      let newTaxRecentList = taxRecentList.value || []
+      if (!newTaxRecentList.some(item => item.value === loginForm.value.taxNumber)) {
+        newTaxRecentList.unshift({ value: loginForm.value.taxNumber });
+        if (newTaxRecentList.length > 5) {
+          newTaxRecentList = newTaxRecentList.slice(0, 5);
+        }
+        localStorage.setItem('taxRecentList', JSON.stringify(newTaxRecentList));
+        taxRecentList.value = newTaxRecentList;
+      }
       // 勾选了需要记住密码设置在 cookie 中设置记住用户名和密码
       if (loginForm.value.rememberMe) {
         Cookies.set("username", loginForm.value.username, { expires: 30 });
@@ -188,8 +242,9 @@ function getCookie() {
   };
 }
 
-getCode();
-getCookie();
+getCode();            // 获取验证码
+getCookie();          // 记住密码
+loadTaxRecentList();  // 获取税号最近访问记录
 </script>
 
 <style lang='scss' scoped>

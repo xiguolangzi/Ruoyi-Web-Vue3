@@ -136,8 +136,9 @@ function handleLogin() {
     if (valid) {
       // 登录按钮 切换成 登陆中状态
       loading.value = true;
+      // 存储税号
+      Cookies.set("taxNumber", loginForm.value.taxNumber, { expires: 30 });
       // 勾选了需要记住密码设置在 cookie 中设置记住用户名和密码
-      Cookies.set("taxNumber", loginForm.value.taxNumber);
       if (loginForm.value.rememberMe) {
         Cookies.set("username", loginForm.value.username, { expires: 30 });
         // encrypt() 自定义密码加密，一定要更换密钥对 

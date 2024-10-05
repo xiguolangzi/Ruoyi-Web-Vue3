@@ -1,6 +1,8 @@
 import { login, logout, getInfo } from '@/api/login'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import defAva from '@/assets/images/profile.jpg'
+import { useLanguageStore } from '@/store/modules/language';
+import { changeLanguage } from '@/api/login';
 
 const useUserStore = defineStore(
   'user',
@@ -21,6 +23,17 @@ const useUserStore = defineStore(
         const password = userInfo.password
         const code = userInfo.code
         const uuid = userInfo.uuid
+        // 通知后端当前的国际化语言
+        const languageStore = useLanguageStore()
+        const javaLang = {
+            zh : "zh_CN",
+            es : "es_ES",
+            en : "en_US"
+          };
+        let lang = computed(() => languageStore.language)
+        changeLanguage(javaLang[lang.value]).then(res => {
+          console.log("语言切换成功")
+        });
         // Promise 是 JavaScript 中处理异步操作的一种方式
         return new Promise((resolve, reject) => {
           // 调用 @/api/login 中的 login 方法

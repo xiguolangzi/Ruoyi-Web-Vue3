@@ -82,8 +82,6 @@ import Cookies from "js-cookie";
 import { encrypt, decrypt } from "@/utils/jsencrypt";
 import useUserStore from '@/store/modules/user'
 import LangSelect from "@/components/LangSelect";
-import { useLanguageStore } from '@/store/modules/language';
-import { changeLanguage } from '@/api/login';
 
 const userStore = useUserStore()
 const route = useRoute();
@@ -116,14 +114,6 @@ const captchaEnabled = ref(true);
 // 注册开关
 const register = ref(false);
 const redirect = ref(undefined);
-// 语言切换后台初始化
-const languageStore = useLanguageStore()
-const javaLang = {
-    zh : "zh_CN",
-    es : "es_ES",
-    en : "en_US"
-  };
-let lang = computed(() => languageStore.language)
 
 watch(route, (newRoute) => {
     redirect.value = newRoute.query && newRoute.query.redirect;
@@ -198,13 +188,6 @@ function getCookie() {
   };
 }
 
-function sendLang(){
-  changeLanguage(javaLang[lang.value]).then(res => {
-    console.log("语言切换成功")
-  });
-}
-
-sendLang();
 getCode();
 getCookie();
 </script>

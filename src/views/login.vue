@@ -9,7 +9,7 @@
           :fetch-suggestions="querySearch"
           clearable
           class="inline-input w-50"
-          placeholder="Please Input"
+          placeholder="税号"
           @select="handleSelect"
         >
           <template #prefix><svg-icon icon-class="CIF" class="el-input__icon input-icon" /></template>

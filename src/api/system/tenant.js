@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 查询租户信息列表
 export function listTenant(query) {
   return request({
-    url: '/sky/tenant/list',
+    url: '/system/tenant/list',
     method: 'get',
     params: query
   })
@@ -12,7 +12,7 @@ export function listTenant(query) {
 // 查询租户信息详细
 export function getTenant(tenantId) {
   return request({
-    url: '/sky/tenant/' + tenantId,
+    url: '/system/tenant/' + tenantId,
     method: 'get'
   })
 }
@@ -20,7 +20,7 @@ export function getTenant(tenantId) {
 // 新增租户信息
 export function addTenant(data) {
   return request({
-    url: '/sky/tenant',
+    url: '/system/tenant',
     method: 'post',
     data: data
   })
@@ -29,7 +29,7 @@ export function addTenant(data) {
 // 修改租户信息
 export function updateTenant(data) {
   return request({
-    url: '/sky/tenant',
+    url: '/system/tenant',
     method: 'put',
     data: data
   })
@@ -38,7 +38,25 @@ export function updateTenant(data) {
 // 删除租户信息
 export function delTenant(tenantId) {
   return request({
-    url: '/sky/tenant/' + tenantId,
+    url: '/system/tenant/' + tenantId,
     method: 'delete'
+  })
+}
+
+// 新增租户顶级部门信息
+export function addTenantDept(data) {
+  return request({
+    url: '/system/tenant/dept',
+    method: 'post',
+    data: data
+  })
+}
+
+// 新增租户绑定的管理员
+export function addTenantAdmin(data) {
+  return request({
+    url: '/system/tenant/admin',
+    method: 'post',
+    data: data
   })
 }

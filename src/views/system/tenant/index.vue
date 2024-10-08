@@ -66,7 +66,7 @@
           plain
           icon="Plus"
           @click="handleAdd"
-          v-hasPermi="['sky:tenant:add']"
+          v-hasPermi="['system:tenant:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -76,7 +76,7 @@
           icon="Edit"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['sky:tenant:edit']"
+          v-hasPermi="['system:tenant:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -86,7 +86,7 @@
           icon="Delete"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['sky:tenant:remove']"
+          v-hasPermi="['system:tenant:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -95,8 +95,58 @@
           plain
           icon="Download"
           @click="handleExport"
-          v-hasPermi="['sky:tenant:export']"
+          v-hasPermi="['system:tenant:export']"
         >导出</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="OfficeBuilding"
+          :disabled="single"
+          @click="handleAddTenantDept"
+          v-hasPermi="['system:tenant:add:dept']"
+        >新增租户部门</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="Star"
+          :disabled="single"
+          @click="handleAddTenantAdmin"
+          v-hasPermi="['system:tenant:add:admin']"
+        >新增租户管理员</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="Share"
+          :disabled="single"
+          @click="handleExport"
+          v-hasPermi="['system:tenant:export']"
+        >分配套餐</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="warning"
+          plain
+          icon="Pointer"
+          :disabled="single"
+          @click="handleExport"
+          v-hasPermi="['system:tenant:export']"
+        >一键初始化</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="Finished"
+          :disabled="single"
+          @click="handleExport"
+          v-hasPermi="['system:tenant:export']"
+        >开通数据</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
@@ -123,8 +173,8 @@
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['sky:tenant:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['sky:tenant:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:tenant:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['system:tenant:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -193,7 +243,7 @@
 </template>
 
 <script setup name="Tenant">
-import { listTenant, getTenant, delTenant, addTenant, updateTenant } from "@/api/system/tenant";
+import { listTenant, getTenant, delTenant, addTenant, updateTenant, addTenantDept, addTenantAdmin } from "@/api/system/tenant";
 
 const { proxy } = getCurrentInstance();
 const { sys_tenant_status, sys_tenant_type } = proxy.useDict('sys_tenant_status', 'sys_tenant_type');
@@ -355,10 +405,48 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
-  proxy.download('sky/tenant/export', {
+  proxy.download('system/tenant/export', {
     ...queryParams.value
   }, `tenant_${new Date().getTime()}.xlsx`)
 }
+
+/** 新增租户顶级部门 */
+function handleAddTenantDept() {
+  // 获取选中租户的信息
+  reset();
+  const _tenantId = ids.value
+  getTenant(_tenantId).then(response => {
+    form.value = response.data;
+    // 调用新增部门接口
+    addTenantDept(form.value).then(response => {
+      proxy.$modal.msgSuccess(response.msg);
+    });
+  });
+  
+}
+
+
+/** 新增租户管理员用户 */
+function handleAddTenantAdmin(){
+  // 获取选中租户的信息
+  reset();
+  const _tenantId = ids.value
+  getTenant(_tenantId).then(response => {
+    form.value = response.data;
+    // 调用新增部门接口
+    addTenantAdmin(form.value).then(response => {
+      proxy.$modal.msgSuccess(response.msg);
+    });
+  });
+}
+
+/** 租户分配套餐 */
+
+
+/** 一键处理住户初始化操作 */
+
+
+/** 租户开通数据操作 */
 
 getList();
 </script>

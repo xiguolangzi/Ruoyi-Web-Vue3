@@ -18,7 +18,7 @@
         />
       </el-form-item>
       <el-form-item label="租户类型" prop="tenantType">
-        <el-select v-model="queryParams.tenantType" placeholder="请选择租户类型" clearable>
+        <el-select v-model="queryParams.tenantType" placeholder="请选择租户类型" clearable style="width: 200px">
           <el-option
             v-for="dict in sys_tenant_type"
             :key="dict.value"
@@ -28,7 +28,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="帐号状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择帐号状态" clearable>
+        <el-select v-model="queryParams.status" placeholder="请选择帐号状态" clearable style="width: 200px">
           <el-option
             v-for="dict in sys_tenant_status"
             :key="dict.value"

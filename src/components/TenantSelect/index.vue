@@ -27,9 +27,6 @@ import { ref } from 'vue';
 // 只有系统用户才展示
 const userStore = useUserStore();
 const show = ref(false);
-if (userStore.userType === "00") {
-    show.value = true;
-}
 
 const selectedTenantId = ref(null); // 选中的租户ID
 
@@ -53,7 +50,11 @@ const handleTenantChange = () => {
     }
 };
 
-fetchTenantList()
+// 展示才获取租户列表，否则不会显示下拉框
+if (userStore.userType === "00") {
+    show.value = true;
+    fetchTenantList()
+}
 
 </script>
 

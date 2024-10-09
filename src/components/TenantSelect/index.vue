@@ -47,10 +47,8 @@ const fetchTenantList = async () => {
 const handleTenantChange = () => {
     // 处理清空选择时的值 undefined
     if(!selectedTenantId.value){
-        console.log("#### 1")
         userStore.tenantId = null;
     }else{
-        console.log("#### 2")
         userStore.tenantId = selectedTenantId.value;
     }
 };

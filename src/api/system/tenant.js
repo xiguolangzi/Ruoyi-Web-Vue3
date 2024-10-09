@@ -9,6 +9,15 @@ export function listTenant(query) {
   })
 }
 
+// 查询所有租户信息
+export function selectAll(query) {
+  return request({
+    url: '/system/tenant/selectAll',
+    method: 'get',
+    params: query
+  })
+}
+
 // 查询租户信息详细
 export function getTenant(tenantId) {
   return request({

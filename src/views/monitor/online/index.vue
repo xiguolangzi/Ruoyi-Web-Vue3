@@ -59,6 +59,10 @@
 
 <script setup name="Online">
 import { forceLogout, list as initData } from "@/api/monitor/online";
+import useUserStore from "@/store/modules/user";
+
+// 租户ID字段过滤使用
+const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
 
@@ -76,6 +80,8 @@ const queryParams = ref({
 /** 查询登录日志列表 */
 function getList() {
   loading.value = true;
+  // 请求参数增加租户ID
+  queryParams.value.tenantId = userStore.tenantId;
   initData(queryParams.value).then(response => {
     onlineList.value = response.rows;
     total.value = response.total;

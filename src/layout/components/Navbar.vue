@@ -6,18 +6,29 @@
 
     <div class="right-menu">
       <template v-if="appStore.device !== 'mobile'">
-        <header-search id="header-search" class="right-menu-item" />
+        <el-tooltip content="搜索菜单" effect="dark" placement="bottom">
+          <header-search id="header-search" class="right-menu-item"/>
+        </el-tooltip>
 
-        <!-- <el-tooltip content="源码地址" effect="dark" placement="bottom">
-          <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
-        </el-tooltip> -->
-
-        <!-- <el-tooltip content="文档地址" effect="dark" placement="bottom">
-          <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
-        </el-tooltip> -->
         <!-- 国际化 选择框 -->
         <LangSelect></LangSelect>
-        <screenfull id="screenfull" class="right-menu-item hover-effect" />
+
+        <el-tooltip content="租户条件过滤" effect="dark" placement="bottom">
+          <TenantSelect></TenantSelect>
+        </el-tooltip>
+
+        <el-tooltip content="源码地址" effect="dark" placement="bottom">
+          <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
+        </el-tooltip>
+
+        <el-tooltip content="文档地址" effect="dark" placement="bottom">
+          <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
+        </el-tooltip>
+
+        <el-tooltip content="全屏缩放" effect="dark" placement="bottom">
+          <screenfull id="screenfull" class="right-menu-item hover-effect" />
+        </el-tooltip>
+        
         <el-tooltip content="布局大小" effect="dark" placement="bottom">
           <size-select id="size-select" class="right-menu-item hover-effect" />
         </el-tooltip>
@@ -61,6 +72,7 @@ import useAppStore from '@/store/modules/app'
 import useUserStore from '@/store/modules/user'
 import useSettingsStore from '@/store/modules/settings'
 import LangSelect from '@/components/LangSelect'
+import TenantSelect from '@/components/TenantSelect'
 
 const appStore = useAppStore()
 const userStore = useUserStore()

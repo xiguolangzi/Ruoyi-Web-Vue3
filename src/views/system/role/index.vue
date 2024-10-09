@@ -244,6 +244,10 @@
 <script setup name="Role">
 import { addRole, changeRoleStatus, dataScope, delRole, getRole, listRole, updateRole, deptTreeSelect } from "@/api/system/role";
 import { roleMenuTreeselect, treeselect as menuTreeselect } from "@/api/system/menu";
+import useUserStore from "@/store/modules/user";
+
+// 租户ID字段过滤使用
+const userStore = useUserStore();
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -285,7 +289,7 @@ const data = reactive({
     pageSize: 10,
     roleName: undefined,
     roleKey: undefined,
-    status: undefined
+    status: undefined,
   },
   rules: {
     roleName: [{ required: true, message: "角色名称不能为空", trigger: "blur" }],
@@ -299,6 +303,8 @@ const { queryParams, form, rules } = toRefs(data);
 /** 查询角色列表 */
 function getList() {
   loading.value = true;
+  // 请求参数增加租户ID
+  queryParams.value.tenantId = userStore.tenantId;
   listRole(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
     roleList.value = response.rows;
     total.value = response.total;

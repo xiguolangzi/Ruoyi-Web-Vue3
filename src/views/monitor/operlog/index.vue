@@ -199,6 +199,10 @@
 
 <script setup name="Operlog">
 import { list, delOperlog, cleanOperlog } from "@/api/monitor/operlog";
+import useUserStore from "@/store/modules/user";
+
+// 租户ID字段过滤使用
+const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
 const { sys_oper_type, sys_common_status } = proxy.useDict("sys_oper_type","sys_common_status");
@@ -233,6 +237,8 @@ const { queryParams, form } = toRefs(data);
 /** 查询登录日志 */
 function getList() {
   loading.value = true;
+  // 请求参数增加租户ID
+  queryParams.value.tenantId = userStore.tenantId;
   list(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
     operlogList.value = response.rows;
     total.value = response.total;

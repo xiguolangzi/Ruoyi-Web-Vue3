@@ -126,6 +126,10 @@
 
 <script setup name="Logininfor">
 import { list, delLogininfor, cleanLogininfor, unlockLogininfor } from "@/api/monitor/logininfor";
+import useUserStore from "@/store/modules/user";
+
+// 租户ID字段过滤使用
+const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
 const { sys_common_status } = proxy.useDict("sys_common_status");
@@ -155,6 +159,8 @@ const queryParams = ref({
 /** 查询登录日志列表 */
 function getList() {
   loading.value = true;
+  // 请求参数增加租户ID
+  queryParams.value.tenantId = userStore.tenantId;
   list(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
     logininforList.value = response.rows;
     total.value = response.total;

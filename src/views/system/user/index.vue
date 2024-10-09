@@ -332,6 +332,10 @@
 <script setup name="User">
 import { getToken } from "@/utils/auth";
 import { changeUserStatus, listUser, resetUserPwd, delUser, getUser, updateUser, addUser, deptTreeSelect } from "@/api/system/user";
+import useUserStore from "@/store/modules/user";
+
+// 租户ID字段过滤使用
+const userStore = useUserStore();
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
@@ -420,6 +424,8 @@ function getDeptTree() {
 /** 查询用户列表 */
 function getList() {
   loading.value = true;
+  // 请求参数增加租户ID
+  queryParams.value.tenantId = userStore.tenantId;
   listUser(proxy.addDateRange(queryParams.value, dateRange.value)).then(res => {
     loading.value = false;
     userList.value = res.rows;

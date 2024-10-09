@@ -3,6 +3,7 @@ import { getToken, setToken, removeToken } from '@/utils/auth'
 import defAva from '@/assets/images/profile.jpg'
 import { useLanguageStore } from '@/store/modules/language';
 import { changeLanguage } from '@/api/login';
+import { teleportProps } from 'element-plus/es/components/teleport/index.mjs';
 
 const useUserStore = defineStore(
   'user',
@@ -13,7 +14,9 @@ const useUserStore = defineStore(
       name: '',
       avatar: '',
       roles: [],
-      permissions: []
+      permissions: [],  // 权限集合
+      userType: '02',   // 00 系统用户 01 租户管理员 02 普通用户
+      tenantId: null,
     }),
     actions: {
       // 登录
@@ -58,8 +61,9 @@ const useUserStore = defineStore(
             const user = res.user
             // 获取头像 = "默认路径" 或者 "/dev-api + 头像地址"
             const avatar = (user.avatar == "" || user.avatar == null) ? defAva : import.meta.env.VITE_APP_BASE_API + user.avatar;
-
-            if (res.roles && res.roles.length > 0) { // 验证返回的roles是否是一个非空数组
+            // 00 系统用户 01 租户管理员 02 普通用户
+            this.userType = user.userType || "02";
+            if (res.roles && res.roles.length > 0) { 
               this.roles = res.roles
               this.permissions = res.permissions
             } else {
@@ -87,7 +91,8 @@ const useUserStore = defineStore(
             reject(error)
           })
         })
-      }
+      },
+      
     }
   })
 

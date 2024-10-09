@@ -244,6 +244,10 @@
 
 <script setup name="Tenant">
 import { listTenant, getTenant, delTenant, addTenant, updateTenant, addTenantDept, addTenantAdmin } from "@/api/system/tenant";
+import useUserStore from "@/store/modules/user";
+
+// 租户ID字段过滤使用
+const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
 const { sys_tenant_status, sys_tenant_type } = proxy.useDict('sys_tenant_status', 'sys_tenant_type');
@@ -300,6 +304,8 @@ const { queryParams, form, rules } = toRefs(data);
 /** 查询租户信息列表 */
 function getList() {
   loading.value = true;
+  // 请求参数增加租户ID
+  queryParams.value.tenantId = userStore.tenantId;
   listTenant(queryParams.value).then(response => {
     tenantList.value = response.rows;
     total.value = response.total;

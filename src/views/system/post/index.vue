@@ -146,6 +146,10 @@
 
 <script setup name="Post">
 import { listPost, addPost, delPost, getPost, updatePost } from "@/api/system/post";
+import useUserStore from "@/store/modules/user";
+
+// 租户ID字段过滤使用
+const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
 const { sys_normal_disable } = proxy.useDict("sys_normal_disable");
@@ -181,6 +185,8 @@ const { queryParams, form, rules } = toRefs(data);
 /** 查询岗位列表 */
 function getList() {
   loading.value = true;
+  // 请求参数增加租户ID
+  queryParams.value.tenantId = userStore.tenantId;
   listPost(queryParams.value).then(response => {
     postList.value = response.rows;
     total.value = response.total;

@@ -142,6 +142,10 @@
 
 <script setup name="Dept">
 import { listDept, getDept, delDept, addDept, updateDept, listDeptExcludeChild } from "@/api/system/dept";
+import useUserStore from "@/store/modules/user";
+
+// 租户ID字段过滤使用
+const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
 const { sys_normal_disable } = proxy.useDict("sys_normal_disable");
@@ -175,6 +179,8 @@ const { queryParams, form, rules } = toRefs(data);
 /** 查询部门列表 */
 function getList() {
   loading.value = true;
+  // 请求参数增加租户ID
+  queryParams.value.tenantId = userStore.tenantId;
   listDept(queryParams.value).then(response => {
     deptList.value = proxy.handleTree(response.data, "deptId");
     loading.value = false;

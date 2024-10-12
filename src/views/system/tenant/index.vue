@@ -106,17 +106,31 @@
           :disabled="single"
           @click="handleAddTenantDept"
           v-hasPermi="['system:tenant:add:dept']"
-        >新增租户部门</el-button>
+        >初始化租户部门</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Star"
-          :disabled="single"
-          @click="handleAddTenantAdmin"
-          v-hasPermi="['system:tenant:add:admin']"
-        >新增租户管理员</el-button>
+        <el-tooltip content="同时管理员、清空管理员角色" effect="dark" placement="bottom">
+          <el-button
+            type="primary"
+            plain
+            icon="Star"
+            :disabled="single"
+            @click="handleAddTenantAdmin"
+            v-hasPermi="['system:tenant:add:admin']"
+          >初始化租户管理员</el-button>
+        </el-tooltip>
+      </el-col>
+      <el-col :span="1.5">
+        <el-tooltip content="同时初始化 租户部门、租户管理员" effect="dark" placement="bottom">
+          <el-button
+            type="warning"
+            plain
+            icon="Pointer"
+            :disabled="single"
+            @click="handleExport"
+            v-hasPermi="['system:tenant:export']"
+          >一键初始化</el-button>
+        </el-tooltip>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -127,16 +141,6 @@
           @click="handleExport"
           v-hasPermi="['system:tenant:export']"
         >分配套餐</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Pointer"
-          :disabled="single"
-          @click="handleExport"
-          v-hasPermi="['system:tenant:export']"
-        >一键初始化</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -245,6 +249,7 @@
 <script setup name="Tenant">
 import { listTenant, getTenant, delTenant, addTenant, updateTenant, addTenantDept, addTenantAdmin } from "@/api/system/tenant";
 import useUserStore from "@/store/modules/user";
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -434,16 +439,38 @@ function handleAddTenantDept() {
 
 /** 新增租户管理员用户 */
 function handleAddTenantAdmin(){
-  // 获取选中租户的信息
-  reset();
-  const _tenantId = ids.value
-  getTenant(_tenantId).then(response => {
-    form.value = response.data;
-    // 调用新增部门接口
-    addTenantAdmin(form.value).then(response => {
-      proxy.$modal.msgSuccess(response.msg);
-    });
-  });
+  ElMessageBox.confirm(
+    '注意：初始化租户管理员，将会删除 该租户名下"所有用户"的角色信息，确认初始化吗?',
+    'Warning',
+    {
+      confirmButtonText: '确认初始化',
+      cancelButtonText: '取消初始化',
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      // 获取选中租户的信息
+      reset();
+      const _tenantId = ids.value
+      getTenant(_tenantId).then(response => {
+        form.value = response.data;
+        // 调用新增部门接口
+        addTenantAdmin(form.value).then(response => {
+          proxy.$modal.msgSuccess(response.msg);
+        });
+      });
+      ElMessage({
+        type: 'success',
+        message: '初始化成功！',
+      })
+    })
+    .catch(() => {
+      ElMessage({
+        type: 'info',
+        message: '已取消初始化！',
+      })
+    })
+  
 }
 
 /** 租户分配套餐 */

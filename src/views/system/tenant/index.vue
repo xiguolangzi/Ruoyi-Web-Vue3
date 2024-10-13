@@ -99,35 +99,37 @@
         >导出</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="OfficeBuilding"
-          :disabled="single"
-          @click="handleAddTenantDept"
-          v-hasPermi="['system:tenant:add:dept']"
-        >初始化租户部门</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-tooltip content="同时管理员、清空管理员角色" effect="dark" placement="bottom">
+        <el-tooltip content="新增/修改 租户绑定的顶级部门" effect="dark" placement="bottom">
           <el-button
             type="primary"
             plain
-            icon="Star"
+            icon="Edit"
             :disabled="single"
-            @click="handleAddTenantAdmin"
-            v-hasPermi="['system:tenant:add:admin']"
-          >初始化租户管理员</el-button>
+            @click="handleAddTenantDept"
+            v-hasPermi="['system:tenant:add:dept']"
+          >部门</el-button>
         </el-tooltip>
       </el-col>
       <el-col :span="1.5">
-        <el-tooltip content="同时初始化 租户部门、租户管理员" effect="dark" placement="bottom">
+        <el-tooltip content="新增/修改 租户绑定的管理员" effect="dark" placement="bottom">
+          <el-button
+            type="primary"
+            plain
+            icon="Edit"
+            :disabled="single"
+            @click="handleAddTenantAdmin"
+            v-hasPermi="['system:tenant:add:admin']"
+          >管理员</el-button>
+        </el-tooltip>
+      </el-col>
+      <el-col :span="1.5">
+        <el-tooltip content="同时 新增/修改 租户部门、租户管理员" effect="dark" placement="bottom">
           <el-button
             type="warning"
             plain
             icon="Pointer"
             :disabled="single"
-            @click="handleExport"
+            @click="handleOneClickAddDeptAdmin"
             v-hasPermi="['system:tenant:export']"
           >一键初始化</el-button>
         </el-tooltip>
@@ -138,7 +140,7 @@
           plain
           icon="Share"
           :disabled="single"
-          @click="handleExport"
+          @click="handleAssignRoles"
           v-hasPermi="['system:tenant:export']"
         >分配套餐</el-button>
       </el-col>
@@ -148,7 +150,7 @@
           plain
           icon="Finished"
           :disabled="single"
-          @click="handleExport"
+          @click="handleInitDataBase"
           v-hasPermi="['system:tenant:export']"
         >开通数据</el-button>
       </el-col>
@@ -439,47 +441,43 @@ function handleAddTenantDept() {
 
 /** 新增租户管理员用户 */
 function handleAddTenantAdmin(){
-  ElMessageBox.confirm(
-    '注意：初始化租户管理员，将会删除 该租户名下"所有用户"的角色信息，确认初始化吗?',
-    'Warning',
-    {
-      confirmButtonText: '确认初始化',
-      cancelButtonText: '取消初始化',
-      type: 'warning',
-    }
-  )
-    .then(() => {
-      // 获取选中租户的信息
-      reset();
-      const _tenantId = ids.value
-      getTenant(_tenantId).then(response => {
-        form.value = response.data;
-        // 调用新增部门接口
-        addTenantAdmin(form.value).then(response => {
-          proxy.$modal.msgSuccess(response.msg);
-        });
+  reset();
+  const _tenantId = ids.value
+  getTenant(_tenantId).then(response => {
+    form.value = response.data;
+    // 调用新增部门接口
+    addTenantAdmin(form.value).then(response => {
+      proxy.$modal.msgSuccess(response.msg);
+    });
+  });  
+}
+
+/** 一键处理住户初始化操作 */
+function handleOneClickAddDeptAdmin(){
+  reset();
+  const _tenantId = ids.value
+  getTenant(_tenantId).then(response => {
+    form.value = response.data;
+    // 调用新增部门接口
+    addTenantDept(form.value).then(response => {
+      proxy.$modal.msgSuccess(response.msg);
+      // 调用新增管理员接口
+      addTenantAdmin(form.value).then(response => {
+        proxy.$modal.msgSuccess(response.msg);
       });
-      ElMessage({
-        type: 'success',
-        message: '初始化成功！',
-      })
-    })
-    .catch(() => {
-      ElMessage({
-        type: 'info',
-        message: '已取消初始化！',
-      })
-    })
-  
+    }); 
+  });   
 }
 
 /** 租户分配套餐 */
-
-
-/** 一键处理住户初始化操作 */
-
+function handleAssignRoles(){
+  ElMessage.warning("分配套餐 功能尚未开发！");
+}
 
 /** 租户开通数据操作 */
+function handleInitDataBase(){
+  ElMessage.warning("开通数据 功能尚未开发！");
+}
 
 getList();
 </script>

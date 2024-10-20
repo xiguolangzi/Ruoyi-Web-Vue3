@@ -96,19 +96,19 @@
       </el-table-column>
       <el-table-column
         label="表名称"
-        align="center"
+        align="left"
         prop="tableName"
         :show-overflow-tooltip="true"
       />
       <el-table-column
         label="表描述"
-        align="center"
+        align="left"
         prop="tableComment"
         :show-overflow-tooltip="true"
       />
       <el-table-column
         label="实体"
-        align="center"
+        align="left"
         prop="className"
         :show-overflow-tooltip="true"
       />
@@ -183,7 +183,7 @@ const uniqueId = ref("");
 const data = reactive({
   queryParams: {
     pageNum: 1,
-    pageSize: 10,
+    pageSize: 30,
     tableName: undefined,
     tableComment: undefined
   },

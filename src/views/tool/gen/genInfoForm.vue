@@ -92,6 +92,7 @@
             </el-tooltip>
           </template>
           <tree-select
+            style="width: 200px;"
             v-model:value="info.parentMenuId"
             :options="menuOptions"
             :objMap="{ value: 'menuId', label: 'menuName', children: 'children' }"

@@ -157,7 +157,21 @@ export const dynamicRoutes = [
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
       }
     ]
-  }
+  },
+  {
+    path: '/product',
+    component: Layout,
+    hidden: true,
+    permissions: ['product:product:add'],
+    children: [
+      {
+        path: '/product/edit',
+        component: () => import('@/views/product/product/edit'),
+        name: 'editProduct',
+        meta: { title: '编辑商品', activeMenu: '/product/product' }
+      }
+    ]
+  },
 ]
 
 const router = createRouter({

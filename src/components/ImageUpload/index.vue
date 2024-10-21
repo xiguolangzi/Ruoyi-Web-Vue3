@@ -16,6 +16,7 @@
       :file-list="fileList"
       :on-preview="handlePictureCardPreview"
       :class="{ hide: fileList.length >= limit }"
+      :style="{ '--imgSize': imgSize + 'px' }"
     >
       <el-icon class="avatar-uploader-icon"><plus /></el-icon>
     </el-upload>
@@ -58,7 +59,7 @@ const props = defineProps({
   // 大小限制(MB)
   fileSize: {
     type: Number,
-    default: 5,
+    default: 2,
   },
   // 文件类型, 例如['png', 'jpg', 'jpeg']
   fileType: {
@@ -68,7 +69,12 @@ const props = defineProps({
   // 是否显示提示
   isShowTip: {
     type: Boolean,
-    default: true
+    default: true,
+  },
+  // 设置上传图片样式大小
+  isImgSize: {
+    type: Number,
+    default: 100,
   },
 });
 
@@ -76,37 +82,47 @@ const { proxy } = getCurrentInstance();
 const emit = defineEmits();
 const number = ref(0);
 const uploadList = ref([]);
+// 预览图片路径
 const dialogImageUrl = ref("");
+// 控制弹出预览窗口
 const dialogVisible = ref(false);
+// 拼接前缀("/dev-api")
 const baseUrl = import.meta.env.VITE_APP_BASE_API;
-const uploadImgUrl = ref(import.meta.env.VITE_APP_BASE_API + "/common/upload"); // 上传的图片服务器地址
+// 上传的图片服务器地址(请求路径)
+const uploadImgUrl = ref(import.meta.env.VITE_APP_BASE_API + "/common/upload");
 const headers = ref({ Authorization: "Bearer " + getToken() });
 const fileList = ref([]);
 const showTip = computed(
   () => props.isShowTip && (props.fileType || props.fileSize)
 );
+// 控制组件的大小
+const imgSize = computed(() => props.isImgSize || 100);
 
-watch(() => props.modelValue, val => {
-  if (val) {
-    // 首先将值转为数组
-    const list = Array.isArray(val) ? val : props.modelValue.split(",");
-    // 然后将数组转为对象数组
-    fileList.value = list.map(item => {
-      if (typeof item === "string") {
-        // 如果图片路径包含 baseUrl 或者 http开头，则直接使用，否则加上baseUrl
-        if (item.indexOf(baseUrl) === -1 && item.indexOf("http") === -1) {
-          item = { name: baseUrl + item, url: baseUrl + item };
-        } else {
-          item = { name: item, url: item };
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val) {
+      // 首先将值转为数组
+      const list = Array.isArray(val) ? val : props.modelValue.split(",");
+      // 然后将数组转为对象数组
+      fileList.value = list.map((item) => {
+        if (typeof item === "string") {
+          // 如果图片路径包含 baseUrl 或者 http开头，则直接使用，否则加上baseUrl
+          if (item.indexOf(baseUrl) === -1 && item.indexOf("http") === -1) {
+            item = { name: baseUrl + item, url: baseUrl + item };
+          } else {
+            item = { name: item, url: item };
+          }
         }
-      }
-      return item;
-    });
-  } else {
-    fileList.value = [];
-    return [];
-  }
-},{ deep: true, immediate: true });
+        return item;
+      });
+    } else {
+      fileList.value = [];
+      return [];
+    }
+  },
+  { deep: true, immediate: true }
+);
 
 // 上传前loading加载
 function handleBeforeUpload(file) {
@@ -116,7 +132,7 @@ function handleBeforeUpload(file) {
     if (file.name.lastIndexOf(".") > -1) {
       fileExtension = file.name.slice(file.name.lastIndexOf(".") + 1);
     }
-    isImg = props.fileType.some(type => {
+    isImg = props.fileType.some((type) => {
       if (file.type.indexOf(type) > -1) return true;
       if (fileExtension && fileExtension.indexOf(type) > -1) return true;
       return false;
@@ -162,7 +178,7 @@ function handleUploadSuccess(res, file) {
 
 // 删除图片
 function handleDelete(file) {
-  const findex = fileList.value.map(f => f.name).indexOf(file.name);
+  const findex = fileList.value.map((f) => f.name).indexOf(file.name);
   if (findex > -1 && uploadList.value.length === number.value) {
     fileList.value.splice(findex, 1);
     emit("update:modelValue", listToString(fileList.value));
@@ -173,7 +189,9 @@ function handleDelete(file) {
 // 上传结束处理
 function uploadedSuccessfully() {
   if (number.value > 0 && uploadList.value.length === number.value) {
-    fileList.value = fileList.value.filter(f => f.url !== undefined).concat(uploadList.value);
+    fileList.value = fileList.value
+      .filter((f) => f.url !== undefined)
+      .concat(uploadList.value);
     uploadList.value = [];
     number.value = 0;
     emit("update:modelValue", listToString(fileList.value));
@@ -209,6 +227,20 @@ function listToString(list, separator) {
 <style scoped lang="scss">
 // .el-upload--picture-card 控制加号部分
 :deep(.hide .el-upload--picture-card) {
-    display: none;
+  display: none;
+}
+
+// bug 预览图片时，关闭提示
+:deep(.el-icon--close-tip) {
+  display: none !important;
+}
+
+// 控制上传图片组件 上传之前的大小
+:deep(.el-upload--picture-card) {
+  --el-upload-picture-card-size: var(--imgSize);
+}
+// 控制上传图片组件 上传之后的大小
+:deep(.el-upload-list--picture-card) {
+  --el-upload-list-picture-card-size: var(--imgSize) !important;
 }
 </style>

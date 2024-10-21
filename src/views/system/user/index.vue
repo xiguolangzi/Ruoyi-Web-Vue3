@@ -29,30 +29,27 @@
          <!--用户数据-->
          <el-col :span="20" :xs="24">
             <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-               <el-form-item label="用户名称" prop="userName">
+               <el-form-item label="用户名称 :" prop="userName">
                   <el-input
                      v-model="queryParams.userName"
                      placeholder="请输入登录用户名称"
                      clearable
-                     style="width: 240px"
                      @keyup.enter="handleQuery"
                   />
                </el-form-item>
-               <el-form-item label="手机号码" prop="phonenumber">
+               <el-form-item label="手机号码 :" prop="phonenumber">
                   <el-input
                      v-model="queryParams.phonenumber"
                      placeholder="请输入手机号码"
                      clearable
-                     style="width: 240px"
                      @keyup.enter="handleQuery"
                   />
                </el-form-item>
-               <el-form-item label="状态" prop="status">
+               <el-form-item label="状态 :" prop="status">
                   <el-select
                      v-model="queryParams.status"
                      placeholder="用户状态"
                      clearable
-                     style="width: 240px"
                   >
                      <el-option
                         v-for="dict in sys_normal_disable"
@@ -62,7 +59,7 @@
                      />
                   </el-select>
                </el-form-item>
-               <el-form-item label="创建时间" style="width: 308px;">
+               <el-form-item label="创建时间 :" style="width: 300px;margin-right: 20px;">
                   <el-date-picker
                      v-model="dateRange"
                      value-format="YYYY-MM-DD"
@@ -639,3 +636,20 @@ function submitForm() {
 getDeptTree();
 getList();
 </script>
+
+<style scoped lang="scss">
+.app-container{
+   .el-form-item {
+         margin-right: 0px;
+         flex-shrink: 0;
+   
+         .el-input,
+         .el-select,
+         .el-tree-select {
+            width: 150px;
+         }
+      }
+   
+}
+   
+</style>

@@ -233,7 +233,7 @@
           <el-table v-loading="loading" :data="productDetail.productSkuList">
             <el-table-column label="图片" align="center" show-overflow-tooltip>
               <template #default="scope">
-                <image-preview :src="scope.row.skuImage" :width="80" :height="80" />
+                <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
               </template>
             </el-table-column>
             <el-table-column label="规格编码" align="center" prop="skuCode" show-overflow-tooltip />
@@ -249,29 +249,29 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="价格" header-align="center" align="left" show-overflow-tooltip>
+            <el-table-column label="价格" header-align="center" align="left" width="140px">
               <template #default="scope">
-                <div>
+                <div class="price">
                   <Strong> 价格1: </Strong>
                   <span> {{ formatTwo(scope.row.skuPrice1) }} €</span>
                 </div>
-                <div>
+                <div class="price">
                   <Strong> 价格2: </Strong>
                   <span> {{ formatTwo(scope.row.skuPrice2) }} €</span>
                 </div>
-                <div>
+                <div class="price">
                   <Strong> 价格3: </Strong>
                   <span> {{ formatTwo(scope.row.skuPrice3) }} €</span>
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="库存数量" align="center" prop="skuStock" show-overflow-tooltip />
-            <el-table-column label="状态" align="center" prop="skuStatus" show-overflow-tooltip>
+            <el-table-column label="库存数量" align="center" prop="skuStock" width="80" />
+            <el-table-column label="状态" align="center" prop="skuStatus" width="60">
               <template #default="scope">
                 <dict-tag :options="product_status" :value="scope.row.skuStatus" />
               </template>
             </el-table-column>
-            <el-table-column label="最后修改" align="center" prop="updateBy" show-overflow-tooltip />
+            <el-table-column label="最后修改" align="center" prop="updateBy" width="50" show-overflow-tooltip />
           </el-table>
         </el-card>
       </div>
@@ -591,5 +591,11 @@ getList(); // 获取商品列表
   .el-tree-select {
     width: 150px;
   }
+}
+
+.price {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

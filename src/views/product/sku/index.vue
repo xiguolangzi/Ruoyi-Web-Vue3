@@ -42,7 +42,12 @@
     </el-row>
 
     <el-table v-loading="loading" :data="skuList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
+      <el-table-column type="selection" width="55" align="center"  v-if="controlUpdateAndDeleteSwitch" />
+      <el-table-column label="sku图片" align="center" prop="skuImage" width="100">
+        <template #default="scope">
+          <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
+        </template>
+      </el-table-column>
       <el-table-column label="商品编码" align="center" prop="productCode" />
       <el-table-column label="商品名称" align="center" prop="productName" />
       <el-table-column label="suk编号" align="center" prop="skuCode" />
@@ -58,12 +63,6 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="sku图片" align="center" prop="skuImage" width="100">
-        <template #default="scope">
-          <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
-        </template>
-      </el-table-column>
-
       <el-table-column label="价格" header-align="center" align="left"  width="140" show-overflow-tooltip>
         <template #default="scope">
           <div class="price">

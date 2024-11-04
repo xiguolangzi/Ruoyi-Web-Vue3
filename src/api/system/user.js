@@ -10,6 +10,14 @@ export function listUser(query) {
   })
 }
 
+// 查询采购员列表
+export function listBuyer() {
+  return request({
+    url: '/system/user/buyerList',
+    method: 'get',
+  })
+}
+
 // 查询用户详细
 export function getUser(userId) {
   return request({

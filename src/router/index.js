@@ -166,9 +166,23 @@ export const dynamicRoutes = [
     children: [
       {
         path: '/product/edit',
-        component: () => import('@/views/product/product/edit'),
+        component: () => import('@/views/product/product/editProduct'),
         name: 'editProduct',
-        meta: { title: '编辑商品', activeMenu: '/product/product' }
+        meta: { title: '编辑商品' }
+      }
+    ]
+  },
+  {
+    path: '/order/purchaseOrder',
+    component: Layout,
+    hidden: true,
+    permissions: ['order:purchaseOrder:add'],
+    children: [
+      {
+        path: '/order/purchaseOrder/edit',
+        component: () => import('@/views/order/purchaseOrder/editPurchaseOrder'),
+        name: 'editPurchaseOrder',
+        meta: { title: '编辑采购订单' }
       }
     ]
   },

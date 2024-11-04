@@ -1,5 +1,15 @@
 import request from '@/utils/request'
 
+// 根据skuID查询库存数量
+export function selectStockBySkuId(skuId) {
+  return request({
+    url: '/product/sku/selectStockBySkuId/' + skuId,
+    method: 'get'
+  })
+}
+
+
+
 // 查询sku列表
 export function listSku(query) {
   return request({

@@ -60,9 +60,15 @@
             <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
               {{ item[1] }}
             </span>
+            <span v-if="item[0] == '' || item[0] == 'skuName'"> -- -- </span>
           </div>
         </template>
       </el-table-column>
+      <el-table-column label="单位" prop="skuUnit" width="80" align="center" show-overflow-tooltip>
+        <template #default="scope">
+            <span>{{getUnitCode(scope.row.skuUnit)}}</span>
+        </template>
+      </el-table-column> 
       <el-table-column label="价格" header-align="center" align="left"  width="140" show-overflow-tooltip>
         <template #default="scope">
           <div class="price">
@@ -173,6 +179,7 @@
 <script setup name="Sku">
 import { listSku, getSku, delSku, addSku, updateSku } from "@/api/product/sku";
 import useUserStore from "@/store/modules/user";
+import { listUnit } from "@/api/product/unit";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -189,6 +196,26 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const unitList = ref([]);
+// 默认选择计量单位
+const baseUnit = "0";
+
+/** 获取计量单位code */
+const getUnitCode = (unitId) => {
+  if (!unitList.value) {
+    return "";
+  }
+  if (!unitId) {
+    return "";
+  }
+  let unitCode = "";
+  unitList.value.forEach((item) => {
+    if (item.unitId === unitId) {
+      unitCode = item.unitCode;
+    }
+  });
+  return unitCode;
+};
 
 // 控制修改和删除的状态
 const controlUpdateAndDeleteSwitch = ref(false);
@@ -273,7 +300,8 @@ function reset() {
     createTime: null,
     updateBy: null,
     updateTime: null,
-    tenantId: null
+    tenantId: null,
+    skuUnit: null
   };
   proxy.resetForm("skuRef");
 }
@@ -354,6 +382,24 @@ function handleExport() {
   }, `sku_${new Date().getTime()}.xlsx`)
 }
 
+/** 获取计量单位下拉框数据 */
+function getUnitList() {
+  listUnit({})
+    .then((response) => {
+      // 产品只赋值基础单位
+      unitList.value = response.rows.filter((row) => row.unitType === baseUnit);
+      if (unitList.value.length > 0) {
+        form.value.unitId = unitList.value[0].unitId;
+      } else {
+        console.log("提示：请维护计量单位！！");
+      }
+    })
+    .catch((error) => {
+      console.error("获取计量单位列表时出错:", error);
+    });
+}
+
+getUnitList()
 getList();
 </script>
 

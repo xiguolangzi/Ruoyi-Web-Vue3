@@ -188,7 +188,7 @@
             </el-descriptions-item>
             <el-descriptions-item label="计量单位" align="center">
               {{
-              getUnitName(productDetail.unitId) ? productDetail.unitId : "--"
+              productDetail.unitId ? getUnitName(productDetail.unitId) : "--"
               }}
             </el-descriptions-item>
             <el-descriptions-item label="状态" align="center">

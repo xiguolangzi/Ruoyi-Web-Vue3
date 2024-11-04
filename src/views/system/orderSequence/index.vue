@@ -3,22 +3,12 @@
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="订单类型" prop="orderType">
         <el-select v-model="queryParams.orderType" placeholder="请选择订单类型" clearable>
-          <el-option
-            v-for="dict in order_sequence_type"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+          <el-option v-for="dict in order_sequence_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
-          <el-option
-            v-for="dict in project_general_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+          <el-option v-for="dict in project_general_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -29,42 +19,20 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['system:orderSequence:add']"
-        >新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd"
+          v-hasPermi="['system:orderSequence:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['system:orderSequence:edit']"
-        >修改</el-button>
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
+          v-hasPermi="['system:orderSequence:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['system:orderSequence:remove']"
-        >删除</el-button>
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete"
+          v-hasPermi="['system:orderSequence:remove']">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['system:orderSequence:export']"
-        >导出</el-button>
+        <el-button type="warning" plain icon="Download" @click="handleExport"
+          v-hasPermi="['system:orderSequence:export']">导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
@@ -74,15 +42,19 @@
       <el-table-column label="主键ID" align="center" prop="id" />
       <el-table-column label="订单类型" align="center" prop="orderType">
         <template #default="scope">
-          <dict-tag :options="order_sequence_type" :value="scope.row.orderType"/>
+          <dict-tag :options="order_sequence_type" :value="scope.row.orderType" />
         </template>
       </el-table-column>
       <el-table-column label="订单前缀" align="center" prop="orderPrefix" min-width="80" show-overflow-tooltip />
       <el-table-column label="时间格式" align="center" prop="dateType" min-width="80" show-overflow-tooltip />
-      <el-table-column label="当前单号" align="center" prop="currentValue" min-width="120" show-overflow-tooltip />
+      <el-table-column label="当前单号" align="center" prop="currentValue" min-width="120" show-overflow-tooltip>
+        <template #default="scope">
+          <span>{{ scope.row.currentValue.toString().padStart(6, '0') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="状态" align="center" prop="status">
         <template #default="scope">
-          <dict-tag :options="project_general_status" :value="scope.row.status"/>
+          <dict-tag :options="project_general_status" :value="scope.row.status" />
         </template>
       </el-table-column>
       <el-table-column label="租户id" align="center" prop="tenantId" />
@@ -101,44 +73,33 @@
       <el-table-column label="乐观锁" align="center" prop="version" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:orderSequence:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['system:orderSequence:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+            v-hasPermi="['system:orderSequence:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
+            v-hasPermi="['system:orderSequence:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-    
-    <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+
+    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+      @pagination="getList" />
 
     <!-- 添加或修改单号序列配置对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="orderSequenceRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="订单类型" prop="orderType">
           <el-select v-model="form.orderType" placeholder="请选择订单类型">
-            <el-option
-              v-for="dict in order_sequence_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            ></el-option>
+            <el-option v-for="dict in order_sequence_type" :key="dict.value" :label="dict.label"
+              :value="dict.value"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="订单前缀" prop="orderPrefix">
           <el-input v-model="form.orderPrefix" placeholder="请输入订单前缀" />
         </el-form-item>
         <el-form-item label="时间格式" prop="dateType">
-         <el-select v-model="form.dateType" placeholder="请选择时间格式" clearable>
-            <el-option
-              v-for="dict in order_sequence_date_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            ></el-option>
+          <el-select v-model="form.dateType" placeholder="请选择时间格式" clearable>
+            <el-option v-for="dict in order_sequence_date_type" :key="dict.value" :label="dict.label"
+              :value="dict.value"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="当前单号" prop="currentValue">
@@ -150,11 +111,8 @@
         </div>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status" disabled>
-            <el-radio
-              v-for="dict in project_general_status"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
+            <el-radio v-for="dict in project_general_status" :key="dict.value"
+              :label="dict.value">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>

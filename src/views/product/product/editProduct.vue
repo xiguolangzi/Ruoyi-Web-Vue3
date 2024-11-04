@@ -149,7 +149,7 @@
                     <div class="spec-values">
                       <el-input v-for="(value, index) in scope.row.values" :key="index"
                         v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)">
-                        <!----scope.$index 当前行数； index 在scope.row.vakues中的索引 可以用过 v-if="!exist(scope.row,index)" 控制删除初始化的规格值 -->
+                        <!----scope.$index 当前行数； index 在scope.row.values中的索引 可以用过 v-if="!exist(scope.row,index)" 控制删除初始化的规格值 -->
                         <template #append v-if="!exist(scope.row, index)">
                           <el-button @click="removeSpecValue(scope.$index, index)" icon="Minus"></el-button>
                         </template>
@@ -213,6 +213,11 @@
                     <el-input-number v-model="scope.row.skuPrice3" :precision="2" :step="0.01"></el-input-number>
                   </template>
                 </el-table-column>
+                <el-table-column label="单位" prop="skuUnit" width="80" align="center" show-overflow-tooltip>
+                  <template #default="scope">
+                     <span>{{getUnitCode(scope.row.skuUnit)}}</span>
+                  </template>
+                </el-table-column> 
                 <el-table-column label="库存" prop="skuStock">
                   <template #default="scope">
                     <el-input-number v-model="scope.row.skuStock" disabled>
@@ -260,11 +265,13 @@ import { listUnit } from "@/api/product/unit";
 import { listBrand } from "@/api/product/brand";
 import { listSkuName } from "@/api/product/skuName";
 import { useRouter, useRoute } from "vue-router";
+import useTagsViewStore from '@/store/modules/tagsView';
 import { ElMessage } from "element-plus";
 import { cloneDeep } from "lodash";
 
 const router = useRouter();
 const route = useRoute();
+const tagsViewStore = useTagsViewStore();
 const categoryList = ref([]);
 const unitList = ref([]);
 const brandList = ref([]);
@@ -346,6 +353,17 @@ const rules = ref({
 // ************************************************  SKU部分 ******************************************************
 // SKU数据列表
 const specs = ref([{ name: "", values: [""], selected: false }]);
+
+/** 获取计量单位code */
+const getUnitCode = (unitId) => {
+  let unitCode = "";
+  unitList.value.forEach((item) => {
+    if (item.unitId === unitId) {
+      unitCode = item.unitCode;
+    }
+  });
+  return unitCode;
+};
 // SKU表单列表
 const productSkuList = ref([]);
 const newProductSkuList = ref([]);
@@ -408,6 +426,7 @@ const generateCombinations = () => {
     skuPrice3: "",
     skuStock: 0,
     skuStatus: "0",
+    skuUnit: form.value.unitId,
     productId: form.value.productId,
     productCode: form.value.productCode,
     productName: form.value.productName,
@@ -428,7 +447,6 @@ const generateCombinations = () => {
     // 否则保持 newProductSkuList 中的原始值
     return item;
   });
-  console.log("&&&&&&&&&&&&&&&&&&&&&&", productSkuList.value);
 };
 
 /** 监听 配置规格变化 -> 更新 productSkuList */ 
@@ -647,8 +665,16 @@ const goToSecond = () => {
   activeName.value = "second";
 };
 const goBack = () => {
+  // 当前要关闭的 tabs
+  const view = {
+    path: route.path,
+    name: route.name,
+    meta: route.meta,
+  };
+  // 关闭当前 tab
+  proxy.$tab.closePage(view)
   router.push({
-    path: "/productManagement/product",
+    path: "/productManage/product",
   });
 };
 // taps 界面切换之前的校验 newValue当前标签名、oldValue将要前往的标签名

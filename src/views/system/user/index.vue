@@ -275,9 +275,25 @@
                </el-col>
             </el-row>
             <el-row>
-               <el-col :span="24">
+               <el-col :span="12">
                   <el-form-item label="备注">
                      <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"></el-input>
+                  </el-form-item>
+               </el-col>
+               <el-col :span="12">
+                  <el-form-item label="业务分类">
+                     <el-select
+                        v-model="form.businessType"
+                        clearable
+                        placeholder="采购/销售"
+                     >
+                        <el-option
+                           v-for="item in sys_user_business_type"
+                           :key="item.value"
+                           :label="item.label"
+                           :value="item.value"
+                        />
+                     </el-select>
                   </el-form-item>
                </el-col>
             </el-row>
@@ -336,7 +352,7 @@ const userStore = useUserStore();
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
-const { sys_normal_disable, sys_user_sex } = proxy.useDict("sys_normal_disable", "sys_user_sex");
+const { sys_normal_disable, sys_user_sex , sys_user_business_type} = proxy.useDict("sys_normal_disable", "sys_user_sex" , "sys_user_business_type");
 
 const userList = ref([]);
 const open = ref(false);

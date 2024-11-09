@@ -186,6 +186,20 @@ export const dynamicRoutes = [
       }
     ]
   },
+  {
+    path: '/purchaseManage/receipts',
+    component: Layout,
+    hidden: true,
+    permissions: ['purchaseManage:receipts:add'],
+    children: [
+      {
+        path: '/purchaseManage/receipts/edit',
+        component: () => import('@/views/order/receipts/editReceipts'),
+        name: 'editReceipts',
+        meta: { title: '编辑采购入库单' }
+      }
+    ]
+  },
 ]
 
 const router = createRouter({

@@ -83,7 +83,7 @@
               style="width: 100%" 
               highlight-first-item
               @select="handleSupplierSelect"              
-              @blur="handleInputChange"
+              @blur="handleSupplierOnBlur"
               >
                 <template #default="{ item }">
                   <div class="supplier-item" >
@@ -216,7 +216,7 @@ import { TableV2SortOrder } from 'element-plus'
 const columns = computed(() => [
   {
     key: 'actions',
-    title: '',
+    title: '删除',
     width: 60,
     align: 'center',
     fixed:'left',
@@ -245,10 +245,11 @@ const columns = computed(() => [
     title: '商品编码',
     width: 180,
     align: 'center',
-    fixed:'left',
     cellRenderer: ({ rowData, rowIndex  }) => {
+      const inputId = getInputId(rowIndex, 'productCode')
       if (form.value.orderStatus === OrderStatusEnum.EDIT) {
         return h(ElAutocomplete, {
+          id: inputId,
           modelValue: rowData.productCode,
           'onUpdate:modelValue': (value) => {
             form.value.items[rowIndex].productCode = value
@@ -257,7 +258,12 @@ const columns = computed(() => [
           placeholder: '输入商品编码或名称',
           highlightFirstItem: true,
           onSelect: (item) => handleProductSelect(item, rowIndex),
-          onBlur: () => handleInputChange2(rowIndex),
+          onBlur: () => handleProductOnBlur(rowIndex),
+          onKeydown: (e) => handleAutocompleteKeydown(e, rowIndex, 'productCode'),
+          onFocus: () => {
+            currentFocus.value = { rowIndex, columnKey: 'productCode' };
+            isAutocompleteEdit.value = true;
+          },
         }, {
           default: ({ item }) => h('div', { style: { display: 'flex', justifyContent:'space-between', alignItems: 'center' } }, [
             h('div', `${item.productCode} - ${item.productName}`),
@@ -417,6 +423,9 @@ const columns = computed(() => [
         onFocus: () => {
           currentFocus.value = { rowIndex, columnKey: 'unitPrice' }
         },
+        onBlur: () => {
+          currentFocus.value = null
+        },
         precision: 2,
         min: 0,
         max: 99999,
@@ -452,6 +461,9 @@ const columns = computed(() => [
         onFocus: () => {
           currentFocus.value = { rowIndex, columnKey: 'discountRate' }
         },
+        onBlur: () => {
+          currentFocus.value = null
+        },
         precision: 0,
         min: 0,
         max: 100,
@@ -484,6 +496,9 @@ const columns = computed(() => [
         onKeydown: (e) => handleKeyNavigation(e, rowIndex, 'taxRate'),
         onFocus: () => {
           currentFocus.value = { rowIndex, columnKey: 'taxRate' }
+        },
+        onBlur: () => {
+          currentFocus.value = null
         },
         precision: 0,
         min: 0,
@@ -520,9 +535,9 @@ const columns = computed(() => [
 const tableData = computed(() => form.value.items)
 
 // 绑定 虚拟表格，用于滚动事件
-const tableRef = ref(null)
+const tableRef = ref(false)
 /** 处理失去焦点后 清除焦点问题 */
-const isKeyScrolling = ref(false); // 用于标记是否是键盘触发的滚动
+const isKeyScrolling = ref(true); // 用于标记是否是键盘触发的滚动
 // 用于引用隐藏的输入框
 const hiddenInput = ref(null); 
 /** 虚拟表格 - 现存量字段 排序 */
@@ -530,6 +545,7 @@ const sortState = ref({
   key: 'column-0',
   order: TableV2SortOrder.ASC,
 })
+/** 虚拟表格 - 现存量字段 排序 */
 const onSort = (sortBy) => {
   console.log(sortBy)
   tableData.value = tableData.value.reverse()
@@ -537,6 +553,22 @@ const onSort = (sortBy) => {
 }
 
 //*******************************   虚拟表格 数据部分  end *************************
+
+//***********************   虚拟表格 自动填充组件的键盘操作  start ***********************
+// 自动填充单元格 编辑状态
+const isAutocompleteEdit = ref(true);
+const handleAutocompleteKeydown = (event,rowIndex,columnKey) => {
+  // 如果 非 自动填充单元格 编辑状态 -> 触发全局键盘移动事件
+  if (!isAutocompleteEdit.value) {
+    // 阻止事件冒泡，避免触发虚拟表格的上移逻辑
+    event.stopPropagation();  
+    handleKeyNavigation(event,rowIndex,columnKey)
+    isAutocompleteEdit.value = true
+  }
+};
+
+//***********************   虚拟表格 自动填充组件的键盘操作  end *************************
+
 
 // ******************************  控制键盘操作焦点事件  start *************************
 // 当前焦点位置
@@ -554,18 +586,18 @@ const editableColumns = [
   'taxRate'
 ]
 
-// 获取表格数据总行数
+/** 获取表格数据总行数 */ 
 const getTableRowCount = () => {
   return tableData.value?.length || 0
 }
 
-// 检查行索引是否有效
+/** 检查行索引是否有效 */ 
 const isValidRowIndex = (rowIndex) => {
   const totalRows = getTableRowCount()
-  return rowIndex >= 0 && rowIndex < totalRows
+  return rowIndex >= 0 && rowIndex <= totalRows
 }
 
-// 更新焦点状态
+/** 更新焦点状态 */ 
 const updateFocusState = async (rowIndex, columnKey) => {
   currentFocus.value = { ...currentFocus.value, rowIndex, columnKey }
 }
@@ -626,27 +658,7 @@ const handleKeyNavigation = (e, currentRowIndex, currentColumnKey) => {
       
     case 'Enter':
       if (currentRowIndex < tableData.value.length - 1) {
-        nextRowIndex = currentRowIndex + 1
-      }
-      break
-
-    case 'Tab':
-      if (e.shiftKey) {
-        // Shift + Tab 向左移动
-        if (currentColIndex > 0) {
-          nextColumnKey = editableColumns[currentColIndex - 1]
-        } else if (currentRowIndex > 0) {
-          nextRowIndex = currentRowIndex - 1
-          nextColumnKey = editableColumns[editableColumns.length - 1]
-        }
-      } else {
-        // Tab 向右移动
-        if (currentColIndex < editableColumns.length - 1) {
-          nextColumnKey = editableColumns[currentColIndex + 1]
-        } else if (currentRowIndex < tableData.value.length - 1) {
-          nextRowIndex = currentRowIndex + 1
-          nextColumnKey = editableColumns[0]
-        }
+        nextRowIndex = Math.min(currentRowIndex + 1, totalRows - 1)
       }
       break
 
@@ -663,15 +675,15 @@ const moveFocus = (rowIndex, columnKey) => {
   try {
     // 边界检查
     if (!isValidRowIndex(rowIndex)) {
-      //ElMessage.warning(`行索引 ${rowIndex} 超出范围`)
+      ElMessage.warning(`行索引 ${rowIndex} 超出范围`)
       return
     }
 
     // 先滚动到目标行
     if (tableRef.value) {
-      ElMessage.error(`移动焦点之前`)
+      //ElMessage.error(`移动焦点之前`)
       tableRef.value.scrollToRow(rowIndex)
-      ElMessage.error(`移动焦点到：${rowIndex}`)
+      //ElMessage.error(`移动焦点到：${rowIndex}`)
     }
 
     // 更新焦点状态
@@ -683,7 +695,7 @@ const moveFocus = (rowIndex, columnKey) => {
       const targetInput = document.getElementById(inputId)
       if (targetInput) {
         // 标识键盘触发的滚动
-        ElMessage.error(`重新聚焦`)
+        ElMessage.error(`重新聚焦到：${rowIndex}`)
         isKeyScrolling.value = true;
         targetInput.focus()
         
@@ -701,19 +713,19 @@ const moveFocus = (rowIndex, columnKey) => {
   
 }
 
-// lodash防抖处理滚动
+/** lodash防抖处理滚动 */ 
 const debouncedScroll = debounce(() => {
-  ElMessage.error(`修改 键盘操作状态 ---   === false`)
+  //ElMessage.error(`修改 键盘操作状态 ---   === false`)
   isKeyScrolling.value = false;
 }, 2);
 
-
+/** 鼠标滚动 焦点处理 */
 const handleScroll = () => {
   // 可以根据 scrollTop 和 scrollLeft 来获取视图顶端的rowIndex 和 columnKey
   //ElMessage.error(`触发滚动事件 - 滚动位置：${scrollTop} - ${scrollLeft}`)
   // 检查当前是否是键盘滚动
     if (isKeyScrolling.value) {
-      ElMessage.error(`触发滚动事件 - 不做任何处理！ - 键盘滚动：${isKeyScrolling.value}`)
+      //ElMessage.error(`触发滚动事件 - 不做任何处理！ - 键盘滚动：${isKeyScrolling.value}`)
       // 重置 isKeyScrolling 状态
       // isKeyScrolling.value = false;
       // 修改成防抖处理，否则有时会连续触发滚动事件，导致无法聚焦移动
@@ -722,7 +734,7 @@ const handleScroll = () => {
     } else {
       // 手动滚动才移除焦点
       hiddenInput.value.focus(); 
-      ElMessage.error(`触发滚动事件 - 移除焦点！  - 键盘滚动： ${isKeyScrolling.value}`)
+      //ElMessage.error(`触发滚动事件 - 移除焦点！  - 键盘滚动： ${isKeyScrolling.value}`)
     }
 }
 
@@ -754,7 +766,7 @@ const removeTouchEventListeners = () => {
 onMounted(() => {
   // 组件挂载后设置初始焦点
   if (tableData.value.length > 0) {
-    moveFocus(0, 'productCode')
+    moveFocus(0, 'quantity')
   }
   // 监听触屏滚动事件
   addTouchEventListeners();
@@ -770,6 +782,7 @@ onBeforeUnmount(() => {
 
 const { proxy } = getCurrentInstance();
 const userStore = useUserStore();
+// 订单操作记录
 const orderOperateLog = ref([])
 
 // 订单状态枚举
@@ -809,7 +822,7 @@ const rules = {
 }
 
 
-// *******************************************  数据展示 ********************************************
+// ******************************  数据展示  start **************************
 /** 格式化金额 - 通过Math.round处理小数点精度(5不进位的BUG) */ 
 const formatAmount = (amount) => {
   return amount ? (Math.round(amount * 100) / 100).toFixed(2) : '0.00';
@@ -870,11 +883,11 @@ const getBuyers = () => {
   })
 }
 
-// *******************************************  供应商 数据模糊查询处理 ********************************************
+// ******************************  数据展示  end ****************************
+
+// *********************  供应商 数据模糊查询处理 start ***********************
 // 供应商 - 初始化列表
 const supplierList = ref([])
-const suggestions = ref([]);
-const highlightedIndex = ref(0);  // 默认高亮索引
 /** 供应商 - 获取列表 */
 const getSuppliers = () => {
   listSupplier().then(response => {
@@ -900,7 +913,7 @@ const handleSupplierSelect = (supplier) => {
   console.log("选择的结果：",form.value)
 }
 /** 供应商 -  失去焦点后 判断输入框中的内容与列表是否匹配 不匹配说明只修改没有选择操作 所以清空 */ 
-const handleInputChange = () => {
+const handleSupplierOnBlur = () => {
   const matchedSupplier = supplierList.value.find(supplier => supplier.supplierName === form.value.supplierName);
   if(!matchedSupplier){
     console.log("提示：输入的供应商名称与列表不匹配，未选中或回车确认，清空输入框内容！");
@@ -920,8 +933,9 @@ const handleInputChange = () => {
   }
 };
 
+// *********************  供应商 数据模糊查询处理 end ***********************
 
-// *******************************************  商品 数据模糊查询处理 ********************************************
+// **********************  商品 数据模糊查询处理 start ********************
 // 商品 - 初始化商品列表
 const skuList = ref([])
 /** 商品 - 获取列表 */
@@ -944,12 +958,15 @@ const queryProducts = (queryString, cb) => {
       sku.skuCode.toLowerCase().includes(queryString.toLowerCase()) ||
       sku.productName.toLowerCase().includes(queryString.toLowerCase())
     )
-    : skuList.value
+    : []
     console.log("商品搜索结果：",results)
   cb(results || [])
 }
 /** 商品 -  选择后调用的赋值操作 */
 const handleProductSelect = (sku, index) => {
+  // 切换 自动聚焦单元格的编辑状态
+  isAutocompleteEdit.value = false;
+
   const item = form.value.items[index]
   item.orderId = sku.orderId
   item.orderNo = sku.orderNo
@@ -963,19 +980,22 @@ const handleProductSelect = (sku, index) => {
   console.log("选择的结果：",item)
 }
 /** 商品 -  失去焦点后 判断输入框中的内容与列表是否匹配 不匹配说明只修改没有选择操作 所以清空 */ 
-const handleInputChange2 = (index) => {
-  console.log("商品索引：",index)
-  console.log("商品实际真是的结果：",form.value.items[index])
+const handleProductOnBlur = (index) => {
+  // 移除焦点
+  currentFocus.value = null;
+  isAutocompleteEdit.value = true;
+  //console.log("商品索引：",index)
+  //console.log("商品实际真是的结果：",form.value.items[index])
   const matchedSku = skuList.value.find(sku => sku.skuCode === form.value.items[index].skuCode);
-  console.log("商品实际-- 匹配 --的结果：",matchedSku)
+  //console.log("商品实际-- 匹配 --的结果：",matchedSku)
   if(!matchedSku){
-    console.log("提示：输入的商品编码不存在，未选中或回车确认，清空输入框内容！");
+    //console.log("提示：输入的商品编码不存在，未选中或未回车确认，清空输入框内容！");
     form.value.items[index] = {}
     ElMessage.error('提示：输入的内容不存在，清空输入框内容！');
     return;
   }
   if (matchedSku.productCode !== form.value.items[index].productCode) {
-    console.log("提示：输入的商品编码与列表不匹配，未选中或回车确认，清空输入框内容！");
+    //console.log("提示：输入的商品编码与列表不匹配，未选中或回车确认，清空输入框内容！");
     form.value.items[index] = {}
     ElMessage.error('提示：没有选择或回车确认，清空输入框内容！');
     return;
@@ -983,9 +1003,13 @@ const handleInputChange2 = (index) => {
 };
 
 
-
 /** 添加商品行 */ 
 const addItem = () => {
+  // 初始化聚焦操作
+  if (tableData.value.length == 0) {
+    //ElMessage.error('提示：添加商品开始聚焦');
+    moveFocus(currentFocus.value.rowIndex, currentFocus.value.columnKey)
+  }
   // 创建一个空数组来存储100条新记录
   const newItems = Array.from({ length: 100 }, () => ({
     detailId: '',
@@ -1009,14 +1033,16 @@ const addItem = () => {
   }))
   // 将新记录数组添加到现有数组中
   form.value.items.push(...newItems)
+  
 }
 
 /** 移除商品行 */ 
 const removeItem = (index) => {
   form.value.items.splice(index, 1)
 }
+// **********************  商品 数据模糊查询处理 end ********************
 
-// ********************************************  计算逻辑 ********************************************
+// ***************************  计算逻辑 start *******************************
 /** 计算金额*/
 const calculateRowAmount = (index) => {
   const item = form.value.items[index]
@@ -1031,8 +1057,9 @@ const finalTotalAmount = computed(() => {
   return form.value.items.reduce((sum, item) => sum + (item.finalAmount || 0), 0)
 })
 
+// ***************************  计算逻辑 end *******************************
 
-// ********************************************  操作 ********************************************
+// **************************    操作  start ********************************
 
 // 继续编辑订单
 const handleEdit = () => {
@@ -1102,7 +1129,9 @@ const handleRefreshStock = async () => {
   ElMessage.success('刷新现存量成功！')
 };
 
-// **************************************** 审核记录 + 提示弹窗 ****************************************
+// **************************    操作  end ********************************
+
+// ************************** 审核记录 + 提示弹窗 start ******************
 // 状态和加载
 const loading = ref(false)
 const dialogVisible = ref(false)
@@ -1226,6 +1255,7 @@ const submitApproval = () => {
   }, 800)
 }
 
+// ************************** 审核记录 + 提示弹窗 end ******************
 
 getUnitList()
 getSkuList()

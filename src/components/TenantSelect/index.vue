@@ -50,6 +50,14 @@ const handleTenantChange = () => {
     }
 };
 
+// 监听 tenantList 的变化并设置默认值
+watch(tenantList, (newVal) => {
+    if (newVal.length > 0 && !selectedTenantId.value) {
+        selectedTenantId.value = newVal[0].tenantId; // 默认选择第一个租户
+        userStore.tenantId = selectedTenantId.value; // 同步到用户状态
+    }
+});
+
 // 展示才获取租户列表，否则不会显示下拉框
 if (userStore.userType === "00") {
     show.value = true;

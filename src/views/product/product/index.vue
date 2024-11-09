@@ -87,7 +87,6 @@
             <span>{{ item.values.join(" 、 ") }}</span>
             <span v-if="!item.name"> -- </span>
           </div>
-
         </template>
       </el-table-column>
       <el-table-column label="计量单位" align="center" prop="unitId" width="80">

@@ -29,10 +29,10 @@ const useUserStore = defineStore(
         // 通知后端当前的国际化语言
         const languageStore = useLanguageStore()
         const javaLang = {
-            zh : "zh_CN",
-            es : "es_ES",
-            en : "en_US"
-          };
+          zh: "zh_CN",
+          es: "es_ES",
+          en: "en_US"
+        };
         let lang = computed(() => languageStore.language)
         changeLanguage(javaLang[lang.value]).then(res => {
           console.log("语言切换成功")
@@ -40,7 +40,7 @@ const useUserStore = defineStore(
         // Promise 是 JavaScript 中处理异步操作的一种方式
         return new Promise((resolve, reject) => {
           // 调用 @/api/login 中的 login 方法
-          login(taxNumber,username, password, code, uuid).then(res => {
+          login(taxNumber, username, password, code, uuid).then(res => {
             // 设置 cookie中的token
             setToken(res.token)
             // 重置store中的token
@@ -63,7 +63,7 @@ const useUserStore = defineStore(
             const avatar = (user.avatar == "" || user.avatar == null) ? defAva : import.meta.env.VITE_APP_BASE_API + user.avatar;
             // 00 系统用户 01 租户管理员 02 普通用户
             this.userType = user.userType || "02";
-            if (res.roles && res.roles.length > 0) { 
+            if (res.roles && res.roles.length > 0) {
               this.roles = res.roles
               this.permissions = res.permissions
             } else {
@@ -92,7 +92,7 @@ const useUserStore = defineStore(
           })
         })
       },
-      
+
     }
   })
 

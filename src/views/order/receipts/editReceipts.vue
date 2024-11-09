@@ -5,47 +5,39 @@
       <template #header>
         <div class="header-content">
           <div class="title">
-            <h2>采购订单详情</h2>
-            <el-tag :type=OrderStatusColor[form.orderStatus] >{{OrderStatusName[form.orderStatus]}}</el-tag>
+            <h2>采购入库单详情</h2>
+            <el-tag :type=OrderStatusColor[form.receiptsStatus] >{{OrderStatusName[form.receiptsStatus]}}</el-tag>
           </div>
           <div class="actions">
             <!-- 根据不同状态显示不同的操作按钮 -->
             <el-button-group class="ml-4" >
               <!-- 草稿状态 -->
-              <el-button type="primary" v-if="form.orderStatus === OrderStatusEnum.EDIT" @click="handleSave" v-hasPermi="['order:purchaseOrder:add','order:purchaseOrder:edit']" >
+              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.EDIT" @click="handleSave" v-hasPermi="['order:receipts:add','order:receipts:edit']" >
                 保存
               </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.EDIT" @click="handleDelete" v-hasPermi="['order:purchaseOrder:add','order:purchaseOrder:edit']" >
+              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.EDIT" @click="handleDelete" v-hasPermi="['order:receipts:add','order:receipts:edit']" >
                 删除
               </el-button>
               
-              <!-- 已保存状态 -->
-              <el-button type="primary" v-if="form.orderStatus === OrderStatusEnum.SAVE" @click="handleSubmitApproval"  v-hasPermi="['order:purchaseOrder:add','order:purchaseOrder:edit']">
-                提交审核
+              <!-- 待入库状态 -->
+              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.SAVE" @click="handleSubmitApproval"  v-hasPermi="['order:receipts:add','order:receipts:edit']">
+                确认入库
               </el-button>
-              <el-button type="warning" v-if="form.orderStatus === OrderStatusEnum.SAVE" @click="handleEdit"  v-hasPermi="['order:purchaseOrder:add','order:purchaseOrder:edit']" >
+              <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.SAVE" @click="handleEdit"  v-hasPermi="['order:receipts:add','order:receipts:edit']" >
                 继续编辑
               </el-button>
 
-              <!-- 待审核状态 -->
-              <el-button type="success" v-if="form.orderStatus === OrderStatusEnum.SUBMIT_APPROVAL" @click="handleApprove"  v-hasPermi="['order:purchaseOrder:approve']" >
-                审核通过
+              <!-- 待入生成发票状态 -->
+              <el-button type="success" v-if="form.receiptsStatus === OrderStatusEnum.SUBMIT_APPROVAL" @click="handleApprove"  v-hasPermi="['order:receipts:approve']" >
+                生成发票
               </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.SUBMIT_APPROVAL" @click="handleReject"  v-hasPermi="['order:purchaseOrder:approve']" >
-                驳回
-              </el-button>
-
-              <!-- 已审核状态 -->
-              <el-button type="warning" v-if="form.orderStatus === OrderStatusEnum.APPROVE" @click="handleUnApprove"  v-hasPermi="['order:purchaseOrder:approve']" >
-                反审核
-              </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.APPROVE" @click="handleCloseForStop"  v-hasPermi="['order:purchaseOrder:close']" >
-                关闭订单
+              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.SUBMIT_APPROVAL" @click="handleReject"  v-hasPermi="['order:receipts:approve']" >
+                反入库
               </el-button>
 
-              <!-- 进行中状态，生成对应的入库单 -->
-              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.IN_PROGRESS" @click="handleCloseForStop"  v-hasPermi="['order:purchaseOrder:close']" >
-                关闭订单
+              <!-- 生成发票 -->
+              <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.APPROVE" @click="handleUnApprove"  v-hasPermi="['order:receipts:approve']" >
+                反生成发票
               </el-button>
 
             </el-button-group>
@@ -62,12 +54,12 @@
         </div>
       </template>
 
-      <el-form ref="purchaseOrderRef" :model="form" :rules="rules" label-width="120px" :disabled="form.orderStatus !== OrderStatusEnum.EDIT"  >
+      <el-form ref="receiptsRef" :model="form" :rules="rules" label-width="120px" :disabled="form.receiptsStatus !== OrderStatusEnum.EDIT"  >
 
         <!-- 基本信息 -->
         <el-row :gutter="20">
-          <el-form-item label="订单编号:" prop="orderNo" >
-            <el-input v-model="form.orderNo" placeholder="系统自动生成" disabled />
+          <el-form-item label="入库单号:" prop="receiptsNo" >
+            <el-input v-model="form.receiptsNo" placeholder="系统自动生成" disabled />
           </el-form-item>
           <el-form-item label="供应商：" prop="supplierId">
             <el-select
@@ -75,7 +67,7 @@
               filterable
               clearable
               placeholder="请选中供应商"
-              style="width: 150px"
+              style="width: 200px"
             >
               <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
               <el-option
@@ -86,36 +78,68 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="采购人员:" prop="buyerId">
-            <el-select
-              v-model="form.buyerId"
-              filterable
-              clearable
-              placeholder="请选中采购员"
-              style="width: 150px"
-            >
-              <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
+          <el-form-item label="入库时间:" prop="receivedTime" >
+            <el-date-picker v-model="form.receivedTime" type="date" placeholder="选择入库日期" style="width: 150px;"/>
+          </el-form-item>
+          <el-form-item label="入库备注:" prop="remark" >
+            <el-input v-model="form.remark"  placeholder="请输入备注" style="width: 300px;"/>
+          </el-form-item>
+        </el-row>
+        <el-row :gutter="20">
+          <el-form-item label="配送方式" prop="deliveryType">
+            <el-select v-model="form.deliveryType" placeholder="请选择配送方式" clearable>
               <el-option
-              v-for="item in buyerList"
-              :key="item.userId"
-              :label="item.userName"
-              :value="item.userId"
+                v-for="dict in erp_delivery_type"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="下单日期:" prop="orderDate" >
-            <el-date-picker v-model="form.orderDate" type="date" placeholder="选择日期" style="width: 150px;"/>
+          <el-form-item label="物流公司:" prop="deliveryCompanyId" v-if="form.deliveryType=='2'">
+            <el-select
+              v-model="form.deliveryCompanyId"
+              filterable
+              clearable
+              placeholder="请选中物流公司"
+              style="width: 200px"
+            >
+              <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
+              <el-option
+              v-for="item in logisticsCompanyList"
+              :key="item.companyId"
+              :label="item.companyName"
+              :value="item.companyId"
+              />
+            </el-select>
           </el-form-item>
-          <el-form-item label="备注信息:" prop="remark">
-            <el-input v-model="form.remark"  placeholder="请输入备注" />
+          <el-form-item label="物流单号:" prop="deliveryNo" v-if="form.deliveryType=='2'">
+            <el-input v-model="form.deliveryNo"  placeholder="请输入备注" />
+          </el-form-item>
+          <el-form-item label="货柜编号:" prop="containerId" v-if="form.deliveryType=='3'">
+            <el-select
+              v-model="form.containerId"
+              filterable
+              clearable
+              placeholder="请选中货柜"
+              style="width: 200px"
+            >
+              <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
+              <el-option
+              v-for="item in containerList"
+              :key="item.containerId"
+              :label="item.containerCode"
+              :value="item.containerId"
+              />
+            </el-select>
           </el-form-item>
         </el-row>
       </el-form> 
 
       <!-- 分割线 -->
       <el-divider content-position="left">
-        <strong style="margin-right: 30px;">商品明细</strong>
-        <el-button type="primary" size="small" icon="Refresh" @click="handleRefreshStock" v-if="form.orderStatus == OrderStatusEnum.EDIT">刷新现存量</el-button>
+        <strong style="margin-right: 30px;">入库商品明细</strong>
+        <el-button type="primary" size="small" icon="Refresh" @click="handleRefreshStock" v-if="form.receiptsStatus == OrderStatusEnum.EDIT">采购单引入</el-button>
       </el-divider>
 
       <!-- 商品明细 -->
@@ -143,7 +167,7 @@
         </el-auto-resizer>
       </div>
 
-      <div class="table-operations" v-if="form.orderStatus === OrderStatusEnum.EDIT && form.details.length < maxLength">
+      <div class="table-operations" v-if="form.receiptsStatus === OrderStatusEnum.EDIT && form.details.length < maxLength">
         <el-button type="primary" @click="addItem">
           <el-icon><Plus /></el-icon>   
           <span> 添加商品 (限制最多 {{ maxLength }} 条流水)</span>
@@ -220,6 +244,7 @@ import { ref, computed, onMounted  } from 'vue'
 import { ElAutocomplete, ElButton, ElIcon, ElInputNumber, ElMessage, ElTooltip } from 'element-plus'
 import { listSupplier } from "@/api/order/supplier"
 import { listSku, selectStockBySkuId } from "@/api/product/sku"
+import { listContainers } from "@/api/transportation/containers";
 import { listBuyer } from "@/api/system/user"
 import { listUnit } from "@/api/product/unit"
 import useUserStore from "@/store/modules/user"
@@ -227,11 +252,30 @@ import { h } from 'vue'
 import { nextTick } from 'vue'
 import { debounce } from 'lodash'
 import { TableV2SortOrder } from 'element-plus'
-import { listPurchaseOrder, getPurchaseOrder, delPurchaseOrder, addPurchaseOrder, updatePurchaseOrder, updatePurchaseOrderStatus } from "@/api/order/purchaseOrder";
+import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts } from "@/api/order/receipts";
+import { listLogisticsCompanies} from "@/api/order/logisticsCompanies";
 import { useRouter, useRoute } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
+const { proxy } = getCurrentInstance();
+const { erp_delivery_type, erp_receipts_status } = proxy.useDict('erp_delivery_type', 'erp_receipts_status');
+
+// ****************************** 物流公司 数据获取 start *****************************
+const logisticsCompanyList = ref([]);
+// 获取列表
+const fetchLogisticsCompany = () => {
+    listLogisticsCompanies()
+      .then(response => {
+        logisticsCompanyList.value = response.rows || [];
+      })
+      .catch (error => {
+        ElMessage.error("获取物流公司列表时出错:",error)
+      })
+};
+fetchLogisticsCompany()
+
+// ****************************** 物流公司 数据获取 end ******************************
 
 // *****************************  供应商 数据获取 start *****************************
 // 供应商 - 初始化列表
@@ -249,6 +293,23 @@ const getSuppliers = async () => {
 getSuppliers()
 
 // ******************************  供应商 数据获取 end *****************************
+
+// ****************************** 货柜 数据获取 start ******************************
+const containerList = ref([])
+/** 货柜 - 获取列表 */
+const getContainerList = async () => {
+    listContainers()
+      .then(response => {
+        containerList.value = response.rows || []
+      })
+      .catch(error => {
+        ElMessage.error("获取货柜列表时出错:",error)
+      })
+};
+getContainerList()
+
+// ****************************** 货柜 数据获取 end ******************************
+
 //*******************************   虚拟表格 数据部分  start *************************
 const columns = computed(() => [
   {
@@ -257,9 +318,9 @@ const columns = computed(() => [
     width: 60,
     align: 'center',
     fixed:'left',
-    hidden: form.value.orderStatus !== OrderStatusEnum.EDIT,  // 控制列是否可见
+    hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT,  // 控制列是否可见
     cellRenderer: ({ rowIndex }) => {
-      if (form.value.orderStatus === OrderStatusEnum.EDIT) {
+      if (form.value.receiptsStatus === OrderStatusEnum.EDIT) {
         return h(ElButton, {
           type: 'danger',
           circle: true,
@@ -286,7 +347,7 @@ const columns = computed(() => [
     cellRenderer: ({ rowData, rowIndex  }) => {
       const inputId = getInputId(rowIndex, 'productCode')
       const getTooltipContent = () => {return rowData.productCode;}
-      if (form.value.orderStatus === OrderStatusEnum.EDIT) {
+      if (form.value.receiptsStatus === OrderStatusEnum.EDIT) {
         return h(ElAutocomplete, {
           id: inputId,
           modelValue: rowData.productCode,
@@ -387,23 +448,6 @@ const columns = computed(() => [
     }
   },
   {
-    key: 'skuStock',
-    title: '现存量',
-    width: 75,
-    align: 'right',
-    sortable: true,  // 启用排序
-    sortMethod: (a, b) => a.skuStock - b.skuStock, // 定义排序逻辑
-    hidden: form.value.orderStatus !== OrderStatusEnum.EDIT,  // 控制列是否可见
-    cellRenderer: ({ rowData }) => {
-      return h('div', {style: {
-        overflow: 'hidden',       // 隐藏溢出部分
-        textOverflow: 'ellipsis', // 使用省略号
-        whiteSpace: 'nowrap',     // 禁止换行
-        cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.skuStock)  
-    }
-  },
-  {
     key: 'skuUnit',
     title: '单位',
     width: 60,
@@ -443,7 +487,7 @@ const columns = computed(() => [
         controls: false,
         step:0,
         valueOnClear: 0,
-        disabled: form.value.orderStatus !== OrderStatusEnum.EDIT
+        disabled: form.value.receiptsStatus !== OrderStatusEnum.EDIT
       }))
         
     } 
@@ -474,7 +518,7 @@ const columns = computed(() => [
         max: 99999,
         controls: false,
         valueOnClear: 0, 
-        disabled: form.value.orderStatus !== OrderStatusEnum.EDIT,
+        disabled: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
         step:0,
         align:'right'
       },{suffix:() => h('span', {style:{marginLeft:'5px',color:'#909399'}},' €') }))
@@ -512,7 +556,7 @@ const columns = computed(() => [
         min: 0,
         max: 100,
         controls: false,
-        disabled: form.value.orderStatus !== OrderStatusEnum.EDIT,
+        disabled: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
         step:0,
       },{suffix: () => '%'}))
     }
@@ -549,7 +593,7 @@ const columns = computed(() => [
         min: 0,
         max: 100,
         controls: false,
-        disabled: form.value.orderStatus !== OrderStatusEnum.EDIT,
+        disabled: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
         step:0,
       },{suffix: () => '%'}))
     }
@@ -573,8 +617,6 @@ const columns = computed(() => [
     title: '入库数量',
     width: 100,
     align: 'right',
-    hidden: form.value.orderStatus !== OrderStatusEnum.IN_PROGRESS && 
-            form.value.orderStatus !== OrderStatusEnum.CLOSE_FOR_STOP,
     cellRenderer: ({ rowData }) => rowData.receivedQuantity
   },
   {
@@ -582,8 +624,6 @@ const columns = computed(() => [
     title: '缺货数量',
     width: 100,
     align: 'right',
-    hidden: form.value.orderStatus !== OrderStatusEnum.IN_PROGRESS && 
-            form.value.orderStatus !== OrderStatusEnum.CLOSE_FOR_STOP,
     cellRenderer: ({ rowData }) => rowData.shortageQuantity
   }
 ])
@@ -843,26 +883,23 @@ onBeforeUnmount(() => {
 
 //**************************************   虚拟表格 - 数据部分   ***************************************/
 
-const { proxy } = getCurrentInstance();
 const userStore = useUserStore();
 // 订单操作记录
 const orderOperateLog = ref([])
 
 // 订单状态枚举
 const OrderStatusEnum = {
-  EDIT: '0',
-  SAVE: '1',
-  SUBMIT_APPROVAL: '2',
-  APPROVE: '3',
-  IN_PROGRESS: '4',
-  COMPLETED: '5',
-  CLOSE_FOR_STOP: '6',
+  EDIT: '1',
+  WAIT_FOR_RECEIVED: '2',
+  RECEIVED: '3',
+  WAIT_FOR_INVOICED: '4',
+  INVOICED: '5',
+  DELETE: '6',
 }
 
 // 订单状态颜色
 const OrderStatusColor = {
-  '0':'info',
-  '1':'primary',
+  '1':'info',
   '2':'warning',
   '3':'success',
   '4':'warning',
@@ -872,46 +909,45 @@ const OrderStatusColor = {
 
 // 订单状态描述
 const OrderStatusName = {
-  '0':'草稿',
-  '1':'已保存',
-  '2':'待审核',
-  '3':'已审核',
-  '4':'进行中',
-  '5':'已完成',
-  '6':'已关闭',
+  '1':'草稿',
+  '2':'待入库',
+  '3':'已入库',
+  '4':'待生成发票',
+  '5':'已生成发票',
+  '6':'已作废',
 }
 
 // 订单操作类型
 const OrderOperateType = {
-  SAVE: 'save',
   EDIT: 'edit',
-  SUBMIT_APPROVAL: 'submitApproval',
-  APPROVE: 'approve',
-  REJECT: 'reject',
-  UN_APPROVE: 'unApprove',
-  CLOSE_FOR_STOP: 'closeForStop',
+  SAVE: 'save',
+  RECEIVED: 'received',
+  UN_RECEIVED: 'unReceived',
+  INVOICED: 'invoiced',
+  UN_INVOICED: 'unInvoiced',
   DELETE: 'delete'
 }
 
 /** 获取时间线项目类型 */ 
-const getTimelineItemType = (orderStatus) => {
+const getTimelineItemType = (receiptsStatus) => {
   const typeMap = {
-    0: 'info',
-    1: 'primary',
+    1: 'info',
     2: 'warning',
     3: 'success',
+    4: 'warning',
+    5: 'success',
     6: 'danger'
   }
-  return typeMap[orderStatus] || 'info'
+  return typeMap[receiptsStatus] || 'info'
 }
 
 /** 根据操作返回提示信息 */
 function getRemarkMessage(action) {
   const messages = {
-    [OrderOperateType.APPROVE]: '审核意见',
-    [OrderOperateType.REJECT]: '驳回原因',
-    [OrderOperateType.UN_APPROVE]: '反审核原因',
-    [OrderOperateType.CLOSE_FOR_STOP]: '关闭订单原因'
+    [OrderOperateType.RECEIVED]: '入库情况',
+    [OrderOperateType.UN_RECEIVED]: '反入库原因',
+    [OrderOperateType.INVOICED]: '开发票情况',
+    [OrderOperateType.UN_INVOICED]: '反开发票原因'
   };
   return messages[action] || '备注';
 }
@@ -923,19 +959,27 @@ const onceAddItemLength = 100
 
 // 表单数据
 const form = ref({
-  orderId: '',
-  orderNo: '',
-  supplierId: '',
-  buyerId: '',
-  totalPurchaseAmount:0,
-  totalDiscountAmount:0,
-  totalTaxAmount:0,
-  totalNetAmount:0,
-  orderDate: new Date(),
-  orderStatus: OrderStatusEnum.EDIT,
+  receiptsId: null,
+  receiptsNo: null,
+  supplierId: null,
+  totalPurchaseAmount: 0,
+  totalDiscountAmount: 0,
+  totalTaxAmount: 0,
+  totalNetAmount: 0,
+  receiptsStatus: OrderStatusEnum.EDIT,
+  deliveryType: '1',
+  deliveryCompanyId: null,
+  deliveryNo: null,
+  deliveryTime: new Date(),
+  containerId: null,
+  deliveryAmount: null,
+  clearanceFee: null,
+  vatInput: null,
+  totalAmountCost: null,
   remark: '',
   details: [],
   operateLog: '',
+  receivedTime: new Date(),
 })
 
 // 表单校验规则
@@ -945,9 +989,6 @@ const rules = ref({
   ],
   supplierId: [
     { required: true, message: '请选择供应商' , trigger: ['blur','change'] }
-  ],
-  buyerId: [
-    { required: true, message: '请选择采购员' , trigger: ['blur','change'] }
   ],
 })
 
@@ -1004,16 +1045,9 @@ function getUnitList() {
     });
 }
 
-// 采购员 - 初始化列表
-const buyerList = ref([])
-/** 采购员 - 获取列表 */
-const getBuyers = () => {
-  listBuyer().then(response => {
-    buyerList.value = response.rows || []
-  })
-}
-
 // ******************************  数据展示  end ****************************
+
+
 
 // **********************  商品 数据模糊查询处理 start ********************
 // 商品 - 初始化商品列表
@@ -1095,7 +1129,6 @@ const addItem = () => {
     productCode: '',
     skuCode: '',
     skuValue: '',
-    skuStock: 0,
     skuUnit:'',
     unitPrice: null,
     quantity: null,
@@ -1105,6 +1138,7 @@ const addItem = () => {
     taxRate: null,
     taxAmount: null,
     netAmount: null,
+    receivedQuantity: null,
     shortageQuantity: null,
   }))
   // 将新记录数组添加到现有数组中
@@ -1123,7 +1157,7 @@ const removeItem = (index) => {
 /** 采购订单计算 */
 const calculateRowAmount = (index) => {
   const item = form.value.details[index]
-  item.shortageQuantity = item.quantity   // 更新缺货数量
+  item.shortageQuantity = item.quantity - item.receivedQuantity  // 更新缺货数量
   item.purchaseAmount = item.unitPrice * item.quantity
   item.discountAmount = item.purchaseAmount * item.discountRate * 0.01
   item.taxAmount = (item.purchaseAmount - item.discountAmount) * item.taxRate * 0.01
@@ -1163,7 +1197,7 @@ const handleDelete = () => {
 /** 保存订单 */ 
 const handleSave = () => {
   // 与校验表单提交校验一致，此处只做提交之前的预校验 */
-  proxy.$refs["purchaseOrderRef"].validate().then(() => {
+  proxy.$refs["receiptsRef"].validate().then(() => {
     // 1 过滤空数据
     form.value.details = form.value.details.filter(item => item.skuId)
     console.log(form.value.details)
@@ -1374,7 +1408,7 @@ const submitApproval = async () => {
   const currentActionConfig = actions[currentAction.value]
 
   addApprovalLog(dialogTitle.value, currentActionConfig.status, approvalForm.value.remark);
-  form.value.orderStatus = currentActionConfig.status;
+  form.value.receiptsStatus = currentActionConfig.status;
   form.value.operateLog = JSON.stringify(orderOperateLog.value);
 
   try {
@@ -1484,7 +1518,6 @@ onMounted(() => {
 getInfoById()
 getUnitList()
 getSkuList()
-getBuyers()
 getSuppliers()
 
 </script>
@@ -1540,15 +1573,6 @@ getSuppliers()
 :deep(.el-table-v2__body) > div.is-touch {
   overflow: auto !important;
 }
-
-// 解决虚拟表格 触屏滚动的问题 - 方案2 设置overflow
-// :deep(.el-table-v2__body) > div:nth-child(1) {
-//   overflow: auto !important;
-// }
-/* 隐藏 el-table-v2 的内部滚动条 */
-// :deep(.custom-table .el-scrollbar__thumb) {
-//   display: none !important;
-// }
 
 :deep(.custom-table){
   content-visibility: auto;

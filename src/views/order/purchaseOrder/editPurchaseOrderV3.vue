@@ -6,45 +6,54 @@
         <div class="header-content">
           <div class="title">
             <h2>采购订单详情</h2>
-            <el-tag :type=OrderStatusColor[form.orderStatus] >{{OrderStatusName[form.orderStatus]}}</el-tag>
+            <el-tag type="info"    v-if="form.orderStatus === OrderStatusEnum.EDIT">草稿</el-tag>
+            <el-tag type="primary" v-if="form.orderStatus === OrderStatusEnum.SAVE">已保存</el-tag>
+            <el-tag type="warning" v-if="form.orderStatus === OrderStatusEnum.SUBMIT_APPROVAL">待审核</el-tag>
+            <el-tag type="success" v-if="form.orderStatus === OrderStatusEnum.APPROVE">已审核</el-tag>
+            <el-tag type="warning" v-if="form.orderStatus === OrderStatusEnum.IN_PROGRESS">进行中</el-tag>
+            <el-tag type="success" v-if="form.orderStatus === OrderStatusEnum.COMPLETED">已完成</el-tag>
+            <el-tag type="danger"  v-if="form.orderStatus === OrderStatusEnum.CLOSE_FOR_STOP">已关闭</el-tag>
+
           </div>
           <div class="actions">
             <!-- 根据不同状态显示不同的操作按钮 -->
-            <el-button-group class="ml-4" >
+            <el-button-group class="mr-4">
               <!-- 草稿状态 -->
-              <el-button type="primary" v-if="form.orderStatus === OrderStatusEnum.EDIT" @click="handleSave" v-hasPermi="['order:purchaseOrder:add','order:purchaseOrder:edit']" >
+              <el-button type="primary" v-if="form.orderStatus === OrderStatusEnum.EDIT" @click="handleSave" :loading="loading">
                 保存
               </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.EDIT" @click="handleDelete" v-hasPermi="['order:purchaseOrder:add','order:purchaseOrder:edit']" >
+              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.EDIT" @click="handleDelete" :loading="loading">
                 删除
               </el-button>
               
               <!-- 已保存状态 -->
-              <el-button type="primary" v-if="form.orderStatus === OrderStatusEnum.SAVE" @click="handleSubmitApproval"  v-hasPermi="['order:purchaseOrder:add','order:purchaseOrder:edit']">
+              <el-button type="primary" v-if="form.orderStatus === OrderStatusEnum.SAVE" @click="handleSubmitApproval" :loading="loading">
                 提交审核
               </el-button>
-              <el-button type="warning" v-if="form.orderStatus === OrderStatusEnum.SAVE" @click="handleEdit"  v-hasPermi="['order:purchaseOrder:add','order:purchaseOrder:edit']" >
+              <el-button type="warning" v-if="form.orderStatus === OrderStatusEnum.SAVE" @click="handleEdit" :loading="loading">
                 继续编辑
               </el-button>
 
               <!-- 待审核状态 -->
-              <el-button type="success" v-if="form.orderStatus === OrderStatusEnum.SUBMIT_APPROVAL" @click="handleApprove"  v-hasPermi="['order:purchaseOrder:approve']" >
+              <el-button type="success" v-if="form.orderStatus === OrderStatusEnum.SUBMIT_APPROVAL" @click="handleApprove" :loading="loading">
                 审核通过
               </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.SUBMIT_APPROVAL" @click="handleReject"  v-hasPermi="['order:purchaseOrder:approve']" >
+              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.SUBMIT_APPROVAL" @click="handleReject" :loading="loading">
                 驳回
               </el-button>
 
               <!-- 已审核状态 -->
-              <el-button type="warning" v-if="form.orderStatus === OrderStatusEnum.APPROVE" @click="handleUnApprove"  v-hasPermi="['order:purchaseOrder:approve']" >
+              <el-button type="warning" v-if="form.orderStatus === OrderStatusEnum.APPROVE" @click="handleUnApprove" :loading="loading">
                 反审核
               </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.APPROVE" @click="handleCloseForStop"  v-hasPermi="['order:purchaseOrder:close']" >
+              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.APPROVE" @click="handleCloseForStop"
+                :loading="loading">
                 关闭订单
               </el-button>
 
               <!-- 进行中状态，生成对应的入库单 -->
-              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.IN_PROGRESS" @click="handleCloseForStop"  v-hasPermi="['order:purchaseOrder:close']" >
+              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.IN_PROGRESS" @click="handleCloseForStop"
+                :loading="loading">
                 关闭订单
               </el-button>
 
@@ -69,38 +78,27 @@
           <el-form-item label="订单编号:" prop="orderNo" >
             <el-input v-model="form.orderNo" placeholder="系统自动生成" disabled />
           </el-form-item>
-          <el-form-item label="供应商：" prop="supplierId">
-            <el-select
-              v-model="form.supplierId"
-              filterable
-              clearable
-              placeholder="请选中供应商"
-              style="width: 150px"
+          <el-form-item label="供应商：" prop="supplierName">
+            <el-autocomplete 
+            v-model="form.supplierName" 
+            :fetch-suggestions="querySuppliers" 
+            placeholder="供应商编码/名称搜索"
+            style="width: 100%" 
+            highlight-first-item
+            @select="handleSupplierSelect"              
+            @blur="handleSupplierOnBlur"
             >
-              <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
-              <el-option
-              v-for="item in supplierList"
-              :key="item.supplierId"
-              :label="item.supplierName"
-              :value="item.supplierId"
-              />
-            </el-select>
+            <template #default="{ item }">
+              <div class="supplier-item" >
+                <div>{{ item.supplierName }}</div>
+                <small class="supplier-code"> - 编码: {{ item.supplierCode }}</small>
+              </div>
+            </template>
+            </el-autocomplete>
           </el-form-item>
           <el-form-item label="采购人员:" prop="buyerId">
-            <el-select
-              v-model="form.buyerId"
-              filterable
-              clearable
-              placeholder="请选中采购员"
-              style="width: 150px"
-            >
-              <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
-              <el-option
-              v-for="item in buyerList"
-              :key="item.userId"
-              :label="item.userName"
-              :value="item.userId"
-              />
+            <el-select v-model="form.buyerId" placeholder="请选择采购员" clearable style="width: 150px;">
+              <el-option v-for="item in buyerList" :key="item.userId" :label="item.userName" :value="item.userId" />
             </el-select>
           </el-form-item>
           <el-form-item label="下单日期:" prop="orderDate" >
@@ -115,7 +113,7 @@
       <!-- 分割线 -->
       <el-divider content-position="left">
         <strong style="margin-right: 30px;">商品明细</strong>
-        <el-button type="primary" size="small" icon="Refresh" @click="handleRefreshStock" v-if="form.orderStatus == OrderStatusEnum.EDIT">刷新现存量</el-button>
+        <el-button type="info" size="small" icon="Refresh" @click="handleRefreshStock" v-if="form.orderStatus == OrderStatusEnum.EDIT">刷新现存量</el-button>
       </el-divider>
 
       <!-- 商品明细 -->
@@ -206,7 +204,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitApproval" >
+          <el-button type="primary" @click="submitApproval" :loading="loading">
             确认
           </el-button>
         </span>
@@ -216,7 +214,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted  } from 'vue'
+import { ref, computed  } from 'vue'
 import { ElAutocomplete, ElButton, ElIcon, ElInputNumber, ElMessage, ElTooltip } from 'element-plus'
 import { listSupplier } from "@/api/order/supplier"
 import { listSku, selectStockBySkuId } from "@/api/product/sku"
@@ -230,25 +228,9 @@ import { TableV2SortOrder } from 'element-plus'
 import { listPurchaseOrder, getPurchaseOrder, delPurchaseOrder, addPurchaseOrder, updatePurchaseOrder, updatePurchaseOrderStatus } from "@/api/order/purchaseOrder";
 import { useRouter, useRoute } from "vue-router";
 
+
 const router = useRouter();
 const route = useRoute();
-
-// *****************************  供应商 数据获取 start *****************************
-// 供应商 - 初始化列表
-const supplierList = ref([])
-/** 供应商 - 获取列表 */
-const getSuppliers = async () => {
-    listSupplier()
-      .then(response => {
-        supplierList.value = response.rows || []
-      })
-      .catch(error => {
-        ElMessage.error("获取供应商列表时出错:",error)
-      })
-};
-getSuppliers()
-
-// ******************************  供应商 数据获取 end *****************************
 //*******************************   虚拟表格 数据部分  start *************************
 const columns = computed(() => [
   {
@@ -285,7 +267,6 @@ const columns = computed(() => [
     align: 'center',
     cellRenderer: ({ rowData, rowIndex  }) => {
       const inputId = getInputId(rowIndex, 'productCode')
-      const getTooltipContent = () => {return rowData.productCode;}
       if (form.value.orderStatus === OrderStatusEnum.EDIT) {
         return h(ElAutocomplete, {
           id: inputId,
@@ -311,9 +292,8 @@ const columns = computed(() => [
         })
       }
       // 非编辑状态，显示商品编码
-      
       return h(ElTooltip, {
-        content: getTooltipContent(),
+        content: rowData.productCode,
         placement: 'top'
       },[
         h('div', {style: {
@@ -332,12 +312,11 @@ const columns = computed(() => [
     width: 150,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.productName;}
       return h(ElTooltip, {
-        content: getTooltipContent(),
+        content: rowData.productName,
         placement: 'top'
       },{
-        default: () => h('div', {style: {
+      default: () => h('div', {style: {
           overflow: 'hidden',       // 隐藏溢出部分
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
@@ -353,9 +332,8 @@ const columns = computed(() => [
     width: 180,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.skuCode;}
       return h(ElTooltip, {
-        content: getTooltipContent(),
+        content: rowData.skuCode,
         placement: 'top'
       },{
         default: () => h('div', {style: {
@@ -569,22 +547,12 @@ const columns = computed(() => [
     cellRenderer: ({ rowData }) => `${formatAmount(rowData.netAmount)} €`
   },
   {
-    key: 'receivedQuantity',
-    title: '入库数量',
-    width: 100,
-    align: 'right',
-    hidden: form.value.orderStatus !== OrderStatusEnum.IN_PROGRESS && 
-            form.value.orderStatus !== OrderStatusEnum.CLOSE_FOR_STOP,
-    cellRenderer: ({ rowData }) => rowData.receivedQuantity
-  },
-  {
     key: 'shortageQuantity',
     title: '缺货数量',
     width: 100,
     align: 'right',
     hidden: form.value.orderStatus !== OrderStatusEnum.IN_PROGRESS && 
-            form.value.orderStatus !== OrderStatusEnum.CLOSE_FOR_STOP,
-    cellRenderer: ({ rowData }) => rowData.shortageQuantity
+            form.value.orderStatus !== OrderStatusEnum.CLOSE_FOR_STOP
   }
 ])
 
@@ -859,28 +827,6 @@ const OrderStatusEnum = {
   CLOSE_FOR_STOP: '6',
 }
 
-// 订单状态颜色
-const OrderStatusColor = {
-  '0':'info',
-  '1':'primary',
-  '2':'warning',
-  '3':'success',
-  '4':'warning',
-  '5':'success',
-  '6':'danger',
-}
-
-// 订单状态描述
-const OrderStatusName = {
-  '0':'草稿',
-  '1':'已保存',
-  '2':'待审核',
-  '3':'已审核',
-  '4':'进行中',
-  '5':'已完成',
-  '6':'已关闭',
-}
-
 // 订单操作类型
 const OrderOperateType = {
   SAVE: 'save',
@@ -1015,6 +961,56 @@ const getBuyers = () => {
 
 // ******************************  数据展示  end ****************************
 
+// *********************  供应商 数据模糊查询处理 start ***********************
+// 供应商 - 初始化列表
+const supplierList = ref([])
+/** 供应商 - 获取列表 */
+const getSuppliers = () => {
+  listSupplier().then(response => {
+    supplierList.value = response.rows || []
+  })
+}
+/** 供应商 - 自动补全输入框的返回值 */
+const querySuppliers = (queryString, cb) => {
+  const suppliers  = queryString
+    ? supplierList.value.filter(supplier =>
+      supplier.supplierName.toLowerCase().includes(queryString.toLowerCase()) ||
+      supplier.supplierCode.toLowerCase().includes(queryString.toLowerCase())
+    )
+    : []
+  cb(suppliers  || [])
+  console.log("模糊查询结果：",suppliers )
+}
+/** 供应商 -  选择后调用的赋值操作*/ 
+const handleSupplierSelect = (supplier) => {
+  form.value.supplierCode = supplier.supplierCode
+  form.value.supplierName = supplier.supplierName
+  form.value.supplierId = supplier.supplierId
+  console.log("选择的结果：",form.value)
+}
+/** 供应商 -  失去焦点后 判断输入框中的内容与列表是否匹配 不匹配说明只修改没有选择操作 所以清空 */ 
+const handleSupplierOnBlur = () => {
+  const matchedSupplier = supplierList.value.find(supplier => supplier.supplierName === form.value.supplierName);
+  if(!matchedSupplier){
+    console.log("提示：输入的供应商名称与列表不匹配，未选中或回车确认，清空输入框内容！");
+    form.value.supplierId = '';  // 无匹配供应商时清空 supplierId
+    form.value.supplierCode = '';
+    form.value.supplierName = '';
+    ElMessage.error('提示：输入的内容不存在，清空输入框内容！');
+    return;
+  }
+  if (matchedSupplier.supplierId !== form.value.supplierId) {
+    console.log("提示：输入的供应商名称与列表不匹配，未选中或回车确认，清空输入框内容！");
+    form.value.supplierId = '';  // 无匹配供应商时清空 supplierId
+    form.value.supplierCode = '';
+    form.value.supplierName = '';
+    ElMessage.error('提示：没有选择或回车确认，清空输入框内容！');
+    return;
+  }
+};
+
+// *********************  供应商 数据模糊查询处理 end ***********************
+
 // **********************  商品 数据模糊查询处理 start ********************
 // 商品 - 初始化商品列表
 const skuList = ref([])
@@ -1123,7 +1119,6 @@ const removeItem = (index) => {
 /** 采购订单计算 */
 const calculateRowAmount = (index) => {
   const item = form.value.details[index]
-  item.shortageQuantity = item.quantity   // 更新缺货数量
   item.purchaseAmount = item.unitPrice * item.quantity
   item.discountAmount = item.purchaseAmount * item.discountRate * 0.01
   item.taxAmount = (item.purchaseAmount - item.discountAmount) * item.taxRate * 0.01
@@ -1166,11 +1161,6 @@ const handleSave = () => {
   proxy.$refs["purchaseOrderRef"].validate().then(() => {
     // 1 过滤空数据
     form.value.details = form.value.details.filter(item => item.skuId)
-    console.log(form.value.details)
-    if(form.value.details.length === 0){
-      ElMessage.error("请输入采购商品信息!")
-      return;
-    }
     // 2 检查是否存在相同的skuId  true存在相同的skuId
     if (checkHaveSameSkuId(form.value.details)) {
       return;
@@ -1243,11 +1233,6 @@ const handlePrint = () => {
   console.log("************* 当前的form值 ",form.value)
 }
 
-/** 导出 */
-const handleExport = () => {
-  console.log("************* 点击导出 ")
-}
-
 /** 刷新现存量 */
 const handleRefreshStock = async () => {
   await Promise.all(
@@ -1266,6 +1251,7 @@ const handleRefreshStock = async () => {
 // **************************    操作  end ********************************
 
 // ************************** 审核记录 + 提示弹窗 start ******************
+const loading = ref(false)        // 提交加载状态
 const dialogVisible = ref(false)  // 提交弹窗状态
 const dialogTitle = ref('')       // 提交弹窗标题
 const currentAction = ref('')     // 当前操作类型
@@ -1305,7 +1291,6 @@ const addApprovalLog = (action, status, remark) => {
   orderOperateLog.value.push(newLog)
 }
 
-/** 恢复预处理数据 */
 const parseJson = () => {
   // 恢复json数据
   form.value.operateLog = orderOperateLog.value
@@ -1314,31 +1299,16 @@ const parseJson = () => {
   })
 }
 
- /** 提交数据预处理 */ 
-const prepareData = () => {
-  form.value.details.forEach(item => item.skuValue = JSON.stringify(item.skuValue));
-  form.value.operateLog = JSON.stringify(orderOperateLog.value);
-};
-
-/** 提交数据错误处理函数 */ 
-const handleError = (message = "操作失败") => {
-  // 恢复 skuValue operateLog 的Json格式
-  parseJson();
-  ElMessage.error(message);
-  // 关闭对话框和加载状态
-  dialogVisible.value = false;
-  RefreshTab()
-};
-
 /** 采购订单提交操作 */ 
-const submitApproval = async () => {
+const submitApproval = () => {
   // 1 强制输入描述信息 检查
   const actionRequiresRemark = [OrderOperateType.APPROVE, OrderOperateType.REJECT, OrderOperateType.UN_APPROVE, OrderOperateType.CLOSE_FOR_STOP];
   if (actionRequiresRemark.includes(currentAction.value) && !approvalForm.value.remark) {
     ElMessage.warning(`请输入${getRemarkMessage(currentAction.value)}`);
     return;
   }
-
+  // 2 开启加载状态
+  loading.value = true
   // 3 定义动作及相应状态
   const actions = {
     [OrderOperateType.SAVE]: {
@@ -1373,80 +1343,139 @@ const submitApproval = async () => {
 
   const currentActionConfig = actions[currentAction.value]
 
-  addApprovalLog(dialogTitle.value, currentActionConfig.status, approvalForm.value.remark);
-  form.value.orderStatus = currentActionConfig.status;
-  form.value.operateLog = JSON.stringify(orderOperateLog.value);
-
+  // 4 后端 API调用
   try {
-    // 1 数据预处理 转json格式
-    prepareData();
+    // skuValue 转 json格式
+    form.value.details.forEach(item => {
+      item.skuValue = JSON.stringify(item.skuValue)
+    })
+    // 清洗数据 -> operateLog操作日志json转化
+    form.value.operateLog = JSON.stringify(orderOperateLog.value)
 
-    // 4 后端 API调用
     if (currentAction.value === OrderOperateType.SAVE) {
-      if (!form.value.orderId) {
+      if(!form.value.orderId){
         // 新增操作
-        await addPurchaseOrder(form.value)
-          .then( (res) => {
+        addPurchaseOrder(form.value)
+          .then(res => {
+            // 更新订单状态
+            form.value.orderStatus = currentActionConfig.status;
             form.value.orderId = res.data.orderId
-            parseJson();
-            ElMessage.success(currentActionConfig.message)
-            RefreshTab()
+            // 更新操作记录
+            addApprovalLog(
+              dialogTitle.value,
+              currentActionConfig.status,
+              approvalForm.value.remark
+            );
+            // 清洗数据 -> operateLog操作日志json转化
+            form.value.operateLog = JSON.stringify(orderOperateLog.value)
+            // 5 修改订单状态及操作记录
+            updatePurchaseOrderStatus(form.value)
+              .then(() => {
+                ElMessage.success(currentActionConfig.message);
+                parseJson()
+              })
+              .catch(() => {
+                parseJson()
+                // 操作失败删除订单
+                delPurchaseOrder(form.value.orderId)
+                ElMessage.error("操作失败");
+              });
           })
-          .catch(() => handleError("新增操作失败"));
+          .catch(() => {
+            // 处理 API 返回的失败情况
+             parseJson()
+            ElMessage.error(response.msg || '新增操作失败');
+          });
+
       } else {
+        console.log('*****修改操作的数据是：',form.value);
         // 修改操作
-        await updatePurchaseOrder(form.value)
-          // 修改状态更新操作日志
-          .then( () => {
-            parseJson();
-            ElMessage.success(currentActionConfig.message)
-            RefreshTab()
+        updatePurchaseOrder(form.value)
+          .then(() => {
+            // 更新订单状态
+            form.value.orderStatus = currentActionConfig.status;
+            // 更新操作记录
+            addApprovalLog(
+              dialogTitle.value,
+              currentActionConfig.status,
+              approvalForm.value.remark
+            );
+            // 清洗数据 -> operateLog操作日志json转化
+            form.value.operateLog = JSON.stringify(orderOperateLog.value)
+            // 5 修改订单状态及操作记录
+            updatePurchaseOrderStatus(form.value)
+              .then(() => {
+                 parseJson()
+                ElMessage.success(currentActionConfig.message);
+              })
+              .catch(() => {
+                 parseJson()
+                // 操作失败删除订单
+                ElMessage.error("修改操作失败");
+              });
           })
-          .catch(() => handleError("修改操作失败"));
+          .catch(() => {
+            // 处理 API 返回的失败情况
+             parseJson()
+            ElMessage.error(response.msg || '新增操作失败');
+          });
+
       }
-    } else {
-      // 非保存操作
-      await updatePurchaseOrderStatus(form.value)
-        // 修改状态更新操作日志
-        .then( () => {
-          parseJson();
-          ElMessage.success(currentActionConfig.message)
-          RefreshTab()
-        })
-        .catch(() => handleError("修改操作失败"));
+      
     }
+
+    if(currentAction.value !== OrderOperateType.SAVE){
+      console.log("当前调用的操作：",currentAction.value)
+      // 更新订单状态
+      form.value.orderStatus = currentActionConfig.status;
+      // 更新操作记录
+      addApprovalLog(
+        dialogTitle.value,
+        currentActionConfig.status,
+        approvalForm.value.remark
+      );
+      // 清洗数据 -> operateLog操作日志json转化
+      form.value.operateLog = JSON.stringify(orderOperateLog.value)
+
+      // 修改状态
+      updatePurchaseOrderStatus(form.value)
+        .then(() => {
+          parseJson()
+          ElMessage.success(currentActionConfig.message);
+        })
+        .catch(() => {
+          // 操作失败删除订单
+           parseJson()
+          ElMessage.error("操作失败");
+        });
+    }
+    
   } catch (error) {
-    console.log("API 调用异常:", error);
-    ElMessage.error("API 调用异常，请重试");
+    // 处理 API 调用异常
+    console.log("****************",error);
+    ElMessage.error('API 调用异常，请重试',error);
   } finally {
+    
     // 关闭对话框和加载状态
     dialogVisible.value = false;
+    loading.value = false;
   }
-    
 }
-
-// 当前要关闭的 tabs
-const view = {
-  path: route.path,
-  name: route.name,
-  meta: route.meta,
-};
 
 /** 返回上一页 */
 const goBack = () => {
+  // 当前要关闭的 tabs
+  const view = {
+    path: route.path,
+    name: route.name,
+    meta: route.meta,
+  };
   // 关闭当前 tab
-  proxy.$tab.closePage(view).then(() => {
-    // 跳转页面
-    router.push({path: "/purchaseManage/purchaseOrder",});
-  })
-  
+  proxy.$tab.closePage(view)
+  router.push({
+    path: "/purchaseManage/purchaseOrder",
+  });
 };
-
-const RefreshTab = () => {
-  // 刷新当前页
-  //proxy.$tab.refreshPage(view)
-  getInfoById()
-}
 
 /** 通过修改传递的 orderId 获取商品信息 */
 const getInfoById = () => {
@@ -1459,8 +1488,6 @@ const getInfoById = () => {
       // 还原数据
       if (form.value.operateLog) {
         orderOperateLog.value = JSON.parse(form.value.operateLog);
-        form.value.operateLog = JSON.parse(form.value.operateLog);
-        console.log(form.value);
       }
       // 还原数据
       if (form.value.details) {
@@ -1468,24 +1495,19 @@ const getInfoById = () => {
           item.skuValue = JSON.parse(item.skuValue);
         });
       }
-
-      console.log("初始化数据正常：".form.value);
       
     });
   }
 }
 
-onMounted(() => {
-  getInfoById()
-});
 
 // ************************** 审核记录 + 提示弹窗 end ******************
 
-getInfoById()
 getUnitList()
 getSkuList()
 getBuyers()
 getSuppliers()
+getInfoById() // 获取修改传递的 orderId 返回form数据
 
 </script>
 

@@ -1,5 +1,14 @@
 import request from '@/utils/request'
 
+// 修改采购订单状态
+export function updatePurchaseOrderStatus(data) {
+  return request({
+    url: '/order/purchaseOrder/updateStatus',
+    method: 'put',
+    data: data
+  })
+}
+
 // 查询采购订单列表
 export function listPurchaseOrder(query) {
   return request({

@@ -9,13 +9,21 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="供应商ID" prop="supplierId">
-        <el-input
+      <el-form-item label="供应商：" prop="supplierId">
+        <el-select
           v-model="queryParams.supplierId"
-          placeholder="请输入供应商ID"
+          filterable
           clearable
-          @keyup.enter="handleQuery"
-        />
+          placeholder="请选中供应商"
+        >
+          <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
+          <el-option
+          v-for="item in supplierList"
+          :key="item.supplierId"
+          :label="item.supplierName"
+          :value="item.supplierId"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="订单状态" prop="receiptsStatus">
         <el-select v-model="queryParams.receiptsStatus" placeholder="请选择订单状态" clearable>
@@ -37,9 +45,9 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="物流公司ID" prop="deliveryCompanyId">
+      <el-form-item label="物流公司" prop="deliveryCompanyId">
         <el-select
-          v-model="form.deliveryCompanyId"
+          v-model="queryParams.deliveryCompanyId"
           filterable
           clearable
           placeholder="请选中物流公司"
@@ -103,7 +111,7 @@
           :disabled="single"
           @click="handleUpdate"
           v-hasPermi="['order:receipts:edit']"
-        >修改</el-button>
+        >编辑</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -126,16 +134,41 @@
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
-
-    <el-table v-loading="loading" :data="receiptsList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="receiptsList" @selection-change="handleSelectionChange" border>
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键ID" align="center" prop="receiptsId" />
-      <el-table-column label="入库单号" align="center" prop="receiptsNo" />
-      <el-table-column label="供应商ID" align="center" prop="supplierId" />
-      <el-table-column label="订单总金额" align="center" prop="totalPurchaseAmount" />
-      <el-table-column label="折扣总金额" align="center" prop="totalDiscountAmount" />
-      <el-table-column label="税金总金额" align="center" prop="totalTaxAmount" />
-      <el-table-column label="实际总金额" align="center" prop="totalNetAmount" />
+      <el-table-column type="index" label="序号" width="55"  align="center"/>
+      <el-table-column label="入库单号" align="center" prop="receiptsNo" min-width="150" show-overflow-tooltip>
+        <template #default="scope">
+          <router-link :to="'/purchaseManage/receipts/edit?receiptsId='+scope.row.receiptsId" class="link-type">
+            <span>{{ scope.row.receiptsNo }}</span>
+          </router-link>
+        </template>
+      </el-table-column>
+      <el-table-column label="供应商ID" align="left" header-align="center" prop="supplierId" min-width="120" show-overflow-tooltip>
+        <template v-slot="scope">
+          {{ getSuppliersName(scope.row.supplierId)}}
+        </template>
+      </el-table-column>
+      <el-table-column label="订单总金额" align="right" header-align="center" prop="totalPurchaseAmount" min-width="100" show-overflow-tooltip>
+        <template v-slot="scope">
+          <span> {{ formatTwo(scope.row.totalPurchaseAmount) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="折扣总金额" align="right" header-align="center" prop="totalDiscountAmount" min-width="100" show-overflow-tooltip>
+        <template v-slot="scope">
+          <span> {{ formatTwo(scope.row.totalDiscountAmount) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="税金总金额" align="right" header-align="center" prop="totalTaxAmount" min-width="100" show-overflow-tooltip>
+        <template v-slot="scope">
+          <span> {{ formatTwo(scope.row.totalTaxAmount) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="实际总金额" align="right" header-align="center" prop="totalNetAmount" min-width="100" show-overflow-tooltip>
+        <template v-slot="scope">
+          <span> {{ formatTwo(scope.row.totalNetAmount) }} €</span>
+        </template>
+      </el-table-column>
       <el-table-column label="订单状态" align="center" prop="receiptsStatus">
         <template #default="scope">
           <dict-tag :options="erp_receipts_status" :value="scope.row.receiptsStatus"/>
@@ -146,35 +179,52 @@
           <dict-tag :options="erp_delivery_type" :value="scope.row.deliveryType"/>
         </template>
       </el-table-column>
-      <el-table-column label="物流公司ID" align="center" prop="deliveryCompanyId" />
-      <el-table-column label="物流单号" align="center" prop="deliveryNo" />
-      <el-table-column label="发货时间" align="center" prop="deliveryTime" width="180">
+      <el-table-column label="物流公司" align="center" prop="deliveryCompanyId" >
+        <template #default="scope">
+          {{getLogisticsCompanyName(scope.row.deliveryCompanyId)}}
+        </template>
+      </el-table-column>
+      <el-table-column label="物流单号" align="center" prop="deliveryNo" show-overflow-tooltip/>
+      <el-table-column label="发货时间" align="center" prop="deliveryTime"  min-width="100" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.deliveryTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="货柜编号" align="center" prop="containerNo" />
-      <el-table-column label="运费金额" align="center" prop="deliveryAmount" />
-      <el-table-column label="清关费用" align="center" prop="clearanceFee" />
-      <el-table-column label="进项税" align="center" prop="vatInput" />
-      <el-table-column label="订单成本总金额" align="center" prop="totalAmountCost" />
-      <el-table-column label="租户id" align="center" prop="tenantId" />
-      <el-table-column label="创建者" align="center" prop="createBy" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="货柜编号" align="center" prop="containerId" show-overflow-tooltip>
+        <template #default="scope">
+          {{ getContainerCode(scope.row.containerId) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="运费金额" align="right" header-align="center" prop="deliveryAmount" min-width="100" show-overflow-tooltip>
+        <template #default="scope">
+          <span> {{ formatTwo(scope.row.deliveryAmount) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="清关费用" align="right" header-align="center" prop="clearanceFee" min-width="100" show-overflow-tooltip>
+        <template #default="scope">
+          <span> {{ formatTwo(scope.row.clearanceFee) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="进项税" align="right" header-align="center" prop="vatInput" min-width="100" show-overflow-tooltip>
+        <template #default="scope">
+          <span> {{ formatTwo(scope.row.vatInput) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="总成本" align="right" header-align="center" prop="totalAmountCost" min-width="100" show-overflow-tooltip >
+        <template #default="scope">
+          <span> {{ formatTwo(scope.row.totalAmountCost) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建者" align="center" prop="createBy" show-overflow-tooltip/>
+      <el-table-column label="创建时间" align="center" prop="createTime" min-width="100" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="更新者" align="center" prop="updateBy" />
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
+      <el-table-column label="更新者" align="center" prop="updateBy" show-overflow-tooltip/>
+      <el-table-column label="更新时间" align="center" prop="updateTime" min-width="100" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['order:receipts:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['order:receipts:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -355,6 +405,39 @@ import useUserStore from "@/store/modules/user";
 import { useRouter, useRoute } from "vue-router";
 import { listContainers } from "@/api/transportation/containers";
 import { listLogisticsCompanies} from "@/api/order/logisticsCompanies";
+import { listSupplier } from "@/api/order/supplier"
+
+// ****************************** 供应商 数据获取 start ******************************
+// 供应商 - 初始化列表
+const supplierList = ref([])
+/** 供应商 - 获取列表 */
+const getSuppliers = async () => {
+    listSupplier()
+      .then(response => {
+        supplierList.value = response.rows || []
+      })
+      .catch(error => {
+        ElMessage.error("获取供应商列表时出错:",error)
+      })
+};
+
+/** 获取供应商名称 */
+const getSuppliersName = (id) => {
+  return supplierList.value.find(supplier => supplier.supplierId === id)?.supplierName || '--'
+ }
+ 
+getSuppliers()
+
+// ****************************** 供应商 数据获取 end ******************************
+
+/** 保留2位小数 */
+const formatTwo = (value) => {
+  if (value) {
+    return value.toFixed(2);
+  } else {
+    return 0;
+  }
+};
 
 // ****************************** 货柜 数据获取 start ******************************
 const containerList = ref([])
@@ -368,6 +451,12 @@ const getContainerList = async () => {
         ElMessage.error("获取货柜列表时出错:",error)
       })
 };
+
+/** 获取货柜编码 */
+const getContainerCode = (id) => {
+  return containerList.value.find(container => container.containerId === id)?.containerCode || '--'
+ }
+ 
 getContainerList()
 
 // ****************************** 货柜 数据获取 end ******************************
@@ -383,6 +472,13 @@ const fetchLogisticsCompany = () => {
         ElMessage.error("获取物流公司列表时出错:",error)
       })
 };
+
+/** 获取货柜编码 */
+const getLogisticsCompanyName = (id) => {
+  return logisticsCompanyList.value.find(company => company.companyId === id)?.companyName || '--'
+}
+
+ 
 fetchLogisticsCompany()
 
 // ****************************** 物流公司 数据获取 end ******************************
@@ -505,22 +601,25 @@ function handleSelectionChange(selection) {
 
 /** 新增按钮操作 */
 function handleAdd() {
-  // reset();
-  // open.value = true;
-  // title.value = "添加采购入库单";
-  router.push({ path: "/purchaseManage/receipts/edit" });
+  const obj = {path: "/purchaseManage/receipts/edit", name:"editReceipts"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/purchaseManage/receipts/edit" })
+    } 
+  )
+  
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
-  reset();
   const _receiptsId = row.receiptsId || ids.value
-  getReceipts(_receiptsId).then(response => {
-    form.value = response.data;
-    erpGoodsReceiptsDetailsList.value = response.data.erpGoodsReceiptsDetailsList;
-    open.value = true;
-    title.value = "修改采购入库单";
-  });
+  console.log("修改的ID*******", _receiptsId);
+  const obj = {path: "/purchaseManage/receipts/edit", name:"editReceipts"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/purchaseManage/receipts/edit", query: { receiptsId: _receiptsId } });
+    } 
+  )
 }
 
 /** 提交按钮 */

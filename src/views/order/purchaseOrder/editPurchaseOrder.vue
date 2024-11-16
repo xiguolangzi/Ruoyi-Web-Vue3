@@ -178,7 +178,7 @@
       </template>
       <el-timeline>
         <el-timeline-item v-for="(activity, index) in orderOperateLog" :key="index"
-          :type="getTimelineItemType(activity.status)" :timestamp="activity.time" placement="top">
+          :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top">
           {{ activity.operator }} - {{ activity.action }}
           <span v-if="activity.remark"> - -  描述 : </span>
           <span class="remark">{{ activity.remark }}</span>
@@ -188,21 +188,14 @@
 
     <!-- 操作意见弹窗 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
+      <!-- 强制填写备注 -->
       <el-form :model="approvalForm" label-width="80px">
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="currentAction == OrderOperateType.APPROVE">
+        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="actionRequiresRemark.includes(currentAction)">
           <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)" />
         </el-form-item>
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="currentAction == OrderOperateType.REJECT">
-          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)"  />
-        </el-form-item>
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="currentAction == OrderOperateType.UN_APPROVE">
-          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)"  />
-        </el-form-item>
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="currentAction == OrderOperateType.CLOSE_FOR_STOP">
-          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)"  />
-        </el-form-item>
       </el-form>
-      <span v-if="currentAction == OrderOperateType.EDIT || currentAction == OrderOperateType.SAVE || currentAction == OrderOperateType.DELETE || currentAction == OrderOperateType.SUBMIT_APPROVAL"> 您确认要 {{ dialogTitle }} 吗？</span>
+      <!-- 不强制填写备注 -->
+      <span v-if="actionRequiresNoRemark.includes(currentAction)"> 您确认要 {{ dialogTitle }} 吗？</span>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
@@ -815,11 +808,13 @@ const removeTouchClass = () => {
 };
 const addTouchEventListeners = () => {
   const container = document.querySelector('#touch-scroll-container');
+  if (!container) return;
   container.addEventListener('touchstart', addTouchClass, { passive: true });
   container.addEventListener('touchend', removeTouchClass, { passive: true });
 };
 const removeTouchEventListeners = () => {
   const container = document.querySelector('#touch-scroll-container');
+  if (!container) return;
   container.removeEventListener('touchstart', addTouchClass);
   container.removeEventListener('touchend', removeTouchClass);
 };
@@ -845,8 +840,6 @@ onBeforeUnmount(() => {
 
 const { proxy } = getCurrentInstance();
 const userStore = useUserStore();
-// 订单操作记录
-const orderOperateLog = ref([])
 
 // 订单状态枚举
 const OrderStatusEnum = {
@@ -894,15 +887,17 @@ const OrderOperateType = {
 }
 
 /** 获取时间线项目类型 */ 
-const getTimelineItemType = (orderStatus) => {
+const getTimelineItemType = (actionValue) => {
   const typeMap = {
-    0: 'info',
-    1: 'primary',
-    2: 'warning',
-    3: 'success',
-    6: 'danger'
+    edit: 'info',
+    save: 'primary',
+    submitApproval: 'warning',
+    approve: 'success',
+    reject: 'danger',
+    unApprove: 'danger',
+    closeForStop: 'danger',
   }
-  return typeMap[orderStatus] || 'info'
+  return typeMap[actionValue] || 'info'
 }
 
 /** 根据操作返回提示信息 */
@@ -917,9 +912,9 @@ function getRemarkMessage(action) {
 }
 
 // 允许最大订单条数
-const maxLength = 1000
+const maxLength = 500
 // 每次添加新增的条数
-const onceAddItemLength = 100
+const onceAddItemLength = 5
 
 // 表单数据
 const form = ref({
@@ -1082,11 +1077,6 @@ const handleProductOnBlur = (index) => {
 
 /** 添加商品行 */ 
 const addItem = () => {
-  // 初始化聚焦操作
-  if (tableData.value.length == 0) {
-    //ElMessage.error('提示：添加商品开始聚焦');
-    moveFocus(currentFocus.value.rowIndex, currentFocus.value.columnKey)
-  }
   // 创建一个空数组来存储100条新记录
   const newItems = Array.from({ length: onceAddItemLength }, () => ({
     detailId: '',
@@ -1106,6 +1096,7 @@ const addItem = () => {
     taxAmount: null,
     netAmount: null,
     shortageQuantity: null,
+    receivedQuantity: null,
   }))
   // 将新记录数组添加到现有数组中
   form.value.details.push(...newItems)
@@ -1123,7 +1114,7 @@ const removeItem = (index) => {
 /** 采购订单计算 */
 const calculateRowAmount = (index) => {
   const item = form.value.details[index]
-  item.shortageQuantity = item.quantity   // 更新缺货数量
+  item.shortageQuantity = item.quantity - item.receivedQuantity  // 更新缺货数量
   item.purchaseAmount = item.unitPrice * item.quantity
   item.discountAmount = item.purchaseAmount * item.discountRate * 0.01
   item.taxAmount = (item.purchaseAmount - item.discountAmount) * item.taxRate * 0.01
@@ -1171,8 +1162,8 @@ const handleSave = () => {
       ElMessage.error("请输入采购商品信息!")
       return;
     }
-    // 2 检查是否存在相同的skuId  true存在相同的skuId
-    if (checkHaveSameSkuId(form.value.details)) {
+    // 2 检查是否存在相同的skuId+unitPrice  true存在相同的skuId
+    if (checkHaveSameSkuIdAndPrice(form.value.details)) {
       return;
     }
     // 3 检查采购条目的输入项 false不通过
@@ -1200,15 +1191,16 @@ const validateItems = (submitItems) => {
   return true;
 };
 
-/** 检查采购条目是否有相同的skuId */
-const checkHaveSameSkuId = (submitItems) => {
-  const skuIdSet = new Set();
+/** 检查采购条目是否有相同的skuId+unitPrice */
+const checkHaveSameSkuIdAndPrice = (submitItems) => {
+  const uniqueChecker  = new Set();
   for (const item of submitItems) {
-    if (skuIdSet.has(item.skuId)) {
-      ElMessage.error("采购明细 sku 重复，请检查！");
+    let key = item.skuId.toString() + item.unitPrice.toString()
+    if (uniqueChecker.has(key)) {
+      ElMessage.error("商品明细 sku 单价 重复，请检查！");
       return true;
     }
-    skuIdSet.add(item.skuId);
+    uniqueChecker.add(key);
   }
   return false;
 }
@@ -1284,13 +1276,16 @@ const openApprovalDialog = (title, action) => {
 }
 
 /** 添加采购订单操作记录 */ 
-const addApprovalLog = (action, status, remark) => {
+// 订单操作记录
+const orderOperateLog = ref([])
+const addApprovalLog = (action, status, remark, actionValue) => {
   const newLog = {
     time: new Date().toLocaleString(),
     operator: userStore.name,
     action,
     status,
-    remark
+    remark,
+    actionValue: actionValue || ''
   }
   // 查找是否存在相同 operator 的记录
   const existingIndex = orderOperateLog.value.findIndex(
@@ -1330,10 +1325,11 @@ const handleError = (message = "操作失败") => {
   RefreshTab()
 };
 
+const actionRequiresRemark = [OrderOperateType.APPROVE, OrderOperateType.REJECT, OrderOperateType.UN_APPROVE, OrderOperateType.CLOSE_FOR_STOP];
+const actionRequiresNoRemark = [OrderOperateType.EDIT, OrderOperateType.SAVE, OrderOperateType.DELETE, OrderOperateType.SUBMIT_APPROVAL];
 /** 采购订单提交操作 */ 
 const submitApproval = async () => {
   // 1 强制输入描述信息 检查
-  const actionRequiresRemark = [OrderOperateType.APPROVE, OrderOperateType.REJECT, OrderOperateType.UN_APPROVE, OrderOperateType.CLOSE_FOR_STOP];
   if (actionRequiresRemark.includes(currentAction.value) && !approvalForm.value.remark) {
     ElMessage.warning(`请输入${getRemarkMessage(currentAction.value)}`);
     return;
@@ -1343,37 +1339,44 @@ const submitApproval = async () => {
   const actions = {
     [OrderOperateType.SAVE]: {
       status: OrderStatusEnum.SAVE,
-      message: '保存成功'
+      message: '保存成功',
+      actionValue: OrderOperateType.SAVE
     },
     [OrderOperateType.EDIT]: {
       status: OrderStatusEnum.EDIT,
-      message: '开始编辑'
+      message: '开始编辑',
+      actionValue: OrderOperateType.EDIT
     },
     [OrderOperateType.SUBMIT_APPROVAL]: {
       status: OrderStatusEnum.SUBMIT_APPROVAL,
-      message: '提交审核 成功!'
+      message: '提交审核 成功!',
+      actionValue: OrderOperateType.SUBMIT_APPROVAL
     },
     [OrderOperateType.APPROVE]: {
       status: OrderStatusEnum.APPROVE,
-      message: '审核通过!'
+      message: '审核通过!',
+      actionValue: OrderOperateType.APPROVE
     },
     [OrderOperateType.REJECT]: {
       status: OrderStatusEnum.SAVE,
-      message: '驳回 成功!'
+      message: '驳回 成功!',
+      actionValue: OrderOperateType.REJECT
     },
     [OrderOperateType.UN_APPROVE]: {
       status: OrderStatusEnum.SAVE,
-      message: '反审核 成功!'
+      message: '反审核 成功!',
+      actionValue: OrderOperateType.UN_APPROVE
     },
     [OrderOperateType.CLOSE_FOR_STOP]: {
       status: OrderStatusEnum.CLOSE_FOR_STOP,
-      message: '关闭订单 成功!'
+      message: '关闭订单 成功!',
+      actionValue: OrderOperateType.CLOSE_FOR_STOP
     }
   }
 
   const currentActionConfig = actions[currentAction.value]
 
-  addApprovalLog(dialogTitle.value, currentActionConfig.status, approvalForm.value.remark);
+  addApprovalLog(dialogTitle.value, currentActionConfig.status, approvalForm.value.remark, currentActionConfig.actionValue);
   form.value.orderStatus = currentActionConfig.status;
   form.value.operateLog = JSON.stringify(orderOperateLog.value);
 
@@ -1388,6 +1391,7 @@ const submitApproval = async () => {
         await addPurchaseOrder(form.value)
           .then( (res) => {
             form.value.orderId = res.data.orderId
+            form.value.orderNo = res.data.orderNo
             parseJson();
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
@@ -1469,7 +1473,7 @@ const getInfoById = () => {
         });
       }
 
-      console.log("初始化数据正常：".form.value);
+      console.log("初始化数据正常：",form.value);
       
     });
   }

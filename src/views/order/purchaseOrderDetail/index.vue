@@ -94,13 +94,23 @@
           <span> {{ formatTwo(scope.row.purchaseAmount) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="折扣率" align="center" prop="discountRate" />
+      <el-table-column label="折扣率" align="right" header-align="center" prop="discountRate">
+        <template  v-slot="scope">
+          <span v-if="scope.row.discountRate"> {{ scope.row.discountRate }} %</span>
+          <span v-if="!scope.row.discountRate"> -- %</span>
+        </template>
+      </el-table-column>
       <el-table-column label="折扣金额" align="right" header-align="center" prop="discountAmount" >
         <template  v-slot="scope">
           <span> {{ formatTwo(scope.row.discountAmount) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="税率" align="center" prop="taxRate" />
+      <el-table-column label="税率" align="right" header-align="center" prop="taxRate" >
+        <template  v-slot="scope">
+          <span v-if="scope.row.taxRate"> {{ scope.row.taxRate }} %</span>
+          <span v-if="!scope.row.taxRate"> -- %</span>
+        </template>
+      </el-table-column>
       <el-table-column label="税金金额" align="right" header-align="center" prop="taxAmount" >
         <template  v-slot="scope">
           <span> {{ formatTwo(scope.row.taxAmount) }} €</span>

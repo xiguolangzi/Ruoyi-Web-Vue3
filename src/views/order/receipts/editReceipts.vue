@@ -7,6 +7,8 @@
           <div class="title">
             <h2>采购入库单详情</h2>
             <el-tag :type=OrderStatusColor[form.receiptsStatus] >{{OrderStatusName[form.receiptsStatus]}}</el-tag>
+            <svg-icon icon-class="waitReceived" style="font-size: 40px;" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED"/>
+            <svg-icon icon-class="invoice" style="font-size: 40px;"  v-if="form.receiptsStatus === OrderStatusEnum.INVOICED"/>
           </div>
           <div class="actions">
             <!-- 根据不同状态显示不同的操作按钮 -->
@@ -18,25 +20,33 @@
               <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.EDIT" @click="handleDelete" v-hasPermi="['order:receipts:add','order:receipts:edit']" >
                 删除
               </el-button>
-              
-              <!-- 待入库状态 -->
-              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.SAVE" @click="handleSubmitApproval"  v-hasPermi="['order:receipts:add','order:receipts:edit']">
-                确认入库
+
+              <!-- 保存状态 -->
+              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.SAVE" @click="handleSubmitForReceive"  v-hasPermi="['order:receipts:add','order:receipts:edit']">
+                提交入库申请
               </el-button>
               <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.SAVE" @click="handleEdit"  v-hasPermi="['order:receipts:add','order:receipts:edit']" >
                 继续编辑
               </el-button>
+              
+              <!-- 待入库状态 -->
+              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_RECEIVED" @click="handleReceived"  v-hasPermi="['order:receipts:received']">
+                确认入库
+              </el-button>
+              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_RECEIVED" @click="handleReject"  v-hasPermi="['order:receipts:received']" >
+                驳回入库申请
+              </el-button>
 
               <!-- 待入生成发票状态 -->
-              <el-button type="success" v-if="form.receiptsStatus === OrderStatusEnum.SUBMIT_APPROVAL" @click="handleApprove"  v-hasPermi="['order:receipts:approve']" >
+              <el-button type="success" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_INVOICED" @click="handleInvoiced"  v-hasPermi="['order:receipts:invoiced']" >
                 生成发票
               </el-button>
-              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.SUBMIT_APPROVAL" @click="handleReject"  v-hasPermi="['order:receipts:approve']" >
+              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_INVOICED" @click="handleUnReceived"  v-hasPermi="['order:receipts:received']" >
                 反入库
               </el-button>
 
               <!-- 生成发票 -->
-              <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.APPROVE" @click="handleUnApprove"  v-hasPermi="['order:receipts:approve']" >
+              <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.INVOICED" @click="handleUnInvoiced"  v-hasPermi="['order:receipts:invoiced']" >
                 反生成发票
               </el-button>
 
@@ -67,7 +77,7 @@
               filterable
               clearable
               placeholder="请选中供应商"
-              style="width: 200px"
+              @change="handleChangeSupplier"
             >
               <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
               <el-option
@@ -78,11 +88,27 @@
               />
             </el-select>
           </el-form-item>
+          <el-form-item label="入库仓库:" prop="warehouseId">
+            <el-select
+              v-model="form.warehouseId"
+              filterable
+              clearable
+              placeholder="请选择存入的仓库"
+            >
+              <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
+              <el-option
+              v-for="item in warehouseList"
+              :key="item.warehouseId"
+              :label="item.warehouseName"
+              :value="item.warehouseId"
+              />
+            </el-select>
+          </el-form-item>
           <el-form-item label="入库时间:" prop="receivedTime" >
             <el-date-picker v-model="form.receivedTime" type="date" placeholder="选择入库日期" style="width: 150px;"/>
           </el-form-item>
           <el-form-item label="入库备注:" prop="remark" >
-            <el-input v-model="form.remark"  placeholder="请输入备注" style="width: 300px;"/>
+            <el-input v-model="form.remark"  placeholder="请输入备注" />
           </el-form-item>
         </el-row>
         <el-row :gutter="20">
@@ -133,13 +159,16 @@
               />
             </el-select>
           </el-form-item>
+          <el-form-item label="默认批次号:" prop="batchNo" >
+            <el-input v-model="form.batchNo"  placeholder="请输入批次号" />
+          </el-form-item>
         </el-row>
       </el-form> 
 
       <!-- 分割线 -->
       <el-divider content-position="left">
         <strong style="margin-right: 30px;">入库商品明细</strong>
-        <el-button type="primary" size="small" icon="Refresh" @click="handleRefreshStock" v-if="form.receiptsStatus == OrderStatusEnum.EDIT">采购单引入</el-button>
+        <el-button type="primary" size="small" icon="Link" @click="handleLinkPurchaseOrder" v-if="form.receiptsStatus == OrderStatusEnum.EDIT">引入采购单</el-button>
       </el-divider>
 
       <!-- 商品明细 -->
@@ -202,7 +231,7 @@
       </template>
       <el-timeline>
         <el-timeline-item v-for="(activity, index) in orderOperateLog" :key="index"
-          :type="getTimelineItemType(activity.status)" :timestamp="activity.time" placement="top">
+          :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top">
           {{ activity.operator }} - {{ activity.action }}
           <span v-if="activity.remark"> - -  描述 : </span>
           <span class="remark">{{ activity.remark }}</span>
@@ -213,20 +242,13 @@
     <!-- 操作意见弹窗 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
       <el-form :model="approvalForm" label-width="80px">
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="currentAction == OrderOperateType.APPROVE">
+        <!-- 必须要填写备注的操作类型 -->
+        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="actionRequiresRemark.includes(currentAction)">
           <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)" />
         </el-form-item>
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="currentAction == OrderOperateType.REJECT">
-          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)"  />
-        </el-form-item>
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="currentAction == OrderOperateType.UN_APPROVE">
-          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)"  />
-        </el-form-item>
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="currentAction == OrderOperateType.CLOSE_FOR_STOP">
-          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)"  />
-        </el-form-item>
       </el-form>
-      <span v-if="currentAction == OrderOperateType.EDIT || currentAction == OrderOperateType.SAVE || currentAction == OrderOperateType.DELETE || currentAction == OrderOperateType.SUBMIT_APPROVAL"> 您确认要 {{ dialogTitle }} 吗？</span>
+       <!-- 不须要填写备注的操作类型 -->
+      <span v-if="actionRequiresNoRemark.includes(currentAction)"> 您确认要 {{ dialogTitle }} 吗？</span>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
@@ -236,34 +258,285 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 引入采购订单 -->
+    <el-dialog :title="linkPurchaseOrderTitle" v-model="open" width="800px" append-to-body >
+      <el-card>
+      <!---- 采购单选择器 -->
+      <el-row>
+        <el-col :span="12">
+          <el-form-item label="采购单号:" prop="orderNo">
+            <el-select 
+              v-model="linkPurchaseOrderId" 
+              filterable 
+              clearable 
+              placeholder="请选择采购订单" 
+              style="width: 200px"
+              @change="handleLinkPurchaseOrderChange"
+              :disabled="!showPurchaseNo"
+              >
+                <el-option
+                  v-for="item in linkPurchaseOrderList" :key="item.orderId"
+                  :label="item.orderNo" :value="item.orderId"
+                />
+              </el-select>
+          </el-form-item>
+         </el-col>
+         <el-col :span="12">
+          <el-form-item label="开启采购订单引入">
+            <el-switch
+              v-model="showPurchaseNo"
+              size="large"
+              width="60"
+              inline-prompt
+              style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
+              active-text="开启"
+              inactive-text="关闭"
+            />
+          </el-form-item>
+        </el-col>
+      </el-row>
+        
+      <!-- 采购单明细 -->
+      <el-table v-loading="loading" :data="purchaseOrder.details" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="55" align="center" />
+        <el-table-column type="index" label="序号" width="55"  align="center"/>
+        <el-table-column label="商品名称" align="center" prop="productName"  min-width="120" show-overflow-tooltip/>
+        <el-table-column label="sku编码" align="center" prop="skuCode" min-width="120" show-overflow-tooltip/>
+        <el-table-column label="suk" align="center" prop="skuValue" show-overflow-tooltip>
+          <template #default="scope">
+            <div v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
+              <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
+                {{ item[0] }}:
+              </strong>
+              <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
+                {{ item[1] }}
+              </span>
+              <span v-if="item[0] == '' || item[0] == 'skuName'"> -- -- </span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="采购数量" align="center" prop="quantity"/>
+        <el-table-column label="入库数量" align="center" prop="receivedQuantity">
+          <template #default="scope">
+            <el-input-number 
+            v-model="scope.row.receivedQuantity" 
+            :min="0" 
+            :controls="false" 
+            style="width: 100%" 
+            :precision="0" 
+            :step="0"
+            :disabled="!showPurchaseNo"
+            @change="calculateShortageQuantity(scope.$index)"
+            />
+          </template>
+        </el-table-column>
+        <el-table-column label="缺货数量" align="center" prop="shortageQuantity"/>
+        <el-table-column label="批次号" align="center" prop="batchNo" min-width="100" show-overflow-tooltip>
+          <template #default="scope">
+            <el-input v-model="scope.row.batchNo" placeholder="请输入批次号"  />
+          </template>
+        </el-table-column>
+        <el-table-column label="过期日期" align="center" prop="expireDate" min-width="150" >
+          <template #default="scope">
+            <el-date-picker
+              v-model="scope.row.expireDate"
+              type="date"
+              placeholder="请选择过期日期"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+              :disabled-date="disablePastDates"
+              style="width: 100%;"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+        
+      </el-card>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" @click="submitLinkPurchaseOrder()" :disabled="!showPurchaseNo">确 定</el-button>
+          <el-button @click="open = false">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted  } from 'vue'
-import { ElAutocomplete, ElButton, ElIcon, ElInputNumber, ElMessage, ElTooltip } from 'element-plus'
-import { listSupplier } from "@/api/order/supplier"
-import { listSku, selectStockBySkuId } from "@/api/product/sku"
-import { listContainers } from "@/api/transportation/containers";
-import { listBuyer } from "@/api/system/user"
-import { listUnit } from "@/api/product/unit"
+import { ElAutocomplete, ElButton, ElDatePicker, ElIcon, ElInput, ElInputNumber, ElMessage, ElMessageBox, ElOption, ElSelect, ElTooltip } from 'element-plus'
+import { useRouter, useRoute } from "vue-router";
 import useUserStore from "@/store/modules/user"
 import { h } from 'vue'
 import { nextTick } from 'vue'
 import { debounce } from 'lodash'
 import { TableV2SortOrder } from 'element-plus'
-import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts } from "@/api/order/receipts";
+import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts, updateReceiptsStatus, received } from "@/api/order/receipts";
+import { listSupplier } from "@/api/order/supplier"
+import { listSku, selectStockBySkuId } from "@/api/product/sku"
+import { listContainers } from "@/api/transportation/containers";
+import { listUnit } from "@/api/product/unit"
 import { listLogisticsCompanies} from "@/api/order/logisticsCompanies";
-import { useRouter, useRoute } from "vue-router";
+import { listWarehouse} from "@/api/product/warehouse";
+import { listPurchaseOrderByStatus, getPurchaseOrder} from "@/api/order/purchaseOrder";
+
 
 const router = useRouter();
 const route = useRoute();
 const { proxy } = getCurrentInstance();
 const { erp_delivery_type, erp_receipts_status } = proxy.useDict('erp_delivery_type', 'erp_receipts_status');
 
-// ****************************** 物流公司 数据获取 start *****************************
+
+// ****************************** 引入采购单 start *****************************
+// 时间选择器不可以选择之前的时间
+const disablePastDates = (date) => {
+  return date.getTime() < new Date().getTime()
+}
+
+const open = ref(false);
+// 采购订单列 是否展示控制
+const showPurchaseNo = ref(false);
+const linkPurchaseOrderTitle = ref("");
+/** 点击 引入采购单  -> 获取采购单列表 */
+const handleLinkPurchaseOrder = () => {
+  // 检查是否已选中供应商
+  proxy.$refs["receiptsRef"].validate().then(() => {
+    open.value = true;
+    resetLinkPurchaseData().then(()=>{
+      getLinkPurchaseOrderList().then(() => {
+        linkPurchaseOrderTitle.value = "引入已有采购订单";
+        console.log("引入采购单数据：",linkPurchaseOrderList.value)
+      });
+    })
+  }) 
+};
+
+/** 获取采购订单列表 */
+const linkPurchaseOrderList = ref([]);
+const purchaseQueryParams = ref({
+  statusList: [3,4],
+  supplierId: null,
+});
+const getLinkPurchaseOrderList = () => {
+    return listPurchaseOrderByStatus(purchaseQueryParams.value)
+      .then(response => {
+        linkPurchaseOrderList.value = response.data || [];
+      })
+      .catch (error => {
+        ElMessage.error("获取采购订单列表时出错:",error)
+      })
+};
+
+/** 选择采购订单ID -> 获取采购订单明细 */
+const linkPurchaseOrderId = ref(null);
+const purchaseOrder = ref([]);
+const handleLinkPurchaseOrderChange = (linkPurchaseOrderId) => {
+  if (linkPurchaseOrderId) {
+    getPurchaseOrder(linkPurchaseOrderId).then((response) => {
+      purchaseOrder.value = response.data;
+      // 还原数据
+      if (purchaseOrder.value.details) {
+        purchaseOrder.value.details.forEach(item => {
+          item.skuValue = JSON.parse(item.skuValue);
+          item.batchNo = form.value.batchNo;
+          item.expireDate = null;
+        });
+      }
+      console.log("初始化数据正常：",purchaseOrder.value); 
+    });
+  }
+}
+
+/** 重置引入采购订单数据 */
+const resetLinkPurchaseData = () => {
+    linkPurchaseOrderList.value = [];
+    linkPurchaseOrderId.value = null;
+    purchaseOrder.value = [];
+    ids.value = [];
+    return Promise.resolve();
+}
+
+// 多选框选中数据
+const ids = ref([]);
+function handleSelectionChange(selection) {
+  ids.value = selection.map(item => item.detailId);
+}
+
+/** 提交引入采购单 */
+const submitLinkPurchaseOrder = () => {
+  if (!linkPurchaseOrderId.value) {
+    ElMessage.warning("请选择采购订单");
+    return;
+  }
+  // 获取已选择的数据
+  const selectedDetails = purchaseOrder.value.details.filter(item => ids.value.includes(item.detailId));
+  if (selectedDetails.length === 0) {
+    ElMessage.warning("请选择要引入的明细数据");
+    return;
+  }
+
+  // 将 选择的数据 加入到 form.value.details
+  selectedDetails.forEach(item => {
+    // 加入采购订单号 + 入库数量和采购数量颠倒
+    item.purchaseOrderId = purchaseOrder.value.orderId;
+    item.purchaseOrderNo = purchaseOrder.value.orderNo;
+    form.value.details.push(item);
+  });
+  calculateAmount()
+
+  ElMessage.warning("已将引入的数据加入到商品明细中！")
+  open.value = false;
+}
+
+/** 计算金额*/
+const calculateShortageQuantity = (index) => {
+  const item = purchaseOrder.value.details[index]
+  //item.shortageQuantity = item.shortageQuantity - item.receivedQuantity  // 更新缺货数量
+  item.purchaseAmount = item.unitPrice * item.receivedQuantity
+  item.discountAmount = item.purchaseAmount * item.discountRate * 0.01
+  item.taxAmount = (item.purchaseAmount - item.discountAmount) * item.taxRate * 0.01
+  item.netAmount = item.purchaseAmount - item.discountAmount + item.taxAmount
+  
+}
+
+const calculateAmount = () => {
+  // 合计总数量
+  form.value.totalQuantity = form.value.details.reduce((sum, item) => sum + (item.quantity || 0), 0)
+  // 合计 采购金额
+  form.value.totalPurchaseAmount = form.value.details.reduce((sum, item) => sum + (item.purchaseAmount || 0), 0)
+  // 合计 折扣额
+  form.value.totalDiscountAmount = form.value.details.reduce((sum, item) => sum + (item.discountAmount || 0), 0)
+  // 合计 税额
+  form.value.totalTaxAmount = form.value.details.reduce((sum, item) => sum + (item.taxAmount || 0), 0)
+  // 合计 实际采购总金额
+  form.value.totalNetAmount = form.value.details.reduce((sum, item) => sum + (item.netAmount || 0), 0)
+}
+
+
+
+// ****************************** 引入采购单 end   *******************************
+
+
+// ****************************** 仓库 数据获取 start *****************************
+const warehouseList = ref([]);
+// 获取仓库列表
+const getWarehouseList = () => {
+    listWarehouse()
+      .then(response => {
+        warehouseList.value = response.rows || [];
+      })
+      .catch (error => {
+        ElMessage.error("获取仓库列表时出错:",error)
+      })
+};
+getWarehouseList()
+
+// ****************************** 仓库 数据获取 end ******************************
+
+// ****************************** 物流公司 数据获取 start *************************
 const logisticsCompanyList = ref([]);
-// 获取列表
+// 获取物流公司列表
 const fetchLogisticsCompany = () => {
     listLogisticsCompanies()
       .then(response => {
@@ -275,9 +548,9 @@ const fetchLogisticsCompany = () => {
 };
 fetchLogisticsCompany()
 
-// ****************************** 物流公司 数据获取 end ******************************
+// ****************************** 物流公司 数据获取 end **************************
 
-// *****************************  供应商 数据获取 start *****************************
+// *****************************  供应商 数据获取 start **************************
 // 供应商 - 初始化列表
 const supplierList = ref([])
 /** 供应商 - 获取列表 */
@@ -291,6 +564,39 @@ const getSuppliers = async () => {
       })
 };
 getSuppliers()
+
+let originalSupplierId = null; // 缓存原始的供应商ID
+const handleChangeSupplier = () => {
+  // 如果开启了 显示采购订单号，更新供应商就会清空商品明细
+  if(showPurchaseNo.value){
+    // 切换供应商 清空入库商品明细
+    ElMessageBox.confirm(
+      '是否确认变更已选择的供应商？ 变更会导致清空当前入库商品明细数据!',
+      '提示',
+      {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    ).then(() => {
+      // 清空数据
+      form.value.details = [];
+      purchaseQueryParams.value.supplierId = form.value.supplierId;
+      // 缓存当前的供应商ID
+      originalSupplierId = form.value.supplierId;
+      // 显示成功提示
+      ElMessage.success('已更换供应商');
+    }).catch(() => {
+      // 取消操作,恢复原供应商ID
+      form.value.supplierId = originalSupplierId;
+      ElMessage.info('已取消更换供应商'); 
+    });
+    
+  }
+  
+
+
+}
 
 // ******************************  供应商 数据获取 end *****************************
 
@@ -310,7 +616,8 @@ getContainerList()
 
 // ****************************** 货柜 数据获取 end ******************************
 
-//*******************************   虚拟表格 数据部分  start *************************
+
+//*******************************   虚拟表格 数据部分  start **********************
 const columns = computed(() => [
   {
     key: 'actions',
@@ -338,6 +645,28 @@ const columns = computed(() => [
     align: 'center',
     fixed:'left',
     cellRenderer: ({ rowIndex }) => rowIndex + 1
+  },
+   {
+    key: 'purchaseOrderNo',
+    title: '采购订单',
+    width: 150,
+    align: 'center',
+    hidden: !showPurchaseNo.value,  // 控制列是否可见
+    cellRenderer: ({ rowData }) => {
+      const getTooltipContent = () => {return rowData.purchaseOrderNo;}
+      return h(ElTooltip, {
+        content: getTooltipContent(),
+        placement: 'top'
+      },{
+        default: () => h('div', {style: {
+          overflow: 'hidden',       // 隐藏溢出部分
+          textOverflow: 'ellipsis', // 使用省略号
+          whiteSpace: 'nowrap',     // 禁止换行
+          cursor: 'pointer'         // 鼠标变成指针，增加交互提示
+        } },rowData.purchaseOrderNo)
+      }
+      )   
+    }
   },
   {
     key: 'productCode',
@@ -461,22 +790,22 @@ const columns = computed(() => [
     }
   },
   {
-    key: 'quantity',
-    title: '数量',
+    key: 'receivedQuantity',
+    title: '入库数量',
     width: 120,
     align: 'center',
     cellRenderer: ({ rowData, rowIndex }) => {
-      const inputId = getInputId(rowIndex, 'quantity')
-      return h('div',{style: {...getCellStyle(rowIndex, 'quantity'),width:'100%',display:'flex'}},h(ElInputNumber, {
+      const inputId = getInputId(rowIndex, 'receivedQuantity')
+      return h('div',{style: {...getCellStyle(rowIndex, 'receivedQuantity'),width:'100%',display:'flex'}},h(ElInputNumber, {
         id: inputId,
-        modelValue: rowData.quantity,
+        modelValue: rowData.receivedQuantity,
         'onUpdate:modelValue': (value) => {
-          form.value.details[rowIndex].quantity = value
+          form.value.details[rowIndex].receivedQuantity = value
           calculateRowAmount(rowIndex)
         },
-        onKeydown: (e) => handleKeyNavigation(e, rowIndex, 'quantity'),
+        onKeydown: (e) => handleKeyNavigation(e, rowIndex, 'receivedQuantity'),
         onFocus: () => {
-          currentFocus.value = { rowIndex, columnKey: 'quantity' }
+          currentFocus.value = { rowIndex, columnKey: 'receivedQuantity' }
         },
         onBlur: () => {
           currentFocus.value = null
@@ -613,17 +942,76 @@ const columns = computed(() => [
     cellRenderer: ({ rowData }) => `${formatAmount(rowData.netAmount)} €`
   },
   {
-    key: 'receivedQuantity',
-    title: '入库数量',
+    key: 'batchNo',
+    title: '批次号',
+    width: 100,
+    align: 'center',
+    hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
+    cellRenderer: ({ rowData, rowIndex }) => {
+      const inputId = getInputId(rowIndex, 'batchNo')
+      return h('div',{style: {...getCellStyle(rowIndex, 'batchNo'),width:'100%',display:'flex'}},h(ElInput, {
+        id: inputId,
+        modelValue: rowData.batchNo,
+        'onUpdate:modelValue': (value) => {
+          form.value.details[rowIndex].batchNo = value
+          calculateRowAmount(rowIndex)
+        },
+        onKeydown: (e) => handleKeyNavigation(e, rowIndex, 'batchNo'),
+        onFocus: () => {
+          currentFocus.value = { rowIndex, columnKey: 'batchNo' }
+        },
+        onBlur: () => {
+          currentFocus.value = null
+        },
+        controls: false,
+        disabled: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
+      }))
+    }
+  },
+  {
+    key: 'expireDate',
+    title: '过期日期',
+    width: 150,
+    align: 'center',
+    hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
+    cellRenderer: ({ rowData, rowIndex }) => {
+      const inputId = getInputId(rowIndex, 'expireDate')
+      return h('div',{style: {...getCellStyle(rowIndex, 'expireDate'),width:'100%',display:'flex'}},h(ElDatePicker, {
+        id: inputId,
+        modelValue: rowData.expireDate,
+        'onUpdate:modelValue': (value) => {
+          form.value.details[rowIndex].expireDate = value
+          calculateRowAmount(rowIndex)
+        },
+        onKeydown: (e) => handleKeyNavigation(e, rowIndex, 'expireDate'),
+        onFocus: () => {
+          currentFocus.value = { rowIndex, columnKey: 'expireDate' }
+        },
+        onBlur: () => {
+          currentFocus.value = null
+        },
+        type: 'date',
+        placeholder:"请选择过期日期",
+        disabledDate: disablePastDates,
+        disabled: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
+        style:{width:'100%'},
+      }))
+    }
+  },
+  {
+    key: 'quantity',
+    title: '采购订单数量',
     width: 100,
     align: 'right',
-    cellRenderer: ({ rowData }) => rowData.receivedQuantity
+    hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
+    cellRenderer: ({ rowData }) => rowData.quantity
   },
   {
     key: 'shortageQuantity',
     title: '缺货数量',
     width: 100,
     align: 'right',
+    hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
     cellRenderer: ({ rowData }) => rowData.shortageQuantity
   }
 ])
@@ -650,7 +1038,7 @@ const onSort = (sortBy) => {
 
 //*******************************   虚拟表格 数据部分  end *************************
 
-//***********************   虚拟表格 自动填充组件的键盘操作  start ***********************
+//***********************   虚拟表格 自动填充组件的键盘操作  start ******************
 // 自动填充单元格 编辑状态
 const isAutocompleteEdit = ref(true);
 const handleAutocompleteKeydown = (event,rowIndex,columnKey) => {
@@ -663,23 +1051,24 @@ const handleAutocompleteKeydown = (event,rowIndex,columnKey) => {
   }
 };
 
-//***********************   虚拟表格 自动填充组件的键盘操作  end *************************
+//***********************   虚拟表格 自动填充组件的键盘操作  end **********************
 
 
-// ******************************  控制键盘操作焦点事件  start *************************
+// ******************************  控制键盘操作焦点事件  start ***********************
 // 当前焦点位置
 const currentFocus = ref({
   rowIndex: 0,
   columnKey: 'productCode' // 当前聚焦的列key
 })
 
-// 可编辑的列keys（需要根据你的实际情况修改）
+// 可编辑的列keys（需要根据实际情况修改）
 const editableColumns = [
   'productCode',
-  'quantity',
+  'receivedQuantity',
   'unitPrice',
   'discountRate',
-  'taxRate'
+  'taxRate',
+  'batchNo'
 ]
 
 /** 获取表格数据总行数 */ 
@@ -710,7 +1099,7 @@ const getCellStyle = (rowIndex, columnKey) => {
   return {
     backgroundColor: isFocused ? 'rgba(11, 15, 250, 0.918)' : 'transparent',
     transition: 'background-color 0.1s',
-    padding: '0 4px',
+    padding: '0 1px',
   }
 }
 /** 键盘导航 */ 
@@ -818,26 +1207,16 @@ const moveFocus = (rowIndex, columnKey) => {
 
 /** lodash防抖处理滚动 */ 
 const debouncedScroll = debounce(() => {
-  //ElMessage.error(`修改 键盘操作状态 ---   === false`)
   isKeyScrolling.value = false;
 }, 2);
 
 /** 鼠标滚动 焦点处理 */
 const handleScroll = () => {
-  // 可以根据 scrollTop 和 scrollLeft 来获取视图顶端的rowIndex 和 columnKey
-  //ElMessage.error(`触发滚动事件 - 滚动位置：${scrollTop} - ${scrollLeft}`)
-  // 检查当前是否是键盘滚动
     if (isKeyScrolling.value) {
-      //ElMessage.error(`触发滚动事件 - 不做任何处理！ - 键盘滚动：${isKeyScrolling.value}`)
-      // 重置 isKeyScrolling 状态
-      // isKeyScrolling.value = false;
-      // 修改成防抖处理，否则有时会连续触发滚动事件，导致无法聚焦移动
-      debouncedScroll()
-      
+      debouncedScroll()  
     } else {
       // 手动滚动才移除焦点
       hiddenInput.value.focus(); 
-      //ElMessage.error(`触发滚动事件 - 移除焦点！  - 键盘滚动： ${isKeyScrolling.value}`)
     }
 }
 
@@ -855,11 +1234,13 @@ const removeTouchClass = () => {
 };
 const addTouchEventListeners = () => {
   const container = document.querySelector('#touch-scroll-container');
+  if (!container) return;
   container.addEventListener('touchstart', addTouchClass, { passive: true });
   container.addEventListener('touchend', removeTouchClass, { passive: true });
 };
 const removeTouchEventListeners = () => {
   const container = document.querySelector('#touch-scroll-container');
+  if (!container) return;
   container.removeEventListener('touchstart', addTouchClass);
   container.removeEventListener('touchend', removeTouchClass);
 };
@@ -868,9 +1249,9 @@ const removeTouchEventListeners = () => {
 /** 组件挂载后初始化设置 */ 
 onMounted(() => {
   // 组件挂载后设置初始焦点
-  if (tableData.value.length > 0) {
-    moveFocus(0, 'quantity')
-  }
+  // if (tableData.value.length > 0) {
+  //   moveFocus(0, 'quantity')
+  // }
   // 监听触屏滚动事件
   addTouchEventListeners();
 })
@@ -884,43 +1265,47 @@ onBeforeUnmount(() => {
 //**************************************   虚拟表格 - 数据部分   ***************************************/
 
 const userStore = useUserStore();
-// 订单操作记录
-const orderOperateLog = ref([])
+
 
 // 订单状态枚举
 const OrderStatusEnum = {
   EDIT: '1',
-  WAIT_FOR_RECEIVED: '2',
-  RECEIVED: '3',
-  WAIT_FOR_INVOICED: '4',
-  INVOICED: '5',
-  DELETE: '6',
+  SAVE: '2',
+  WAIT_FOR_RECEIVED: '3',
+  RECEIVED: '4',
+  WAIT_FOR_INVOICED: '5',
+  INVOICED: '6',
+  DELETE: '7',
 }
 
 // 订单状态颜色
 const OrderStatusColor = {
   '1':'info',
-  '2':'warning',
-  '3':'success',
-  '4':'warning',
-  '5':'success',
-  '6':'danger',
+  '2':'primary',
+  '3':'warning',
+  '4':'success',
+  '5':'warning',
+  '6':'success',
+  '7':'danger',
 }
 
 // 订单状态描述
 const OrderStatusName = {
   '1':'草稿',
-  '2':'待入库',
-  '3':'已入库',
-  '4':'待生成发票',
-  '5':'已生成发票',
-  '6':'已作废',
+  '2':'保存',
+  '3':'待入库',
+  '4':'已入库',
+  '5':'待生成发票',
+  '6':'已生成发票',
+  '7':'已作废',
 }
 
 // 订单操作类型
 const OrderOperateType = {
   EDIT: 'edit',
   SAVE: 'save',
+  SUBMIT: 'submit',
+  REJECT: 'reject',
   RECEIVED: 'received',
   UN_RECEIVED: 'unReceived',
   INVOICED: 'invoiced',
@@ -931,12 +1316,14 @@ const OrderOperateType = {
 /** 获取时间线项目类型 */ 
 const getTimelineItemType = (receiptsStatus) => {
   const typeMap = {
-    1: 'info',
-    2: 'warning',
-    3: 'success',
-    4: 'warning',
-    5: 'success',
-    6: 'danger'
+    edit: 'info',
+    save: 'primary',
+    submit: 'warning',
+    reject: 'danger',
+    received: 'success',
+    unReceived: 'danger',
+    invoiced: 'success',
+    unInvoiced: 'danger',
   }
   return typeMap[receiptsStatus] || 'info'
 }
@@ -955,13 +1342,14 @@ function getRemarkMessage(action) {
 // 允许最大订单条数
 const maxLength = 1000
 // 每次添加新增的条数
-const onceAddItemLength = 100
+const onceAddItemLength = 5
 
 // 表单数据
 const form = ref({
   receiptsId: null,
   receiptsNo: null,
   supplierId: null,
+  totalQuantity: 0,
   totalPurchaseAmount: 0,
   totalDiscountAmount: 0,
   totalTaxAmount: 0,
@@ -977,18 +1365,25 @@ const form = ref({
   vatInput: null,
   totalAmountCost: null,
   remark: '',
-  details: [],
   operateLog: '',
   receivedTime: new Date(),
+  warehouseId: null,
+  showPurchaseNo,
+  batchNo: `${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}`,
+  details: [],
 })
+
 
 // 表单校验规则
 const rules = ref({
-  orderDate: [
+  receivedTime: [
     { required: true, message: '请选择订单日期' , trigger: ['blur','change'] }
   ],
   supplierId: [
     { required: true, message: '请选择供应商' , trigger: ['blur','change'] }
+  ],
+  warehouseId: [
+    { required: true, message: '请选择仓库' , trigger: ['blur','change'] }
   ],
 })
 
@@ -1116,11 +1511,6 @@ const handleProductOnBlur = (index) => {
 
 /** 添加商品行 */ 
 const addItem = () => {
-  // 初始化聚焦操作
-  if (tableData.value.length == 0) {
-    //ElMessage.error('提示：添加商品开始聚焦');
-    moveFocus(currentFocus.value.rowIndex, currentFocus.value.columnKey)
-  }
   // 创建一个空数组来存储100条新记录
   const newItems = Array.from({ length: onceAddItemLength }, () => ({
     detailId: '',
@@ -1130,20 +1520,22 @@ const addItem = () => {
     skuCode: '',
     skuValue: '',
     skuUnit:'',
-    unitPrice: null,
-    quantity: null,
-    purchaseAmount: null,
-    discountRate: null,
-    discountAmount: null,
-    taxRate: null,
-    taxAmount: null,
-    netAmount: null,
-    receivedQuantity: null,
-    shortageQuantity: null,
+    unitPrice: 0,
+    receivedQuantity: 0,
+    purchaseAmount: 0,
+    discountRate: 0,
+    discountAmount: 0,
+    taxRate: 0,
+    taxAmount: 0,
+    netAmount: 0,
+    quantity: 0,
+    shortageQuantity: 0,
+    batchNo: form.value.batchNo,
+    expireDate : null,
+    purchaseOrderId: '',
   }))
   // 将新记录数组添加到现有数组中
-  form.value.details.push(...newItems)
-  
+  form.value.details.push(...newItems) 
 }
 
 /** 移除商品行 */ 
@@ -1154,14 +1546,17 @@ const removeItem = (index) => {
 
 
 // ***************************  计算逻辑 start *******************************
-/** 采购订单计算 */
+/** 订单计算 */
 const calculateRowAmount = (index) => {
   const item = form.value.details[index]
-  item.shortageQuantity = item.quantity - item.receivedQuantity  // 更新缺货数量
-  item.purchaseAmount = item.unitPrice * item.quantity
+  //item.shortageQuantity = item.shortageQuantity - item.receivedQuantity  // 更新缺货数量
+  item.purchaseAmount = item.unitPrice * item.receivedQuantity
   item.discountAmount = item.purchaseAmount * item.discountRate * 0.01
   item.taxAmount = (item.purchaseAmount - item.discountAmount) * item.taxRate * 0.01
   item.netAmount = item.purchaseAmount - item.discountAmount + item.taxAmount
+  
+  // 合计总数量
+  form.value.totalQuantity = form.value.details.reduce((sum, item) => sum + (item.quantity || 0), 0)
   // 合计 采购金额
   form.value.totalPurchaseAmount = form.value.details.reduce((sum, item) => sum + (item.purchaseAmount || 0), 0)
   // 合计 折扣额
@@ -1184,8 +1579,8 @@ const handleEdit = () => {
 
 // 删除订单
 const handleDelete = () => {
-  proxy.$modal.confirm('是否确认删除采购订单编号为"' + form.value.orderNo + '"的数据项？').then(function() {
-    return delPurchaseOrder(form.value.orderId);
+  proxy.$modal.confirm('是否确认删除采购入库单编号为"' + form.value.receiptsNo + '"的数据项？').then(function() {
+    return delReceipts(form.value.receiptsId);
   }).then(() => {
     ElMessage.success("删除成功");
     goBack();
@@ -1200,16 +1595,15 @@ const handleSave = () => {
   proxy.$refs["receiptsRef"].validate().then(() => {
     // 1 过滤空数据
     form.value.details = form.value.details.filter(item => item.skuId)
-    console.log(form.value.details)
     if(form.value.details.length === 0){
-      ElMessage.error("请输入采购商品信息!")
+      ElMessage.error("您还没有输入商品明细!")
       return;
     }
-    // 2 检查是否存在相同的skuId  true存在相同的skuId
-    if (checkHaveSameSkuId(form.value.details)) {
+    // 2 检查是否存在相同的(skuId+unitPrice)  true存在相同的skuId
+    if (checkHaveSameSkuIdAndPrice(form.value.details)) {
       return;
     }
-    // 3 检查采购条目的输入项 false不通过
+    // 3 检查条目的输入项 false不通过
     if (!validateItems(form.value.details)) {
       return;
     }
@@ -1222,7 +1616,7 @@ const handleSave = () => {
 /** 检查采购条目的必输项 */
 const validateItems = (submitItems) => {
   for (const item of submitItems) {
-    if (item.quantity <= 0) {
+    if (item.receivedQuantity <= 0) {
       ElMessage.error("采购明细 数量必须大于 0 !");
       return false;
     }
@@ -1234,43 +1628,52 @@ const validateItems = (submitItems) => {
   return true;
 };
 
-/** 检查采购条目是否有相同的skuId */
-const checkHaveSameSkuId = (submitItems) => {
-  const skuIdSet = new Set();
+/** 检查采购条目是否有相同的skuId+unitPrice */
+const checkHaveSameSkuIdAndPrice = (submitItems) => {
+  const uniqueChecker  = new Set();
   for (const item of submitItems) {
-    if (skuIdSet.has(item.skuId)) {
-      ElMessage.error("采购明细 sku 重复，请检查！");
+    let key = item.skuId.toString() + item.unitPrice.toString()
+    
+    if (uniqueChecker.has(key)) {
+      ElMessage.error("商品明细 sku 单价 重复，请检查！");
+      console.log("---------------key:",key)
       return true;
     }
-    skuIdSet.add(item.skuId);
+    uniqueChecker.add(key);
   }
   return false;
 }
 
-/** 提交审核 */ 
-const handleSubmitApproval = () => {
-  openApprovalDialog('提交审核', OrderOperateType.SUBMIT_APPROVAL)
+/** 提交 入库申请 */ 
+const handleSubmitForReceive = () => {
+  openApprovalDialog('提交入库申请', OrderOperateType.SUBMIT)
 }
 
-/** 审核通过 */ 
-const handleApprove = () => {
-  openApprovalDialog('审核通过', OrderOperateType.APPROVE)
+/** 确认入库 */ 
+const handleReceived = () => {
+  openApprovalDialog('确认入库', OrderOperateType.RECEIVED)
 }
 
 /** 驳回 */ 
 const handleReject = () => {
-   openApprovalDialog('驳回', OrderOperateType.REJECT)
+  openApprovalDialog('驳回入库申请', OrderOperateType.REJECT)
 }
 
-/** 反审核 */ 
-const handleUnApprove = () => {
-  openApprovalDialog('反审核', OrderOperateType.UN_APPROVE)
+/** 生成发票 */ 
+const handleInvoiced = () => {
+  openApprovalDialog('审核通过', OrderOperateType.INVOICED)
 }
 
-/** 关闭订单 */ 
-const handleCloseForStop = () => {
-   openApprovalDialog('关闭订单', OrderOperateType.CLOSE_FOR_STOP)
+/** 反入库 */ 
+const handleUnReceived = () => {
+   openApprovalDialog('反入库', OrderOperateType.UN_RECEIVED)
 }
+
+/** 反生成发票 */ 
+const handleUnInvoiced = () => {
+  openApprovalDialog('反生成发票', OrderOperateType.UN_INVOICED)
+}
+
 
 /** 打印 */
 const handlePrint = () => {
@@ -1282,24 +1685,12 @@ const handleExport = () => {
   console.log("************* 点击导出 ")
 }
 
-/** 刷新现存量 */
-const handleRefreshStock = async () => {
-  await Promise.all(
-    form.value.details.map(async (item) => {
-      if (item.skuId){
-        const res = await selectStockBySkuId(item.skuId)
-        item.skuStock = res.data
-      } else {
-        item.skuStock = 0
-      }
-    })
-  );
-  ElMessage.success('刷新现存量成功！')
-};
+
 
 // **************************    操作  end ********************************
 
 // ************************** 审核记录 + 提示弹窗 start ******************
+
 const dialogVisible = ref(false)  // 提交弹窗状态
 const dialogTitle = ref('')       // 提交弹窗标题
 const currentAction = ref('')     // 当前操作类型
@@ -1318,14 +1709,18 @@ const openApprovalDialog = (title, action) => {
 }
 
 /** 添加采购订单操作记录 */ 
-const addApprovalLog = (action, status, remark) => {
+// 订单操作记录
+const orderOperateLog = ref([])
+const addApprovalLog = (action, status, remark, actionValue) => {
   const newLog = {
     time: new Date().toLocaleString(),
     operator: userStore.name,
     action,
     status,
-    remark
+    remark,
+    actionValue: actionValue || ''
   }
+  console.log("*********** 添加操作记录 ", newLog)
   // 查找是否存在相同 operator 的记录
   const existingIndex = orderOperateLog.value.findIndex(
     log => log.action === action
@@ -1365,9 +1760,10 @@ const handleError = (message = "操作失败") => {
 };
 
 /** 采购订单提交操作 */ 
+const actionRequiresRemark = [ OrderOperateType.REJECT, OrderOperateType.RECEIVED, OrderOperateType.UN_RECEIVED, OrderOperateType.INVOICED, OrderOperateType.UN_INVOICED];
+const actionRequiresNoRemark = [ OrderOperateType.EDIT, OrderOperateType.SAVE, OrderOperateType.DELETE, OrderOperateType.SUBMIT];
 const submitApproval = async () => {
   // 1 强制输入描述信息 检查
-  const actionRequiresRemark = [OrderOperateType.APPROVE, OrderOperateType.REJECT, OrderOperateType.UN_APPROVE, OrderOperateType.CLOSE_FOR_STOP];
   if (actionRequiresRemark.includes(currentAction.value) && !approvalForm.value.remark) {
     ElMessage.warning(`请输入${getRemarkMessage(currentAction.value)}`);
     return;
@@ -1377,39 +1773,50 @@ const submitApproval = async () => {
   const actions = {
     [OrderOperateType.SAVE]: {
       status: OrderStatusEnum.SAVE,
-      message: '保存成功'
+      message: '保存成功',
+      actionValue: OrderOperateType.SAVE
     },
     [OrderOperateType.EDIT]: {
       status: OrderStatusEnum.EDIT,
-      message: '开始编辑'
+      message: '开始编辑',
+      actionValue: OrderOperateType.EDIT
     },
-    [OrderOperateType.SUBMIT_APPROVAL]: {
-      status: OrderStatusEnum.SUBMIT_APPROVAL,
-      message: '提交审核 成功!'
-    },
-    [OrderOperateType.APPROVE]: {
-      status: OrderStatusEnum.APPROVE,
-      message: '审核通过!'
+    [OrderOperateType.SUBMIT]: {
+      status: OrderStatusEnum.WAIT_FOR_RECEIVED,
+      message: '提交入库申请!',
+      actionValue: OrderOperateType.SUBMIT
     },
     [OrderOperateType.REJECT]: {
       status: OrderStatusEnum.SAVE,
-      message: '驳回 成功!'
+      message: '驳回入库申请!',
+      actionValue: OrderOperateType.REJECT
     },
-    [OrderOperateType.UN_APPROVE]: {
-      status: OrderStatusEnum.SAVE,
-      message: '反审核 成功!'
+    [OrderOperateType.RECEIVED]: {
+      status: OrderStatusEnum.WAIT_FOR_INVOICED,
+      message: '入库成功 成功!',
+      actionValue: OrderOperateType.RECEIVED
     },
-    [OrderOperateType.CLOSE_FOR_STOP]: {
-      status: OrderStatusEnum.CLOSE_FOR_STOP,
-      message: '关闭订单 成功!'
-    }
+    [OrderOperateType.INVOICED]: {
+      status: OrderStatusEnum.INVOICED,
+      message: '已生成发票!',
+      actionValue: OrderOperateType.INVOICED
+    },
+    [OrderOperateType.UN_RECEIVED]: {
+      status: OrderStatusEnum.EDIT,
+      message: '反入库 成功!',
+      actionValue: OrderOperateType.UN_RECEIVED
+    },
+    [OrderOperateType.UN_INVOICED]: {
+      status: OrderStatusEnum.WAIT_FOR_RECEIVED,
+      message: '反生成发票 成功!',
+      actionValue: OrderOperateType.UN_INVOICED
+    },
   }
 
   const currentActionConfig = actions[currentAction.value]
-
-  addApprovalLog(dialogTitle.value, currentActionConfig.status, approvalForm.value.remark);
+  addApprovalLog(dialogTitle.value, currentActionConfig.status, approvalForm.value.remark, currentActionConfig.actionValue);
   form.value.receiptsStatus = currentActionConfig.status;
-  form.value.operateLog = JSON.stringify(orderOperateLog.value);
+  //form.value.operateLog = JSON.stringify(orderOperateLog.value);
 
   try {
     // 1 数据预处理 转json格式
@@ -1417,46 +1824,108 @@ const submitApproval = async () => {
 
     // 4 后端 API调用
     if (currentAction.value === OrderOperateType.SAVE) {
-      if (!form.value.orderId) {
+      form.value.showPurchaseNo = showPurchaseNo.value
+      if (!form.value.receiptsId) {
         // 新增操作
-        await addPurchaseOrder(form.value)
+        await addReceipts(form.value)
           .then( (res) => {
-            form.value.orderId = res.data.orderId
+            form.value.receiptsId = res.data.receiptsId
+            form.value.receiptsNo = res.data.receiptsNo
             parseJson();
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("新增操作失败"));
+          .catch(() => handleError("新增 入库单 操作失败"));
       } else {
         // 修改操作
-        await updatePurchaseOrder(form.value)
+        await updateReceipts(form.value)
           // 修改状态更新操作日志
           .then( () => {
             parseJson();
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("修改操作失败"));
+          .catch(() => handleError("修改 入库单 操作失败"));
       }
-    } else {
-      // 非保存操作
-      await updatePurchaseOrderStatus(form.value)
+    } else if (currentAction.value === OrderOperateType.EDIT) {
+      // 编辑操作
+      await updateReceiptsStatus(form.value)
         // 修改状态更新操作日志
-        .then( () => {
-          parseJson();
-          ElMessage.success(currentActionConfig.message)
-          RefreshTab()
-        })
-        .catch(() => handleError("修改操作失败"));
+          .then( () => {
+            parseJson();
+            ElMessage.success(currentActionConfig.message)
+            RefreshTab()
+          })
+          .catch(() => handleError("编辑 入库单 操作失败"));
+    }else if (currentAction.value === OrderOperateType.SUBMIT) {
+      // 提交待入库操作
+      await updateReceiptsStatus(form.value)
+        // 修改状态更新操作日志
+          .then( () => {
+            parseJson();
+            ElMessage.success(currentActionConfig.message)
+            RefreshTab()
+          })
+          .catch(() => handleError("提交入库申请 操作失败"));
+    }else if (currentAction.value === OrderOperateType.REJECT) {
+      // 提交待入库操作
+      await updateReceiptsStatus(form.value)
+        // 修改状态更新操作日志
+          .then( () => {
+            parseJson();
+            ElMessage.success(currentActionConfig.message)
+            RefreshTab()
+          })
+          .catch(() => handleError("驳回入库申请 操作失败"));
+    }else if (currentAction.value === OrderOperateType.RECEIVED) {
+      // 入库操作
+      await received(form.value)
+        // 修改状态更新操作日志
+          .then( () => {
+            parseJson();
+            ElMessage.success(currentActionConfig.message)
+            RefreshTab()
+          })
+          .catch(() => handleError("入库 操作失败"));
+    } else if (currentAction.value === OrderOperateType.UN_RECEIVED) {
+      // 反入库操作
+      await unReceived(form.value)
+        // 修改状态更新操作日志
+          .then( () => {
+            parseJson();
+            ElMessage.success(currentActionConfig.message)
+            RefreshTab()
+          })
+          .catch(() => handleError("反入库 操作失败"));
+    }else if (currentAction.value === OrderOperateType.INVOICED) {
+      // 生成发票操作
+      await invoiced(form.value)
+        // 修改状态更新操作日志
+          .then( () => {
+            parseJson();
+            ElMessage.success(currentActionConfig.message)
+            RefreshTab()
+          })
+          .catch(() => handleError("生成发票 操作失败"));
+    } else if (currentAction.value === OrderOperateType.UN_INVOICED) {
+      // 反生成发票操作
+      await unInvoiced(form.value)
+        // 修改状态更新操作日志
+          .then( () => {
+            parseJson();
+            ElMessage.success(currentActionConfig.message)
+            RefreshTab()
+          })
+          .catch(() => handleError("反生成发票 操作失败"));
     }
   } catch (error) {
     console.log("API 调用异常:", error);
+    parseJson();
     ElMessage.error("API 调用异常，请重试");
   } finally {
     // 关闭对话框和加载状态
     dialogVisible.value = false;
-  }
-    
+  }   
 }
 
 // 当前要关闭的 tabs
@@ -1484,17 +1953,16 @@ const RefreshTab = () => {
 
 /** 通过修改传递的 orderId 获取商品信息 */
 const getInfoById = () => {
-  // 获取修改传递的参数 productId
-  const _orderId = route.query.orderId;
+  // 获取修改传递的参数
+  const _receiptsId = route.query.receiptsId;
 
-  if (_orderId) {
-    getPurchaseOrder(_orderId).then((response) => {
+  if (_receiptsId) {
+    getReceipts(_receiptsId).then((response) => {
       form.value = response.data;
       // 还原数据
       if (form.value.operateLog) {
         orderOperateLog.value = JSON.parse(form.value.operateLog);
         form.value.operateLog = JSON.parse(form.value.operateLog);
-        console.log(form.value);
       }
       // 还原数据
       if (form.value.details) {
@@ -1502,8 +1970,11 @@ const getInfoById = () => {
           item.skuValue = JSON.parse(item.skuValue);
         });
       }
+      // 是否引用采购单
+      showPurchaseNo.value = form.value.showPurchaseNo
 
-      console.log("初始化数据正常：".form.value);
+
+      console.log("初始化数据正常：",form.value);
       
     });
   }

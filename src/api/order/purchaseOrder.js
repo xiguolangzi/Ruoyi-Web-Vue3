@@ -1,5 +1,17 @@
 import request from '@/utils/request'
 
+
+// 入库单引入 - 采购入库单列表
+export function listPurchaseOrderByStatus(data) {
+  return request({
+    url: '/order/purchaseOrder/listByStatusAndSupplier',
+    method: 'post',
+    data: data
+  })
+}
+
+
+
 // 修改采购订单状态
 export function updatePurchaseOrderStatus(data) {
   return request({

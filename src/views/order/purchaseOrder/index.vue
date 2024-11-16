@@ -78,7 +78,11 @@
           </router-link>
         </template>
       </el-table-column>
-      <el-table-column label="供应商" align="center" prop="supplierName" show-overflow-tooltip />
+      <el-table-column label="供应商" align="center" prop="supplierId" show-overflow-tooltip >
+        <template v-slot="scope">
+          {{ getSuppliersName(scope.row.supplierId)}}
+        </template>
+      </el-table-column>
       <el-table-column label="采购员" align="center" prop="buyerId" show-overflow-tooltip >
         <template v-slot="scope">
           <span> {{ getBuyerName(scope.row.buyerId) }} </span>
@@ -156,6 +160,9 @@ const getSuppliers = async () => {
       })
 };
 getSuppliers()
+const getSuppliersName = (id) => {
+  return supplierList.value.find(supplier => supplier.supplierId === id)?.supplierName || '--'
+ }
 
 // ******************************  供应商 数据获取 end *****************************
 
@@ -224,14 +231,25 @@ function handleSelectionChange(selection) {
 
 /** 新增按钮操作 */
 function handleAdd() {
-  router.push({ path: "/order/purchaseOrder/edit" });
+  const obj = {path: "/order/purchaseOrder/edit", name:"editPurchaseOrder"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/order/purchaseOrder/edit" });
+    } 
+  )
+  
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
   const _orderId = row.orderId || ids.value[0];
   console.log("修改的ID*******", _orderId);
-  router.push({ path: "/order/purchaseOrder/edit", query: { orderId: _orderId } });
+  const obj = {path: "/order/purchaseOrder/edit", name:"editPurchaseOrder"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/order/purchaseOrder/edit", query: { orderId: _orderId } });
+    } 
+  )
 }
 
 

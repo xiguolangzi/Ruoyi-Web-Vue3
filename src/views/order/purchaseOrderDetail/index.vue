@@ -60,19 +60,23 @@
 
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" label="序号" width="55"  align="center"/>
-      <el-table-column label="订单编号" align="center" prop="orderNo" min-width="150" show-overflow-tooltip >
+      <el-table-column label="订单编号" align="left" header-align="center" prop="orderNo" min-width="150" show-overflow-tooltip >
         <template v-slot="scope">
           <router-link :to="'/order/purchaseOrder/edit?orderId=' + scope.row.orderId" class="link-type">
             <span>{{ scope.row.orderNo }}</span>
           </router-link>
         </template>
       </el-table-column>
-      <el-table-column label="商品名称" align="center" prop="productName"  min-width="150" show-overflow-tooltip/>
-      <!-- <el-table-column label="商品编码" align="center" prop="productCode" min-width="150" show-overflow-tooltip/> -->
-      <el-table-column label="sku编码" align="center" prop="skuCode" min-width="150" show-overflow-tooltip/>
-      <el-table-column label="suk属性值" align="center" prop="skuValue" show-overflow-tooltip>
+      <el-table-column label="商品名称" align="left" header-align="center" prop="productSku.productName"  min-width="150" show-overflow-tooltip/>
+      <el-table-column label="sku编码" align="left" header-align="center" prop="productSku.skuCode" min-width="150" show-overflow-tooltip/>
+      <el-table-column label="计量单位" align="center" prop="unit.unitCode" min-width="80" show-overflow-tooltip>
+        <template v-slot="scope">
+          {{ scope.row.unit?.unitCode || '--' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="suk规格" align="left" header-align="center" prop="productSku.skuValue" min-width="100" show-overflow-tooltip>
         <template #default="scope">
-          <div v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
+          <div v-for="(item, index) in getSkuValue(scope.row.productSku.skuValue)" :key="index">
             <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
               {{ item[0] }}:
             </strong>

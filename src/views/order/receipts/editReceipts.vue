@@ -301,11 +301,11 @@
       <el-table v-loading="loading" :data="purchaseOrder.details" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column type="index" label="序号" width="55"  align="center"/>
-        <el-table-column label="商品名称" align="center" prop="productName"  min-width="120" show-overflow-tooltip/>
-        <el-table-column label="sku编码" align="center" prop="skuCode" min-width="120" show-overflow-tooltip/>
-        <el-table-column label="suk" align="center" prop="skuValue" show-overflow-tooltip>
+        <el-table-column label="商品名称" align="center" prop="productSku.productName"  min-width="120" show-overflow-tooltip/>
+        <el-table-column label="sku编码" align="center" prop="productSku.skuCode" min-width="120" show-overflow-tooltip/>
+        <el-table-column label="suk" align="center" prop="productSku.skuValue" show-overflow-tooltip>
           <template #default="scope">
-            <div v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
+            <div v-for="(item, index) in getSkuValue(scope.row.productSku.skuValue)" :key="index">
               <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
                 {{ item[0] }}:
               </strong>
@@ -376,7 +376,6 @@ import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts, up
 import { listSupplier } from "@/api/order/supplier"
 import { listSku, selectStockBySkuId } from "@/api/product/sku"
 import { listContainers } from "@/api/transportation/containers";
-import { listUnit } from "@/api/product/unit"
 import { listLogisticsCompanies} from "@/api/order/logisticsCompanies";
 import { listWarehouse} from "@/api/product/warehouse";
 import { listPurchaseOrderByStatus, getPurchaseOrder} from "@/api/order/purchaseOrder";
@@ -438,7 +437,7 @@ const handleLinkPurchaseOrderChange = (linkPurchaseOrderId) => {
       // 还原数据
       if (purchaseOrder.value.details) {
         purchaseOrder.value.details.forEach(item => {
-          item.skuValue = JSON.parse(item.skuValue);
+          item.productSku.skuValue = JSON.parse(item.productSku.skuValue);
           item.batchNo = form.value.batchNo;
           item.expireDate = null;
         });
@@ -476,13 +475,38 @@ const submitLinkPurchaseOrder = () => {
     return;
   }
 
-  // 将 选择的数据 加入到 form.value.details
-  selectedDetails.forEach(item => {
-    // 加入采购订单号 + 入库数量和采购数量颠倒
-    item.purchaseOrderId = purchaseOrder.value.orderId;
-    item.purchaseOrderNo = purchaseOrder.value.orderNo;
-    form.value.details.push(item);
-  });
+  // 将选择的数据转换并添加到form.value.details
+  const newDetails = selectedDetails.map(item => ({
+    purchaseOrderId: purchaseOrder.value.orderId,
+    purchaseOrderNo: purchaseOrder.value.orderNo,
+    skuId: item.skuId,
+    unitId: item.unitId,
+    productSku: {
+      skuCode: item.productSku.skuCode || '',
+      skuValue: item.productSku.skuValue || [],
+      productCode: item.productSku.productCode || '',
+      productName: item.productSku.productName || ''
+    },
+    unit: {
+      unitCode: item.unit.unitCode || '',
+    },
+    quantity: item.quantity || 0,
+    receivedQuantity: item.receivedQuantity || 0,
+    purchaseAmount: item.purchaseAmount || 0,
+    discountRate: item.discountRate || 0,
+    discountAmount: item.discountAmount || 0,
+    taxRate: item.taxRate || 0,
+    taxAmount: item.taxAmount ||0,
+    netAmount: item.netAmount || 0,
+    unitPrice: item.unitPrice || 0,
+    shortageQuantity: item.shortageQuantity || 0,
+    batchNo: item.batchNo || '',
+    expireDate: item.expireDate,
+  }));
+
+  // 添加新的明细到form中
+  form.value.details.push(...newDetails);
+  
   calculateAmount()
 
   ElMessage.warning("已将引入的数据加入到商品明细中！")
@@ -492,7 +516,6 @@ const submitLinkPurchaseOrder = () => {
 /** 计算金额*/
 const calculateShortageQuantity = (index) => {
   const item = purchaseOrder.value.details[index]
-  //item.shortageQuantity = item.shortageQuantity - item.receivedQuantity  // 更新缺货数量
   item.purchaseAmount = item.unitPrice * item.receivedQuantity
   item.discountAmount = item.purchaseAmount * item.discountRate * 0.01
   item.taxAmount = (item.purchaseAmount - item.discountAmount) * item.taxRate * 0.01
@@ -567,6 +590,7 @@ getSuppliers()
 
 let originalSupplierId = null; // 缓存原始的供应商ID
 const handleChangeSupplier = () => {
+  purchaseQueryParams.value.supplierId = form.value.supplierId;
   // 如果开启了 显示采购订单号，更新供应商就会清空商品明细
   if(showPurchaseNo.value){
     // 切换供应商 清空入库商品明细
@@ -581,7 +605,7 @@ const handleChangeSupplier = () => {
     ).then(() => {
       // 清空数据
       form.value.details = [];
-      purchaseQueryParams.value.supplierId = form.value.supplierId;
+      //purchaseQueryParams.value.supplierId = form.value.supplierId;
       // 缓存当前的供应商ID
       originalSupplierId = form.value.supplierId;
       // 显示成功提示
@@ -675,13 +699,13 @@ const columns = computed(() => [
     align: 'center',
     cellRenderer: ({ rowData, rowIndex  }) => {
       const inputId = getInputId(rowIndex, 'productCode')
-      const getTooltipContent = () => {return rowData.productCode;}
+      const getTooltipContent = () => {return rowData.productSku.productCode;}
       if (form.value.receiptsStatus === OrderStatusEnum.EDIT) {
         return h(ElAutocomplete, {
           id: inputId,
-          modelValue: rowData.productCode,
+          modelValue: rowData.productSku.productCode,
           'onUpdate:modelValue': (value) => {
-            form.value.details[rowIndex].productCode = value
+            form.value.details[rowIndex].productSku.productCode = value
           },
           fetchSuggestions: queryProducts,
           placeholder: '输入商品编码或名称',
@@ -711,7 +735,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productCode)
+        } },rowData.productSku.productCode)
         ]
       )  
     }
@@ -722,7 +746,7 @@ const columns = computed(() => [
     width: 150,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.productName;}
+      const getTooltipContent = () => {return rowData.productSku.productName;}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -732,7 +756,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productName)
+        } },rowData.productSku.productName)
       }
       )   
     }
@@ -743,7 +767,7 @@ const columns = computed(() => [
     width: 180,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.skuCode;}
+      const getTooltipContent = () => {return rowData.productSku.skuCode;}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -753,7 +777,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.skuCode)
+        } },rowData.productSku.skuCode)
       }
       )   
     }
@@ -764,7 +788,7 @@ const columns = computed(() => [
     width: 120,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      const skuValueArr =  getSkuValue(rowData.skuValue)
+      const skuValueArr =  getSkuValue(rowData.productSku.skuValue)
       return h('div', {}, skuValueArr.map(([key, value]) => {
         if (key !== '' && key !== 'skuName') {
           return h('div', [
@@ -782,8 +806,8 @@ const columns = computed(() => [
     width: 60,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      if (getUnitCode(rowData.skuUnit)) {
-        return getUnitCode(rowData.skuUnit)
+      if (rowData.unit.unitCode) {
+        return rowData.unit.unitCode
       } else {
         return '--'
       }
@@ -1404,42 +1428,6 @@ const getSkuValue = (skuValueList) => {
   return tableData.value;
 };
 
-// 默认选择计量单位
-const baseUnit = "0";
-const unitList = ref([]);
-/** 获取计量单位code */
-const getUnitCode = (unitId) => {
-  if (!unitList.value) {
-    return "";
-  }
-  if (!unitId) {
-    return "";
-  }
-  let unitCode = "";
-  unitList.value.forEach((item) => {
-    if (item.unitId === unitId) {
-      unitCode = item.unitCode;
-    }
-  });
-  return unitCode;
-};
-/** 获取计量单位下拉框数据 */
-function getUnitList() {
-  listUnit({})
-    .then((response) => {
-      // 产品只赋值基础单位
-      unitList.value = response.rows.filter((row) => row.unitType === baseUnit);
-      if (unitList.value.length > 0) {
-        form.value.unitId = unitList.value[0].unitId;
-      } else {
-        console.log("提示：请维护计量单位！！");
-      }
-    })
-    .catch((error) => {
-      console.error("获取计量单位列表时出错:", error);
-    });
-}
-
 // ******************************  数据展示  end ****************************
 
 
@@ -1478,12 +1466,14 @@ const handleProductSelect = (sku, index) => {
 
   const item = form.value.details[index]
   item.skuId = sku.skuId
-  item.productName = sku.productName
-  item.productCode = sku.productCode
-  item.skuCode = sku.skuCode
-  item.skuValue = sku.skuValue
-  item.skuStock = sku.skuStock
-  item.skuUnit = sku.skuUnit
+  item.unitId = sku.unitId
+  item.productSku.productName = sku.productName
+  item.productSku.productCode = sku.productCode
+  item.productSku.skuCode = sku.skuCode
+  item.productSku.skuValue = sku.skuValue
+  item.productSku.skuStock = sku.skuStock
+  item.unit.unitCode = sku.unit.unitCode
+  
   console.log("选择的结果：",item)
 }
 /** 商品 -  失去焦点后 判断输入框中的内容与列表是否匹配 不匹配说明只修改没有选择操作 所以清空 */ 
@@ -1491,17 +1481,14 @@ const handleProductOnBlur = (index) => {
   // 移除焦点
   currentFocus.value = null;
   isAutocompleteEdit.value = true;
-  //console.log("商品索引：",index)
-  //console.log("商品实际真是的结果：",form.value.details[index])
-  const matchedSku = skuList.value.find(sku => sku.skuCode === form.value.details[index].skuCode);
-  //console.log("商品实际-- 匹配 --的结果：",matchedSku)
+  const matchedSku = skuList.value.find(sku => sku.skuCode === form.value.details[index].productSku.skuCode);
   if(!matchedSku){
     //console.log("提示：输入的商品编码不存在，未选中或未回车确认，清空输入框内容！");
     form.value.details[index] = {}
     ElMessage.error('提示：输入的内容不存在，清空输入框内容！');
     return;
   }
-  if (matchedSku.productCode !== form.value.details[index].productCode) {
+  if (matchedSku.productCode !== form.value.details[index].productSku.productCode) {
     //console.log("提示：输入的商品编码与列表不匹配，未选中或回车确认，清空输入框内容！");
     form.value.details[index] = {}
     ElMessage.error('提示：没有选择或回车确认，清空输入框内容！');
@@ -1520,6 +1507,17 @@ const addItem = () => {
     skuCode: '',
     skuValue: '',
     skuUnit:'',
+    productSku:{
+      skuCode: '',
+      skuValue: '',
+      productName: '',
+      productCode: '',
+      skuStock: 0,
+    },
+    unit:{
+      unitId: '',
+      unitCode: '',
+    },
     unitPrice: 0,
     receivedQuantity: 0,
     purchaseAmount: 0,
@@ -1738,15 +1736,23 @@ const addApprovalLog = (action, status, remark, actionValue) => {
 const parseJson = () => {
   // 恢复json数据
   form.value.operateLog = orderOperateLog.value
-  form.value.details.forEach(item => {
-    item.skuValue = JSON.parse(item.skuValue)
+  if(form.value.details){
+    form.value.details.forEach(item => {
+    item.productSku.skuValue = JSON.parse(item.productSku.skuValue)
   })
+  }
+  
 }
 
  /** 提交数据预处理 */ 
 const prepareData = () => {
-  form.value.details.forEach(item => item.skuValue = JSON.stringify(item.skuValue));
-  form.value.operateLog = JSON.stringify(orderOperateLog.value);
+  if(form.value.details){
+    form.value.details.forEach(item => item.productSku.skuValue = JSON.stringify(item.productSku.skuValue));
+  }
+  if(orderOperateLog.value){
+    form.value.operateLog = JSON.stringify(orderOperateLog.value);
+  }
+  
 };
 
 /** 提交数据错误处理函数 */ 
@@ -1881,7 +1887,11 @@ const submitApproval = async () => {
       // 入库操作
       await received(form.value)
         // 修改状态更新操作日志
-          .then( () => {
+          .then( (res) => {
+            console.log("*******************入库结果",res)
+            if (res.code === 500) {
+              handleError("入库 操作失败")
+            }
             parseJson();
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
@@ -1890,7 +1900,7 @@ const submitApproval = async () => {
     } else if (currentAction.value === OrderOperateType.UN_RECEIVED) {
       // 反入库操作
       await unReceived(form.value)
-        // 修改状态更新操作日志
+        // 修改状态更新操作日志 
           .then( () => {
             parseJson();
             ElMessage.success(currentActionConfig.message)
@@ -1919,9 +1929,8 @@ const submitApproval = async () => {
           .catch(() => handleError("反生成发票 操作失败"));
     }
   } catch (error) {
-    console.log("API 调用异常:", error);
-    parseJson();
-    ElMessage.error("API 调用异常，请重试");
+    console.log("API 调用异常: ", error);
+    handleError("API 调用异常，请重试")
   } finally {
     // 关闭对话框和加载状态
     dialogVisible.value = false;
@@ -1967,7 +1976,7 @@ const getInfoById = () => {
       // 还原数据
       if (form.value.details) {
         form.value.details.forEach(item => {
-          item.skuValue = JSON.parse(item.skuValue);
+          item.productSku.skuValue = JSON.parse(item.productSku.skuValue);
         });
       }
       // 是否引用采购单
@@ -1987,7 +1996,6 @@ onMounted(() => {
 // ************************** 审核记录 + 提示弹窗 end ******************
 
 getInfoById()
-getUnitList()
 getSkuList()
 getSuppliers()
 

@@ -402,11 +402,7 @@ const columns = computed(() => [
     width: 60,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      if (getUnitCode(rowData.skuUnit)) {
-        return getUnitCode(rowData.skuUnit)
-      } else {
-        return '--'
-      }
+      return rowData.unit?.unitCode || '--'
     }
   },
   {
@@ -771,26 +767,16 @@ const moveFocus = (rowIndex, columnKey) => {
 
 /** lodash防抖处理滚动 */ 
 const debouncedScroll = debounce(() => {
-  //ElMessage.error(`修改 键盘操作状态 ---   === false`)
   isKeyScrolling.value = false;
 }, 2);
 
 /** 鼠标滚动 焦点处理 */
 const handleScroll = () => {
-  // 可以根据 scrollTop 和 scrollLeft 来获取视图顶端的rowIndex 和 columnKey
-  //ElMessage.error(`触发滚动事件 - 滚动位置：${scrollTop} - ${scrollLeft}`)
-  // 检查当前是否是键盘滚动
     if (isKeyScrolling.value) {
-      //ElMessage.error(`触发滚动事件 - 不做任何处理！ - 键盘滚动：${isKeyScrolling.value}`)
-      // 重置 isKeyScrolling 状态
-      // isKeyScrolling.value = false;
-      // 修改成防抖处理，否则有时会连续触发滚动事件，导致无法聚焦移动
-      debouncedScroll()
-      
+      debouncedScroll()  
     } else {
       // 手动滚动才移除焦点
       hiddenInput.value.focus(); 
-      //ElMessage.error(`触发滚动事件 - 移除焦点！  - 键盘滚动： ${isKeyScrolling.value}`)
     }
 }
 
@@ -963,41 +949,6 @@ const getSkuValue = (skuValueList) => {
   return tableData.value;
 };
 
-// 默认选择计量单位
-const baseUnit = "0";
-const unitList = ref([]);
-/** 获取计量单位code */
-const getUnitCode = (unitId) => {
-  if (!unitList.value) {
-    return "";
-  }
-  if (!unitId) {
-    return "";
-  }
-  let unitCode = "";
-  unitList.value.forEach((item) => {
-    if (item.unitId === unitId) {
-      unitCode = item.unitCode;
-    }
-  });
-  return unitCode;
-};
-/** 获取计量单位下拉框数据 */
-function getUnitList() {
-  listUnit({})
-    .then((response) => {
-      // 产品只赋值基础单位
-      unitList.value = response.rows.filter((row) => row.unitType === baseUnit);
-      if (unitList.value.length > 0) {
-        form.value.unitId = unitList.value[0].unitId;
-      } else {
-        console.log("提示：请维护计量单位！！");
-      }
-    })
-    .catch((error) => {
-      console.error("获取计量单位列表时出错:", error);
-    });
-}
 
 // 采购员 - 初始化列表
 const buyerList = ref([])
@@ -1049,7 +1000,7 @@ const handleProductSelect = (sku, index) => {
   item.skuCode = sku.skuCode
   item.skuValue = sku.skuValue
   item.skuStock = sku.skuStock
-  item.skuUnit = sku.skuUnit
+  item.unit = sku.unit
   console.log("选择的结果：",item)
 }
 /** 商品 -  失去焦点后 判断输入框中的内容与列表是否匹配 不匹配说明只修改没有选择操作 所以清空 */ 
@@ -1486,7 +1437,6 @@ onMounted(() => {
 // ************************** 审核记录 + 提示弹窗 end ******************
 
 getInfoById()
-getUnitList()
 getSkuList()
 getBuyers()
 getSuppliers()

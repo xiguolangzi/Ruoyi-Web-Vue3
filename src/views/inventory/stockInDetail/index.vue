@@ -1,18 +1,34 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="入库单ID" prop="inId">
+      <el-form-item label="入库单号" prop="inNo">
         <el-input
-          v-model="queryParams.inId"
-          placeholder="请输入入库单ID"
+          v-model="queryParams.inNo"
+          placeholder="请输入入库单号"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="商品ID" prop="skuId">
+      <el-form-item label="商品名称" prop="skuId">
         <el-input
-          v-model="queryParams.skuId"
-          placeholder="请输入商品ID"
+          v-model="queryParams.productName"
+          placeholder="请输入商品名称"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="商品编码" prop="skuId">
+        <el-input
+          v-model="queryParams.productCode"
+          placeholder="请输入商品编码"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="SKU编码" prop="skuId">
+        <el-input
+          v-model="queryParams.skuCode"
+          placeholder="请输入SKU编码"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -39,6 +55,7 @@
           icon="Plus"
           @click="handleAdd"
           v-hasPermi="['inventory:stockInDetail:add']"
+          v-if="showOperation"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -49,6 +66,7 @@
           :disabled="single"
           @click="handleUpdate"
           v-hasPermi="['inventory:stockInDetail:edit']"
+          v-if="showOperation"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -59,6 +77,7 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['inventory:stockInDetail:remove']"
+          v-if="showOperation"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -75,12 +94,16 @@
 
     <el-table v-loading="loading" :data="stockInDetailList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" align="center" prop="index" width="50"/>
-      <el-table-column label="入库单ID" align="center" prop="inId" />
-      <el-table-column label="商品编码" align="center" prop="productSku.skuCode" />
-      <el-table-column label="商品规格" align="center" prop="productSku.skuValue" >
+      <el-table-column label="序号" align="center" type="index" width="50"/>
+      <el-table-column label="入库单号" align="center" prop="inNo" />
+      <el-table-column label="商品编码" align="center" prop="productSkuVo.skuCode" >
         <template #default="scope">
-          <div v-for="(item, index) in getSkuValue(scope.row.productSku.skuValue)" :key="index">
+          <span> {{ scope.row.productSkuVo?.skuCode || '--' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="商品规格" align="center" prop="productSkuVo.skuValue" >
+        <template #default="scope">
+          <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
             <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
               {{ item[0] }}:
             </strong>
@@ -91,7 +114,11 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="计量单位" align="center" prop="unit.unitCode" ></el-table-column>
+      <el-table-column label="计量单位" align="center" prop="unitVo.unitCode" >
+        <template #default="scope">
+          <span> {{ scope.row.unitVo?.unitCode || '--' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="批次号" align="center" prop="batchNo" />
       <el-table-column label="入库数量" align="center" prop="quantity" />
       <el-table-column label="单价" align="center" prop="unitPrice" >
@@ -129,7 +156,7 @@
           <span>{{ parseTime(scope.row.expireDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" v-if="showOperation">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['inventory:stockInDetail:edit']">修改</el-button>
           <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['inventory:stockInDetail:remove']">删除</el-button>
@@ -200,6 +227,9 @@
 <script setup name="StockInDetail">
 import { listStockInDetail, getStockInDetail, delStockInDetail, addStockInDetail, updateStockInDetail } from "@/api/inventory/stockInDetail";
 import useUserStore from "@/store/modules/user";
+import { useRouter, useRoute } from "vue-router";
+
+const route = useRoute();
 
 
 // 租户ID字段过滤使用
@@ -216,6 +246,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+// 增删改查按钮控制
+const showOperation = ref(false);
 
 const data = reactive({
   form: {},
@@ -223,6 +255,7 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     inId: null,
+    inNo: null,
     skuId: null,
     batchNo: null,
     tenantId: null
@@ -239,35 +272,6 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
-/**  skuValue 转化成表格数据 */
-const getSkuValue = (skuValue) => {
-  if (!skuValue) {
-    return [];
-  }
-
-  let paramsSkuValue;
-  try {
-    paramsSkuValue = JSON.parse(skuValue);
-  } catch (error) {
-    // 如果解析失败，返回空数组或进行其他处理
-    console.warn('Invalid JSON string:', skuValue);
-    return [];
-  }
-
-  if (!paramsSkuValue || typeof paramsSkuValue !== 'object') {
-    return [];
-  }
-
-  // 将 paramsSkuValue 转化成 [["型号","AA"] , ["尺寸","SS"]]
-  const tableData = ref(Object.entries(paramsSkuValue));
-  return tableData.value;
-};
-
-/** 保留2位小数 */
-const formatTwo = (value) => {
-  // 使用 Number.isFinite 确保是有效的数字
-  return Number.isFinite(value) ? value.toFixed(2) : "0.00";
-};
 
 /** 查询入库明细列表 */
 function getList() {

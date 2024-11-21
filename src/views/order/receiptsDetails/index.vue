@@ -55,14 +55,20 @@
     <el-table v-loading="loading" :data="receiptsDetailsList" @selection-change="handleSelectionChange" border>
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" label="序号" width="55"  align="center"/>
-      <el-table-column label="入库单号" align="left" header-align="center" prop="receiptsNo" min-width="100" show-overflow-tooltip/>
+      <el-table-column label="入库单号" align="center" prop="receiptsNo" min-width="150" show-overflow-tooltip>
+        <template #default="scope">
+          <span class="link-type" @click="handleUpdate(scope.row)">
+            {{ scope.row.receiptsNo }}
+        </span>
+        </template>
+      </el-table-column>
       <el-table-column label="采购订单" align="left" header-align="center" prop="purchaseOrderNo" min-width="100" show-overflow-tooltip/>
-      <el-table-column label="商品编码" align="left" header-align="center" prop="productSku.productCode" min-width="100" show-overflow-tooltip/>
-      <el-table-column label="商品名称" align="left" header-align="center" prop="productSku.productName" min-width="100" show-overflow-tooltip/> 
-      <el-table-column label="sku编码" align="left" header-align="center" prop="productSku.skuCode" min-width="100" show-overflow-tooltip/>
-      <el-table-column label="sku值" align="center" prop="productSku.skuValue" min-width="100" show-overflow-tooltip>
+      <el-table-column label="商品编码" align="left" header-align="center" prop="productSkuVo.productCode" min-width="100" show-overflow-tooltip/>
+      <el-table-column label="商品名称" align="left" header-align="center" prop="productSkuVo.productName" min-width="100" show-overflow-tooltip/> 
+      <el-table-column label="sku编码" align="left" header-align="center" prop="productSkuVo.skuCode" min-width="100" show-overflow-tooltip/>
+      <el-table-column label="sku值" align="center" prop="productSkuVo.skuValue" min-width="100" show-overflow-tooltip>
          <template #default="scope">
-          <div v-for="(item, index) in getSkuValue(scope.row.productSku.skuValue)" :key="index">
+          <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo.skuValue)" :key="index">
             <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
               {{ item[0] }}:
             </strong>
@@ -73,10 +79,9 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="计量单位" align="center" prop="unit.skuUnit" >
+      <el-table-column label="计量单位" align="center" prop="unitVo.skuUnit" >
          <template #default="scope">
-            {{scope.row.unit.unitCode }}
-            <span v-if="!scope.row.unit.unitCode"> -- </span>
+            {{scope.row.unitVo?.unitCode || '--' }}
         </template>
       </el-table-column>
       <el-table-column label="入库数量" align="center" prop="receivedQuantity" />
@@ -117,7 +122,7 @@
           <span> {{ formatTwo(scope.row.netAmount) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="采购订单数量" align="center" prop="quantity" />
+      <el-table-column label="采购订单的数量" align="center" prop="quantity" />
     </el-table>
     
     <pagination
@@ -132,8 +137,9 @@
 </template>
 
 <script setup name="ReceiptsDetails">
-import { listReceiptsDetails, getReceiptsDetails, delReceiptsDetails, addReceiptsDetails, updateReceiptsDetails } from "@/api/order/receiptsDetails";
+import { listReceiptsDetails } from "@/api/order/receiptsDetails";
 import useUserStore from "@/store/modules/user";
+import { useRouter, useRoute } from "vue-router";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -141,14 +147,12 @@ const userStore = useUserStore();
 const { proxy } = getCurrentInstance();
 
 const receiptsDetailsList = ref([]);
-const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
 const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
-const title = ref("");
 
 const data = reactive({
   queryParams: {
@@ -166,35 +170,17 @@ const data = reactive({
 
 const { queryParams } = toRefs(data);
 
-/**  skuValue 转化成表格数据 */
-const getSkuValue = (skuValue) => {
-  if (!skuValue) {
-    return [];
-  }
-
-  let paramsSkuValue;
-  try {
-    paramsSkuValue = JSON.parse(skuValue);
-  } catch (error) {
-    // 如果解析失败，返回空数组或进行其他处理
-    console.warn('Invalid JSON string:', skuValue);
-    return [];
-  }
-
-  if (!paramsSkuValue || typeof paramsSkuValue !== 'object') {
-    return [];
-  }
-
-  // 将 paramsSkuValue 转化成 [["型号","AA"] , ["尺寸","SS"]]
-  const tableData = ref(Object.entries(paramsSkuValue));
-  return tableData.value;
-};
-
-/** 保留2位小数 */
-const formatTwo = (value) => {
-  // 使用 Number.isFinite 确保是有效的数字
-  return Number.isFinite(value) ? value.toFixed(2) : "0.00";
-};
+/** 修改按钮操作 */
+const router = useRouter();
+function handleUpdate(row) {
+  const _receiptsId = row.receiptsId || ids.value
+  const obj = {path: "/purchaseManage/receipts/edit", name:"editReceipts"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/purchaseManage/receipts/edit", query: { receiptsId: _receiptsId } });
+    } 
+  )
+}
 
 /** 查询采购入库明细列表 */
 function getList() {

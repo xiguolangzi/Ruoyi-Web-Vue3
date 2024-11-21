@@ -22,7 +22,7 @@
               </el-col>
               <el-col span="8">
                 <el-form-item label="商品名称:" prop="productName">
-                  <el-input v-model="form.productName" placeholder="请输入商品名称" />
+                  <el-input v-model="form.productName" placeholder="请输入商品名称" @change="handleProductChanged" />
                 </el-form-item>
               </el-col>
               <el-col span="8">
@@ -38,7 +38,7 @@
             <el-row gutter="20">
               <el-col span="8">
                 <el-form-item label="商品条码:" prop="productCode">
-                  <el-input v-model="form.productCode" placeholder="请输入商品条码" />
+                  <el-input v-model="form.productCode" placeholder="请输入商品条码" @change="handleProductChanged"/>
                 </el-form-item>
               </el-col>
               <el-col span="8">
@@ -48,7 +48,7 @@
               </el-col>
               <el-col span="8">
                 <el-form-item label="计量单位:" prop="unitId">
-                  <el-select v-model="form.unitId" placeholder="请选择计量单位">
+                  <el-select v-model="form.unitId" placeholder="请选择计量单位" @change="handleProductChanged">
                     <el-option v-for="items in unitList" :key="items.unitId" :label="items.unitCode"
                       :value="items.unitId" />
                   </el-select>
@@ -57,8 +57,8 @@
             </el-row>
             <el-row gutter="80">
               <el-col span="12">
-                <el-form-item label="商品状态:" prop="productStatus">
-                  <el-radio-group v-model="form.productStatus">
+                <el-form-item label="商品状态:" prop="productStatus" >
+                  <el-radio-group v-model="form.productStatus" @change="handleProductChanged">
                     <el-radio v-for="dict in product_status" :key="dict.value" :label="dict.value">{{ dict.label
                       }}</el-radio>
                   </el-radio-group>
@@ -87,17 +87,17 @@
             <el-row>
               <el-col span="4">
                 <el-form-item label="长(cm):" prop="length" style="margin-right: 20px">
-                  <el-input v-model="form.length" placeholder="请输入长(cm)" type="number" style="width: 125px" />
+                  <el-input v-model="form.length" placeholder="请输入长(cm)" type="number" style="width: 125px"  @change="calculateVolume"/>
                 </el-form-item>
               </el-col>
               <el-col span="4">
                 <el-form-item label="宽(cm):" prop="width" style="margin-right: 20px">
-                  <el-input v-model="form.width" placeholder="请输入宽(cm)" type="number" style="width: 125px" />
+                  <el-input v-model="form.width" placeholder="请输入宽(cm)" type="number" style="width: 125px" @change="calculateVolume"/>
                 </el-form-item>
               </el-col>
               <el-col span="4">
                 <el-form-item label="高(cm):" prop="height" style="margin-right: 20px">
-                  <el-input v-model="form.height" placeholder="请输入高(cm)" type="number" style="width: 125px" />
+                  <el-input v-model="form.height" placeholder="请输入高(cm)" type="number" style="width: 125px" @change="calculateVolume"/>
                 </el-form-item>
               </el-col>
               <el-col span="6">
@@ -186,55 +186,40 @@
             </template>
             <div class="spec-combinations">
               <el-table :data="productSkuList" style="width: 100%">
-                <el-table-column label="规格图片" prop="skuImage" header-align="center">
+                <el-table-column type="index" width="50" align="center" label="序号"></el-table-column>
+                <el-table-column label="规格图片" prop="skuImage" header-align="center" align="center">
                   <template #default="scope">
                     <image-upload v-model="scope.row.skuImage" :isShowTip="false" :isImgSize="80" />
                   </template>
                 </el-table-column>
                 <el-table-column v-for="spec in selectedSpecs" :key="spec.name" :prop="`skuValue.${spec.name}`"
                   :label="spec.name" :width="calculateWidth(spec.name)"></el-table-column>
-                <el-table-column label="规格编码" prop="skuCode">
+                <el-table-column label="规格编码" prop="skuCode" align="center">
                   <template #default="scope">
                     <el-input v-model="scope.row.skuCode"></el-input>
                   </template>
                 </el-table-column>
-                <el-table-column label="价格1" prop="skuPrice1">
+                <el-table-column label="价格1" prop="skuPrice1" align="center">
                   <template #default="scope">
                     <el-input-number v-model="scope.row.skuPrice1" :precision="2" :step="0.01"></el-input-number>
                   </template>
                 </el-table-column>
-                <el-table-column label="价格2" prop="skuPrice2">
+                <el-table-column label="价格2" prop="skuPrice2" align="center">
                   <template #default="scope">
                     <el-input-number v-model="scope.row.skuPrice2" :precision="2" :step="0.01"></el-input-number>
                   </template>
                 </el-table-column>
-                <el-table-column label="价格3" prop="skuPrice3">
+                <el-table-column label="价格3" prop="skuPrice3" align="center">
                   <template #default="scope">
                     <el-input-number v-model="scope.row.skuPrice3" :precision="2" :step="0.01"></el-input-number>
                   </template>
                 </el-table-column>
-                <el-table-column label="单位" prop="skuUnit" width="80" align="center" show-overflow-tooltip>
+                <el-table-column label="库存" prop="averageCostBySkuVo.currentStock" align="center">
                   <template #default="scope">
-                     <span>{{getUnitCode(scope.row.skuUnit)}}</span>
-                  </template>
-                </el-table-column> 
-                <el-table-column label="库存" prop="skuStock">
-                  <template #default="scope">
-                    <el-input-number v-model="scope.row.skuStock" disabled>
-                      <template #decrease-icon>
-                        <el-icon>
-                          <ArrowDown />
-                        </el-icon>
-                      </template>
-                      <template #increase-icon>
-                        <el-icon>
-                          <ArrowUp />
-                        </el-icon>
-                      </template>
-                    </el-input-number>
+                    <span>{{ scope.row.averageCostBySkuVo?.currentStock || '--' }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="状态" prop="skuStatus">
+                <el-table-column label="状态" prop="skuStatus" align="center">
                   <template #default="scope">
                     <el-switch v-model="scope.row.skuStatus" style="
                         --el-switch-on-color: #13ce66;
@@ -281,6 +266,15 @@ const baseUnit = "0";
 // 标签菜单默认首页
 const activeName = ref("first");
 // sku状态改变
+
+/** 包装信息计算 */
+const calculateVolume = () => {
+  const length = form.value.length || 0;
+  const width = form.value.width || 0;
+  const height = form.value.height || 0;
+  // 计算立方米
+  form.value.volume = (length * width * height)/(100*100*100);
+};
 
 // ************************************************  基础资料部门 ******************************************************
 const { proxy } = getCurrentInstance();
@@ -354,16 +348,6 @@ const rules = ref({
 // SKU数据列表
 const specs = ref([{ name: "", values: [""], selected: false }]);
 
-/** 获取计量单位code */
-const getUnitCode = (unitId) => {
-  let unitCode = "";
-  unitList.value.forEach((item) => {
-    if (item.unitId === unitId) {
-      unitCode = item.unitCode;
-    }
-  });
-  return unitCode;
-};
 // SKU表单列表
 const productSkuList = ref([]);
 const newProductSkuList = ref([]);
@@ -424,9 +408,8 @@ const generateCombinations = () => {
     skuPrice1: "",
     skuPrice2: "",
     skuPrice3: "",
-    skuStock: 0,
     skuStatus: "0",
-    skuUnit: form.value.unitId,
+    unitId: form.value.unitId,
     productId: form.value.productId,
     productCode: form.value.productCode,
     productName: form.value.productName,
@@ -485,6 +468,17 @@ const syncSkuPrice1 = () => {
     item.skuPrice1 = form.value.productPrice;
   });
 };
+
+/** product 变更 更新 sku  */
+const handleProductChanged = () => {
+  productSkuList.value.forEach((item) => {
+    item.unitId = form.value.unitId;
+    item.productCode = form.value.productCode;
+    item.productName = form.value.productName;
+    item.skuStatus = form.value.productStatus;
+  });
+}
+
 
 /** 商品价格取价格1中的最小值 */
 const syncProductPriceMin1 = () => {
@@ -595,13 +589,13 @@ const initData = async () => {
     productSkuList.value = [
       {
         skuId: null,
+        unitId: form.value.unitId,
         skuValue: { skuName: "skuValue" },
         skuCode: form.value.productCode,
         skuImage: form.value.productImage,
         skuPrice1: form.value.productPrice,
         skuPrice2: null,
         skuPrice3: null,
-        skuStock: null,
         skuStatus: form.value.productStatus,
         productId: form.value.productId,
         productCode: form.value.productCode,
@@ -728,6 +722,7 @@ function getUnitList() {
         form.value.costMethod = product_cost_method.value[0].value;
       } else {
         console.log("提示：请维护计量单位！！");
+        ElMessage.error("提示：请维护计量单位！！");
       }
     })
     .catch((error) => {
@@ -762,7 +757,7 @@ getSkuNameList();
 getInfoById(); // 获取修改传递的ID 然后继续进行初始化数据
 // 控制标题
 const title = computed(() => {
-  return form.value.productId != null ? "修改商品 ：" : "新增商品 ：";
+  return form.value.productId != null ? "修改商品:" : "新增商品:";
 });
 </script>
   

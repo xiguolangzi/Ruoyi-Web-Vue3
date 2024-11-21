@@ -89,9 +89,9 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="计量单位" align="center" prop="unitId" width="80">
+      <el-table-column label="计量单位" align="center" prop="unitVo.unitCode" width="80">
         <template #default="scope">
-          <span>{{ getUnitName(scope.row.unitId) }}</span>
+          <span>{{ scope.row.unitVo?.unitCode || '--' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="商品价格" header-align="center" align="right" prop="productPrice" width="80">
@@ -110,11 +110,11 @@
         <template #default="scope">
           <div>
             <strong>分类：</strong>
-            <span>{{ getCategoryName(scope.row.categoryId) }} </span>
+            <span>{{ scope.row.productCategoryForProductVo?.categoryName || '--' }} </span>
           </div>
           <div>
             <strong>品牌：</strong>
-            <span>{{ getBrandName(scope.row.brandId) }}</span>
+            <span>{{ scope.row.brandForProductVo?.brandName || '--' }}</span>
           </div>
         </template>
       </el-table-column>
@@ -169,26 +169,16 @@
           </div>
           <el-descriptions direction="vertical" :column="6" :size="size" border style="margin-top: 20px">
             <el-descriptions-item label="商品分类" :span="2" align="center">
-              {{
-              getCategoryName(productDetail.categoryId)
-              ? productDetail.categoryId
-              : "--"
-              }}
+              {{productDetail.productCategoryForProductVo?.categoryName || '--'}}
             </el-descriptions-item>
             <el-descriptions-item label="品牌" align="center">
-              {{
-              getBrandName(productDetail.brandId)
-              ? productDetail.brandId
-              : "--"
-              }}
+              {{productDetail.brandForProductVo?.brandName || '--'}}
             </el-descriptions-item>
             <el-descriptions-item label="价格" align="center">
               {{ formatTwo(productDetail.productPrice) }} €
             </el-descriptions-item>
             <el-descriptions-item label="计量单位" align="center">
-              {{
-              productDetail.unitId ? getUnitName(productDetail.unitId) : "--"
-              }}
+              {{productDetail.unitVo?.unitCode || '--'}}
             </el-descriptions-item>
             <el-descriptions-item label="状态" align="center">
               <dict-tag :options="product_status" :value="productDetail.productStatus" />
@@ -264,7 +254,7 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="库存数量" align="center" prop="skuStock" width="80" />
+            <el-table-column label="库存数量" align="center" prop="averageCostBySkuVo.currentStock" width="80" />
             <el-table-column label="状态" align="center" prop="skuStatus" width="60">
               <template #default="scope">
                 <dict-tag :options="product_status" :value="scope.row.skuStatus" />
@@ -293,8 +283,6 @@ import {
   listProduct,
   getProduct,
   delProduct,
-  addProduct,
-  updateProduct,
 } from "@/api/product/product";
 import { listCategory } from "@/api/product/category";
 import { listUnit } from "@/api/product/unit";
@@ -313,7 +301,6 @@ const { product_cost_method, product_status } = proxy.useDict(
 );
 
 const productList = ref([]);
-const productSkuList = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -329,45 +316,15 @@ const brandList = ref([]);
 const baseUnit = "0";
 
 // *************************************************************** 表格展示数据转换 ***************************************************************
-/** 获取计量单位名称 */
-const getUnitName = (unitId) => {
-  const unit = unitList.value.find((item) => item.unitId === unitId);
-  return unit ? unit.unitCode : "";
-};
-/** 保留2位小数 */
-const formatTwo = (value) => {
-  if (value) {
-    return value.toFixed(2);
-  } else {
-    return 0;
-  }
-};
+
 /** 保留3位小数 */
 const formatTree = (value) => {
-  if (value) {
-    return value.toFixed(3);
-  } else {
-    return 0;
+  // 首先检查是否为有效的有限数字
+  if (!Number.isFinite(Number(value))) {
+    return "0.000";
   }
-};
-
-/** 获取商品分类名称 */
-const getCategoryName = (categoryId) => {
-  const category = categoryNameList.value.find(
-    (item) => item.categoryId === categoryId
-  );
-  return category ? category.categoryName : "";
-};
-/** 获取商品品牌名称 */
-const getBrandName = (brandId) => {
-  const brand = brandList.value.find((item) => item.brandId === brandId);
-  return brand ? brand.brandName : "";
-};
-/**  skuValue 转化成表格数据 */
-const getSkuValue = (skuValueList) => {
-  // 将 skuValueList 转化成 [["型号","AA"] , ["尺寸","SS"]]
-  const tableData = ref(Object.entries(skuValueList));
-  return tableData.value;
+  // 然后进行四舍五入和格式化
+  return (Math.round(Number(value) * 1000) / 1000).toFixed(3);
 };
 
 /** 查询列表 请求参数 */
@@ -396,9 +353,6 @@ function getList() {
     // json转化
     productList.value.forEach((item) => {
       item.skuSelected = JSON.parse(item.skuSelected) || [];
-      item.productSkuList.forEach((item) => {
-        item.skuValue = JSON.parse(item.skuValue) || [];
-      });
     });
     console.log("************* 获取转化后的产品信息", productList.value);
     total.value = response.total;
@@ -438,14 +392,23 @@ function handleAdd() {
     // 提示：请添加计量单位，跳转到计量单位页
     console.log("提示：请添加计量单位，跳转到计量单位页");
   }
-  router.push({ path: "/product/edit" });
+  const obj = {path: "/product/edit", name:"editProduct"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/product/edit" })
+    } 
+  )
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
   const _productId = row.productId || ids.value[0];
-  console.log("修改的ID*******", _productId);
-  router.push({ path: "/product/edit", query: { productId: _productId } });
+  const obj = {path: "/product/edit", name:"editProduct"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/product/edit", query: { productId: _productId } });
+    } 
+  )
 }
 
 /** 删除按钮操作 */
@@ -498,9 +461,6 @@ function lookDetails(row) {
       // json转化
       productDetail.value.skuSelected =
         JSON.parse(productDetail.value.skuSelected) || [];
-      productDetail.value.productSkuList.forEach((item) => {
-        item.skuValue = JSON.parse(item.skuValue) || [];
-      });
       open.value = true;
       title.value = "商品详情";
     });

@@ -44,8 +44,16 @@
               </el-button>
 
               <!-- 进行中状态，生成对应的入库单 -->
+               <el-button type="warning" v-if="form.orderStatus === OrderStatusEnum.IN_PROGRESS" @click="handleUnApprove"  v-hasPermi="['order:purchaseOrder:approve']" >
+                反审核
+              </el-button>
               <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.IN_PROGRESS" @click="handleCloseForStop"  v-hasPermi="['order:purchaseOrder:close']" >
                 关闭订单
+              </el-button>
+
+              <!-- 关闭状态，重启启用 -->
+              <el-button type="info" v-if="form.orderStatus === OrderStatusEnum.CLOSE_FOR_STOP" @click="handleReStart"  v-hasPermi="['order:purchaseOrder:close']" >
+                重新启用
               </el-button>
 
             </el-button-group>
@@ -154,16 +162,16 @@
       <template #footer>
         <div style="display: flex; justify-content: space-evenly; align-items: center;">
           <div>
-              <span > 合计采购额: {{ formatAmount(form.totalPurchaseAmount) }} € </span>
+              <span > 合计采购额: {{ formatTwo(form.totalPurchaseAmount) }} € </span>
           </div>
           <div>
-              <span >合计折扣额: {{ formatAmount(form.totalDiscountAmount) }} €  </span>
+              <span >合计折扣额: {{ formatTwo(form.totalDiscountAmount) }} €  </span>
           </div>
           <div>
-            <span > 合计税额: {{ formatAmount(form.totalTaxAmount) }} € </span>
+            <span > 合计税额: {{ formatTwo(form.totalTaxAmount) }} € </span>
           </div>
           <div>
-            <strong class="total-net-amount"> 实际金额: {{ formatAmount(form.totalNetAmount) }} € </strong>
+            <strong class="total-net-amount"> 实际金额: {{ formatTwo(form.totalNetAmount) }} € </strong>
           </div>
         </div>
       </template>
@@ -212,9 +220,8 @@
 import { ref, computed, onMounted  } from 'vue'
 import { ElAutocomplete, ElButton, ElIcon, ElInputNumber, ElMessage, ElTooltip } from 'element-plus'
 import { listSupplier } from "@/api/order/supplier"
-import { listSku, selectStockBySkuId } from "@/api/product/sku"
+import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
 import { listBuyer } from "@/api/system/user"
-import { listUnit } from "@/api/product/unit"
 import useUserStore from "@/store/modules/user"
 import { h } from 'vue'
 import { nextTick } from 'vue'
@@ -278,13 +285,13 @@ const columns = computed(() => [
     align: 'center',
     cellRenderer: ({ rowData, rowIndex  }) => {
       const inputId = getInputId(rowIndex, 'productCode')
-      const getTooltipContent = () => {return rowData.productCode;}
+      const getTooltipContent = () => {return rowData.productSkuVo.productCode;}
       if (form.value.orderStatus === OrderStatusEnum.EDIT) {
         return h(ElAutocomplete, {
           id: inputId,
-          modelValue: rowData.productCode,
+          modelValue: rowData.productSkuVo?.productCode,
           'onUpdate:modelValue': (value) => {
-            form.value.details[rowIndex].productCode = value
+            form.value.details[rowIndex].productSkuVo.productCode = value
           },
           fetchSuggestions: queryProducts,
           placeholder: '输入商品编码或名称',
@@ -298,8 +305,8 @@ const columns = computed(() => [
           },
         }, {
           default: ({ item }) => h('div', { style: { display: 'flex', justifyContent:'space-between', alignItems: 'center' } }, [
-            h('div', `${item.productCode} - ${item.productName}`),
-            h('small',{style:{color:'#909399',marginLeft:'5px'}} ,`库存: ${item.skuStock}`)
+            h('div', `${item.skuCode} - ${item.productName}`),
+            h('small',{style:{color:'#909399',marginLeft:'5px'}} ,`库存: ${item.averageCostBySkuVo?.currentStock || 0}`)
           ])
         })
       }
@@ -314,7 +321,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productCode)
+        } },rowData.productSkuVo.productCode)
         ]
       )  
     }
@@ -325,7 +332,7 @@ const columns = computed(() => [
     width: 150,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.productName;}
+      const getTooltipContent = () => {return rowData.productSkuVo?.productName || '';}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -335,7 +342,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productName)
+        } },rowData.productSkuVo?.productName || '')
       }
       )   
     }
@@ -346,7 +353,7 @@ const columns = computed(() => [
     width: 180,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.skuCode;}
+      const getTooltipContent = () => {return rowData.productSkuVo?.skuCode || '';}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -356,7 +363,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.skuCode)
+        } },rowData.productSkuVo?.skuCode || '')
       }
       )   
     }
@@ -367,7 +374,7 @@ const columns = computed(() => [
     width: 120,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      const skuValueArr =  getSkuValue(rowData.skuValue)
+      const skuValueArr =  getSkuValue(rowData.productSkuVo?.skuValue || [])
       return h('div', {}, skuValueArr.map(([key, value]) => {
         if (key !== '' && key !== 'skuName') {
           return h('div', [
@@ -385,7 +392,7 @@ const columns = computed(() => [
     width: 75,
     align: 'right',
     sortable: true,  // 启用排序
-    sortMethod: (a, b) => a.skuStock - b.skuStock, // 定义排序逻辑
+    sortMethod: (a, b) => a.productSkuVo.skuStock - b.productSkuVo.skuStock, // 定义排序逻辑
     hidden: form.value.orderStatus !== OrderStatusEnum.EDIT,  // 控制列是否可见
     cellRenderer: ({ rowData }) => {
       return h('div', {style: {
@@ -393,7 +400,7 @@ const columns = computed(() => [
         textOverflow: 'ellipsis', // 使用省略号
         whiteSpace: 'nowrap',     // 禁止换行
         cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.skuStock)  
+        } },rowData.productSkuVo?.skuStock || 0)  
     }
   },
   {
@@ -474,7 +481,7 @@ const columns = computed(() => [
     title: '金额',
     width: 120,
     align: 'right',
-    cellRenderer: ({ rowData }) => `${formatAmount(rowData.purchaseAmount)} €`
+    cellRenderer: ({ rowData }) => `${formatTwo(rowData.purchaseAmount)} €`
   },
   {
     key: 'discountRate',
@@ -511,7 +518,7 @@ const columns = computed(() => [
     title: '折扣额',
     width: 100,
     align: 'right',
-    cellRenderer: ({ rowData }) => `${formatAmount(rowData.discountAmount)} €`
+    cellRenderer: ({ rowData }) => `${formatTwo(rowData.discountAmount)} €`
   },
   {
     key: 'taxRate',
@@ -548,14 +555,14 @@ const columns = computed(() => [
     title: '税额',
     width: 100,
     align: 'right',
-    cellRenderer: ({ rowData }) => `${formatAmount(rowData.taxAmount)} €`
+    cellRenderer: ({ rowData }) => `${formatTwo(rowData.taxAmount)} €`
   },
   {
     key: 'netAmount',
     title: '采购总金额',
     width: 120,
     align: 'right',
-    cellRenderer: ({ rowData }) => `${formatAmount(rowData.netAmount)} €`
+    cellRenderer: ({ rowData }) => `${formatTwo(rowData.netAmount)} €`
   },
   {
     key: 'receivedQuantity',
@@ -869,7 +876,7 @@ const OrderOperateType = {
   REJECT: 'reject',
   UN_APPROVE: 'unApprove',
   CLOSE_FOR_STOP: 'closeForStop',
-  DELETE: 'delete'
+  RESTART: 'restart'
 }
 
 /** 获取时间线项目类型 */ 
@@ -882,6 +889,7 @@ const getTimelineItemType = (actionValue) => {
     reject: 'danger',
     unApprove: 'danger',
     closeForStop: 'danger',
+    restart:'warning'
   }
   return typeMap[actionValue] || 'info'
 }
@@ -892,7 +900,8 @@ function getRemarkMessage(action) {
     [OrderOperateType.APPROVE]: '审核意见',
     [OrderOperateType.REJECT]: '驳回原因',
     [OrderOperateType.UN_APPROVE]: '反审核原因',
-    [OrderOperateType.CLOSE_FOR_STOP]: '关闭订单原因'
+    [OrderOperateType.CLOSE_FOR_STOP]: '关闭原因',
+    [OrderOperateType.RESTART]: '重启原因'
   };
   return messages[action] || '备注';
 }
@@ -914,6 +923,7 @@ const form = ref({
   totalNetAmount:0,
   orderDate: new Date(),
   orderStatus: OrderStatusEnum.EDIT,
+  operateType: '',
   remark: '',
   details: [],
   operateLog: '',
@@ -935,9 +945,14 @@ const rules = ref({
 
 // ******************************  数据展示  start **************************
 /** 格式化金额 - 通过Math.round处理小数点精度(5不进位的BUG) */ 
-const formatAmount = (amount) => {
-  return amount ? (Math.round(amount * 100) / 100).toFixed(2) : '0.00';
-}
+function formatTwo(value) {
+  // 首先检查是否为有效的有限数字
+  if (!Number.isFinite(Number(value))) {
+    return "0.00";
+  }
+  // 然后进行四舍五入和格式化
+  return (Math.round(Number(value) * 100) / 100).toFixed(2);
+};
 
 /**  skuValue 转化成表格数据 */
 const getSkuValue = (skuValueList) => {
@@ -966,7 +981,7 @@ const getBuyers = () => {
 const skuList = ref([])
 /** 商品 - 获取列表 */
 const getSkuList = () => {
-  listSku().then(response => {
+  listSkuByAddOrder().then(response => {
     skuList.value = response.rows || []
     if(skuList.value){
       // 转移 skuValue 的json格式
@@ -974,6 +989,7 @@ const getSkuList = () => {
         item.skuValue = JSON.parse(item.skuValue);
       });
     }
+    console.log("----------商品列表：",skuList.value)
     
   })
 }
@@ -982,7 +998,8 @@ const queryProducts = (queryString, cb) => {
   const results = queryString
     ? skuList.value.filter(sku =>
       sku.skuCode.toLowerCase().includes(queryString.toLowerCase()) ||
-      sku.productName.toLowerCase().includes(queryString.toLowerCase())
+      sku.productName.toLowerCase().includes(queryString.toLowerCase()) ||
+      sku.productCode.toLowerCase().includes(queryString.toLowerCase())
     )
     : []
     console.log("商品搜索结果：",results)
@@ -995,12 +1012,16 @@ const handleProductSelect = (sku, index) => {
 
   const item = form.value.details[index]
   item.skuId = sku.skuId
-  item.productName = sku.productName
-  item.productCode = sku.productCode
-  item.skuCode = sku.skuCode
-  item.skuValue = sku.skuValue
-  item.skuStock = sku.skuStock
-  item.unit = sku.unit
+  item.productSkuVo = {
+    skuId: sku.skuId,
+    skuCode: sku.skuCode,
+    skuValue: sku.skuValue,
+    productName: sku.productName,
+    productCode: sku.productCode,
+    unitId: sku.unitId,
+    skuStock: sku.averageCostBySkuVo?.currentStock || 0,
+  }
+  item.unit = sku.unitVo
   console.log("选择的结果：",item)
 }
 /** 商品 -  失去焦点后 判断输入框中的内容与列表是否匹配 不匹配说明只修改没有选择操作 所以清空 */ 
@@ -1008,23 +1029,50 @@ const handleProductOnBlur = (index) => {
   // 移除焦点
   currentFocus.value = null;
   isAutocompleteEdit.value = true;
-  //console.log("商品索引：",index)
-  //console.log("商品实际真是的结果：",form.value.details[index])
-  const matchedSku = skuList.value.find(sku => sku.skuCode === form.value.details[index].skuCode);
-  //console.log("商品实际-- 匹配 --的结果：",matchedSku)
+  if(skuList.value.length === 0){
+    initializeEmptyDetail(index);
+    return;
+  }
+  const matchedSku = skuList.value.find(sku => sku.productCode === form.value.details[index].productSkuVo?.productCode || '');
   if(!matchedSku){
-    //console.log("提示：输入的商品编码不存在，未选中或未回车确认，清空输入框内容！");
-    form.value.details[index] = {}
+    initializeEmptyDetail(index);
     ElMessage.error('提示：输入的内容不存在，清空输入框内容！');
     return;
   }
-  if (matchedSku.productCode !== form.value.details[index].productCode) {
+  if (matchedSku.productCode !== form.value.details[index].productSkuVo.productCode) {
     //console.log("提示：输入的商品编码与列表不匹配，未选中或回车确认，清空输入框内容！");
-    form.value.details[index] = {}
+    initializeEmptyDetail(index);
     ElMessage.error('提示：没有选择或回车确认，清空输入框内容！');
     return;
   }
 };
+// 初始化
+const initializeEmptyDetail = (index) => {
+  form.value.details[index].skuId = ''
+  form.value.details[index].productSkuVo = {
+    skuId: null,
+    skuCode: null,
+    skuValue: null,
+    productName: null,
+    productCode: null,
+    unitId: null,
+    skuStock: 0,
+  }
+  form.value.details[index].unit = {
+    unitId: null,
+    unitCode: null,
+  }
+  form.value.details[index].unitPrice = 0
+  form.value.details[index].quantity = 0
+  form.value.details[index].purchaseAmount = 0
+  form.value.details[index].discountRate = 0
+  form.value.details[index].discountAmount = 0
+  form.value.details[index].taxRate = 0
+  form.value.details[index].taxAmount = 0
+  form.value.details[index].netAmount = 0
+  form.value.details[index].shortageQuantity = 0
+  form.value.details[index].receivedQuantity = 0
+}
 
 /** 添加商品行 */ 
 const addItem = () => {
@@ -1032,22 +1080,29 @@ const addItem = () => {
   const newItems = Array.from({ length: onceAddItemLength }, () => ({
     detailId: '',
     skuId: '',
-    productName: '',
-    productCode: '',
-    skuCode: '',
-    skuValue: '',
-    skuStock: 0,
-    skuUnit:'',
-    unitPrice: null,
-    quantity: null,
-    purchaseAmount: null,
-    discountRate: null,
-    discountAmount: null,
-    taxRate: null,
-    taxAmount: null,
-    netAmount: null,
-    shortageQuantity: null,
-    receivedQuantity: null,
+    productSkuVo : {
+      skuId: null,
+      skuCode: null,
+      skuValue: null,
+      productName: null,
+      productCode: null,
+      unitId: null,
+      skuStock: 0,
+    },
+    unit:{
+      unitId: null,
+      unitCode: null,
+    },
+    unitPrice: 0,
+    quantity: 0,
+    purchaseAmount: 0,
+    discountRate: 0,
+    discountAmount: 0,
+    taxRate: 0,
+    taxAmount: 0,
+    netAmount: 0,
+    shortageQuantity: 0,
+    receivedQuantity: 0,
   }))
   // 将新记录数组添加到现有数组中
   form.value.details.push(...newItems)
@@ -1113,14 +1168,17 @@ const handleSave = () => {
       ElMessage.error("请输入采购商品信息!")
       return;
     }
-    // 2 检查是否存在相同的skuId+unitPrice  true存在相同的skuId
-    if (checkHaveSameSkuIdAndPrice(form.value.details)) {
-      return;
-    }
-    // 3 检查采购条目的输入项 false不通过
+    
+    // 2 检查采购条目的输入项 false不通过
     if (!validateItems(form.value.details)) {
       return;
     }
+    
+    // 3 检查是否存在相同的skuId+unitPrice  true存在相同的skuId
+    if (checkHaveSameSkuIdAndPrice(form.value.details)) {
+      return;
+    }
+    
 
     // 4 提交表单
     openApprovalDialog('保存订单', OrderOperateType.SAVE)
@@ -1130,6 +1188,16 @@ const handleSave = () => {
 /** 检查采购条目的必输项 */
 const validateItems = (submitItems) => {
   for (const item of submitItems) {
+    if (item.quantity == null) {
+      ElMessage.error("采购明细 数量不能为空!");
+      return false;
+    }
+    
+    if (item.unitPrice == null) {
+      ElMessage.error("采购明细 采购单价不能为空!");
+      return false;
+    }
+    
     if (item.quantity <= 0) {
       ElMessage.error("采购明细 数量必须大于 0 !");
       return false;
@@ -1138,20 +1206,34 @@ const validateItems = (submitItems) => {
       ElMessage.error("采购明细 采购单价必须大于等于 0 !");
       return false;
     }
+    
   }
   return true;
 };
 
 /** 检查采购条目是否有相同的skuId+unitPrice */
 const checkHaveSameSkuIdAndPrice = (submitItems) => {
-  const uniqueChecker  = new Set();
+  const skuChecker = new Set();
+  const skuPriceChecker = new Set();
+
   for (const item of submitItems) {
-    let key = item.skuId.toString() + item.unitPrice.toString()
-    if (uniqueChecker.has(key)) {
+    // 检查价格大于0的只能由唯一的sku
+    if (item.unitPrice > 0) {
+      let skuKey = item.skuId.toString();
+      if (skuChecker.has(skuKey)) {
+        ElMessage.error("价格大于 0 的商品明细 sku 重复，请检查！");
+        return true;
+      }
+      skuChecker.add(skuKey);
+    }
+
+    // 检查采购明细是否重复(只有价格为0的skuId可以重复)
+    let skuPriceKey = item.skuId.toString() + item.unitPrice.toString();
+    if (skuPriceChecker.has(skuPriceKey)) {
       ElMessage.error("商品明细 sku 单价 重复，请检查！");
       return true;
     }
-    uniqueChecker.add(key);
+    skuPriceChecker.add(skuPriceKey);
   }
   return false;
 }
@@ -1181,6 +1263,10 @@ const handleCloseForStop = () => {
    openApprovalDialog('关闭订单', OrderOperateType.CLOSE_FOR_STOP)
 }
 
+const handleReStart = () => {
+  openApprovalDialog('重新启用订单', OrderOperateType.RESTART)
+}
+
 /** 打印 */
 const handlePrint = () => {
   console.log("************* 当前的form值 ",form.value)
@@ -1197,7 +1283,7 @@ const handleRefreshStock = async () => {
     form.value.details.map(async (item) => {
       if (item.skuId){
         const res = await selectStockBySkuId(item.skuId)
-        item.skuStock = res.data
+        item.productSkuVo.skuStock = res.data || 0
       } else {
         item.skuStock = 0
       }
@@ -1256,13 +1342,13 @@ const parseJson = () => {
   // 恢复json数据
   form.value.operateLog = orderOperateLog.value
   form.value.details.forEach(item => {
-    item.skuValue = JSON.parse(item.skuValue)
+    item.productSkuVo.skuValue = JSON.parse(item.productSkuVo.skuValue)
   })
 }
 
  /** 提交数据预处理 */ 
 const prepareData = () => {
-  form.value.details.forEach(item => item.skuValue = JSON.stringify(item.skuValue));
+  form.value.details.forEach(item => item.productSkuVo.skuValue = JSON.stringify(item.productSkuVo.skuValue));
   form.value.operateLog = JSON.stringify(orderOperateLog.value);
 };
 
@@ -1276,7 +1362,7 @@ const handleError = (message = "操作失败") => {
   RefreshTab()
 };
 
-const actionRequiresRemark = [OrderOperateType.APPROVE, OrderOperateType.REJECT, OrderOperateType.UN_APPROVE, OrderOperateType.CLOSE_FOR_STOP];
+const actionRequiresRemark = [OrderOperateType.APPROVE, OrderOperateType.REJECT, OrderOperateType.UN_APPROVE, OrderOperateType.CLOSE_FOR_STOP, OrderOperateType.RESTART];
 const actionRequiresNoRemark = [OrderOperateType.EDIT, OrderOperateType.SAVE, OrderOperateType.DELETE, OrderOperateType.SUBMIT_APPROVAL];
 /** 采购订单提交操作 */ 
 const submitApproval = async () => {
@@ -1322,12 +1408,18 @@ const submitApproval = async () => {
       status: OrderStatusEnum.CLOSE_FOR_STOP,
       message: '关闭订单 成功!',
       actionValue: OrderOperateType.CLOSE_FOR_STOP
+    },
+    [OrderOperateType.RESTART]: {
+      status: OrderStatusEnum.IN_PROGRESS,
+      message: '重新启用订单 成功!',
+      actionValue: OrderOperateType.RESTART
     }
   }
 
   const currentActionConfig = actions[currentAction.value]
 
   addApprovalLog(dialogTitle.value, currentActionConfig.status, approvalForm.value.remark, currentActionConfig.actionValue);
+  form.value.operateType = currentActionConfig.actionValue;
   form.value.orderStatus = currentActionConfig.status;
   form.value.operateLog = JSON.stringify(orderOperateLog.value);
 
@@ -1420,7 +1512,7 @@ const getInfoById = () => {
       // 还原数据
       if (form.value.details) {
         form.value.details.forEach(item => {
-          item.skuValue = JSON.parse(item.skuValue);
+          item.productSkuVo.skuValue = JSON.parse(item.productSkuVo.skuValue);
         });
       }
 

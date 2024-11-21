@@ -260,7 +260,7 @@
     </el-dialog>
 
     <!-- 引入采购订单 -->
-    <el-dialog :title="linkPurchaseOrderTitle" v-model="open" width="800px" append-to-body >
+    <el-dialog :title="linkPurchaseOrderTitle" v-model="open" width="70%" append-to-body >
       <el-card>
       <!---- 采购单选择器 -->
       <el-row>
@@ -300,12 +300,12 @@
       <!-- 采购单明细 -->
       <el-table v-loading="loading" :data="purchaseOrder.details" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column type="index" label="序号" width="55"  align="center"/>
-        <el-table-column label="商品名称" align="center" prop="productSku.productName"  min-width="120" show-overflow-tooltip/>
-        <el-table-column label="sku编码" align="center" prop="productSku.skuCode" min-width="120" show-overflow-tooltip/>
-        <el-table-column label="suk" align="center" prop="productSku.skuValue" show-overflow-tooltip>
+        <el-table-column type="index" label="序号" width="50"  align="center"/>
+        <el-table-column label="商品名称" align="left" prop="productSkuVo.productName"  min-width="120" show-overflow-tooltip/>
+        <el-table-column label="sku编码" align="left" prop="productSkuVo.skuCode" min-width="120" show-overflow-tooltip/>
+        <el-table-column label="suk" align="left" prop="productSkuVo.skuValue" min-width="90" show-overflow-tooltip>
           <template #default="scope">
-            <div v-for="(item, index) in getSkuValue(scope.row.productSku.skuValue)" :key="index">
+            <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo.skuValue)" :key="index">
               <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
                 {{ item[0] }}:
               </strong>
@@ -316,25 +316,33 @@
             </div>
           </template>
         </el-table-column>
+        <el-table-column label="采购单价" align="right" header-align="center" prop="unitPrice">
+          <template #default="scope">
+            <span>{{ formatTwo(scope.row.unitPrice) }} €</span>
+          </template>
+        </el-table-column>
         <el-table-column label="采购数量" align="center" prop="quantity"/>
-        <el-table-column label="入库数量" align="center" prop="receivedQuantity">
+        <el-table-column label="入库数量" align="center" prop="inputQuantity">
           <template #default="scope">
             <el-input-number 
-            v-model="scope.row.receivedQuantity" 
+            v-model="scope.row.inputQuantity" 
             :min="0" 
             :controls="false" 
             style="width: 100%" 
             :precision="0" 
             :step="0"
-            :disabled="!showPurchaseNo"
+            :disabled="!showPurchaseNo || scope.row.unitPrice == 0"
             @change="calculateShortageQuantity(scope.$index)"
             />
           </template>
         </el-table-column>
+        <el-table-column label="已入库" align="center" prop="receivedQuantity"/>
         <el-table-column label="缺货数量" align="center" prop="shortageQuantity"/>
-        <el-table-column label="批次号" align="center" prop="batchNo" min-width="100" show-overflow-tooltip>
+        <!-- <el-table-column label="批次号" align="center" prop="batchNo" min-width="120" >
           <template #default="scope">
-            <el-input v-model="scope.row.batchNo" placeholder="请输入批次号"  />
+            <el-tooltip placement="top" :content="scope.row.batchNo">
+              <el-input v-model="scope.row.batchNo" placeholder="请输入批次号"  />
+            </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column label="过期日期" align="center" prop="expireDate" min-width="150" >
@@ -349,7 +357,7 @@
               style="width: 100%;"
             />
           </template>
-        </el-table-column>
+        </el-table-column> -->
       </el-table>
         
       </el-card>
@@ -374,7 +382,7 @@ import { debounce } from 'lodash'
 import { TableV2SortOrder } from 'element-plus'
 import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts, updateReceiptsStatus, received } from "@/api/order/receipts";
 import { listSupplier } from "@/api/order/supplier"
-import { listSku, selectStockBySkuId } from "@/api/product/sku"
+import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
 import { listContainers } from "@/api/transportation/containers";
 import { listLogisticsCompanies} from "@/api/order/logisticsCompanies";
 import { listWarehouse} from "@/api/product/warehouse";
@@ -437,9 +445,10 @@ const handleLinkPurchaseOrderChange = (linkPurchaseOrderId) => {
       // 还原数据
       if (purchaseOrder.value.details) {
         purchaseOrder.value.details.forEach(item => {
-          item.productSku.skuValue = JSON.parse(item.productSku.skuValue);
+          item.productSkuVo.skuValue = JSON.parse(item.productSkuVo.skuValue);
           item.batchNo = form.value.batchNo;
           item.expireDate = null;
+          item.inputQuantity = 0;
         });
       }
       console.log("初始化数据正常：",purchaseOrder.value); 
@@ -465,13 +474,13 @@ function handleSelectionChange(selection) {
 /** 提交引入采购单 */
 const submitLinkPurchaseOrder = () => {
   if (!linkPurchaseOrderId.value) {
-    ElMessage.warning("请选择采购订单");
+    ElMessage.error("请选择采购订单");
     return;
   }
   // 获取已选择的数据
   const selectedDetails = purchaseOrder.value.details.filter(item => ids.value.includes(item.detailId));
   if (selectedDetails.length === 0) {
-    ElMessage.warning("请选择要引入的明细数据");
+    ElMessage.error("请选择要引入的明细数据");
     return;
   }
 
@@ -481,17 +490,17 @@ const submitLinkPurchaseOrder = () => {
     purchaseOrderNo: purchaseOrder.value.orderNo,
     skuId: item.skuId,
     unitId: item.unitId,
-    productSku: {
-      skuCode: item.productSku.skuCode || '',
-      skuValue: item.productSku.skuValue || [],
-      productCode: item.productSku.productCode || '',
-      productName: item.productSku.productName || ''
+    productSkuVo: {
+      skuCode: item.productSkuVo.skuCode || '',
+      skuValue: item.productSkuVo.skuValue || [],
+      productCode: item.productSkuVo.productCode || '',
+      productName: item.productSkuVo.productName || ''
     },
-    unit: {
-      unitCode: item.unit.unitCode || '',
+    unitVo: {
+      unitCode: item.unitVo.unitCode || '',
     },
     quantity: item.quantity || 0,
-    receivedQuantity: item.receivedQuantity || 0,
+    receivedQuantity: item.inputQuantity || 0,
     purchaseAmount: item.purchaseAmount || 0,
     discountRate: item.discountRate || 0,
     discountAmount: item.discountAmount || 0,
@@ -516,7 +525,7 @@ const submitLinkPurchaseOrder = () => {
 /** 计算金额*/
 const calculateShortageQuantity = (index) => {
   const item = purchaseOrder.value.details[index]
-  item.purchaseAmount = item.unitPrice * item.receivedQuantity
+  item.purchaseAmount = item.unitPrice * item.inputQuantity
   item.discountAmount = item.purchaseAmount * item.discountRate * 0.01
   item.taxAmount = (item.purchaseAmount - item.discountAmount) * item.taxRate * 0.01
   item.netAmount = item.purchaseAmount - item.discountAmount + item.taxAmount
@@ -674,7 +683,7 @@ const columns = computed(() => [
     key: 'purchaseOrderNo',
     title: '采购订单',
     width: 150,
-    align: 'center',
+    align: 'left',
     hidden: !showPurchaseNo.value,  // 控制列是否可见
     cellRenderer: ({ rowData }) => {
       const getTooltipContent = () => {return rowData.purchaseOrderNo;}
@@ -696,22 +705,23 @@ const columns = computed(() => [
     key: 'productCode',
     title: '商品编码',
     width: 180,
-    align: 'center',
+    align: 'left',
     cellRenderer: ({ rowData, rowIndex  }) => {
       const inputId = getInputId(rowIndex, 'productCode')
-      const getTooltipContent = () => {return rowData.productSku.productCode;}
+      const getTooltipContent = () => {return rowData.productSkuVo?.productCode || '';}
       if (form.value.receiptsStatus === OrderStatusEnum.EDIT) {
         return h(ElAutocomplete, {
           id: inputId,
-          modelValue: rowData.productSku.productCode,
+          modelValue: rowData.productSkuVo?.productCode || '',
           'onUpdate:modelValue': (value) => {
-            form.value.details[rowIndex].productSku.productCode = value
+            form.value.details[rowIndex].productSkuVo.productCode = value
           },
           fetchSuggestions: queryProducts,
           placeholder: '输入商品编码或名称',
           highlightFirstItem: true,
           onSelect: (item) => handleProductSelect(item, rowIndex),
           onBlur: () => handleProductOnBlur(rowIndex),
+          onChange: () => handleProductChange(rowIndex),
           onKeydown: (e) => handleAutocompleteKeydown(e, rowIndex, 'productCode'),
           onFocus: () => {
             currentFocus.value = { rowIndex, columnKey: 'productCode' };
@@ -719,8 +729,8 @@ const columns = computed(() => [
           },
         }, {
           default: ({ item }) => h('div', { style: { display: 'flex', justifyContent:'space-between', alignItems: 'center' } }, [
-            h('div', `${item.productCode} - ${item.productName}`),
-            h('small',{style:{color:'#909399',marginLeft:'5px'}} ,`库存: ${item.skuStock}`)
+            h('div', `${item.skuCode} - ${item.productName}`),
+            h('small',{style:{color:'#909399',marginLeft:'5px'}} ,`库存: ${item.averageCostBySkuVo?.currentStock || '--'}`)
           ])
         })
       }
@@ -735,7 +745,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productSku.productCode)
+        } },rowData.productSkuVo.productCode)
         ]
       )  
     }
@@ -744,9 +754,9 @@ const columns = computed(() => [
     key: 'productName',
     title: '商品名称',
     width: 150,
-    align: 'center',
+    align: 'left',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.productSku.productName;}
+      const getTooltipContent = () => {return rowData.productSkuVo.productName;}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -756,7 +766,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productSku.productName)
+        } },rowData.productSkuVo.productName)
       }
       )   
     }
@@ -765,9 +775,9 @@ const columns = computed(() => [
     key: 'skuCode',
     title: '规格编码',
     width: 180,
-    align: 'center',
+    align: 'left',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.productSku.skuCode;}
+      const getTooltipContent = () => {return rowData.productSkuVo.skuCode;}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -777,7 +787,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productSku.skuCode)
+        } },rowData.productSkuVo.skuCode)
       }
       )   
     }
@@ -786,9 +796,9 @@ const columns = computed(() => [
     key: 'skuValue',
     title: '规格属性',
     width: 120,
-    align: 'center',
+    align: 'left',
     cellRenderer: ({ rowData }) => {
-      const skuValueArr =  getSkuValue(rowData.productSku.skuValue)
+      const skuValueArr =  getSkuValue(rowData.productSkuVo.skuValue)
       return h('div', {}, skuValueArr.map(([key, value]) => {
         if (key !== '' && key !== 'skuName') {
           return h('div', [
@@ -804,10 +814,10 @@ const columns = computed(() => [
     key: 'skuUnit',
     title: '单位',
     width: 60,
-    align: 'center',
+    align: 'left',
     cellRenderer: ({ rowData }) => {
-      if (rowData.unit.unitCode) {
-        return rowData.unit.unitCode
+      if (rowData.unitVo.unitCode) {
+        return rowData.unitVo.unitCode
       } else {
         return '--'
       }
@@ -968,9 +978,8 @@ const columns = computed(() => [
   {
     key: 'batchNo',
     title: '批次号',
-    width: 100,
+    width: 120,
     align: 'center',
-    hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
     cellRenderer: ({ rowData, rowIndex }) => {
       const inputId = getInputId(rowIndex, 'batchNo')
       return h('div',{style: {...getCellStyle(rowIndex, 'batchNo'),width:'100%',display:'flex'}},h(ElInput, {
@@ -1032,7 +1041,7 @@ const columns = computed(() => [
   },
   {
     key: 'shortageQuantity',
-    title: '缺货数量',
+    title: '采购订单缺货',
     width: 100,
     align: 'right',
     hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
@@ -1437,7 +1446,7 @@ const getSkuValue = (skuValueList) => {
 const skuList = ref([])
 /** 商品 - 获取列表 */
 const getSkuList = () => {
-  listSku().then(response => {
+  listSkuByAddOrder().then(response => {
     skuList.value = response.rows || []
     if(skuList.value){
       // 转移 skuValue 的json格式
@@ -1453,12 +1462,14 @@ const queryProducts = (queryString, cb) => {
   const results = queryString
     ? skuList.value.filter(sku =>
       sku.skuCode.toLowerCase().includes(queryString.toLowerCase()) ||
-      sku.productName.toLowerCase().includes(queryString.toLowerCase())
+      sku.productName.toLowerCase().includes(queryString.toLowerCase()) ||
+      sku.productCode.toLowerCase().includes(queryString.toLowerCase())
     )
     : []
     console.log("商品搜索结果：",results)
   cb(results || [])
 }
+
 /** 商品 -  选择后调用的赋值操作 */
 const handleProductSelect = (sku, index) => {
   // 切换 自动聚焦单元格的编辑状态
@@ -1467,34 +1478,76 @@ const handleProductSelect = (sku, index) => {
   const item = form.value.details[index]
   item.skuId = sku.skuId
   item.unitId = sku.unitId
-  item.productSku.productName = sku.productName
-  item.productSku.productCode = sku.productCode
-  item.productSku.skuCode = sku.skuCode
-  item.productSku.skuValue = sku.skuValue
-  item.productSku.skuStock = sku.skuStock
-  item.unit.unitCode = sku.unit.unitCode
+  item.productSkuVo.productName = sku.productName
+  item.productSkuVo.productCode = sku.productCode
+  item.productSkuVo.skuCode = sku.skuCode
+  item.productSkuVo.skuValue = sku.skuValue
+  item.productSkuVo.skuStock = sku.averageCostBySkuVo?.currentStock || 0
+  item.unitVo.unitCode = sku.unitVo?.unitCode || '--'
   
   console.log("选择的结果：",item)
 }
+
+/** 如果有更新 清空采购订单信息 */
+const handleProductChange = (index) => {
+  form.value.details[index].purchaseOrderId = null
+  form.value.details[index].purchaseOrderNo = null
+}
+
 /** 商品 -  失去焦点后 判断输入框中的内容与列表是否匹配 不匹配说明只修改没有选择操作 所以清空 */ 
 const handleProductOnBlur = (index) => {
   // 移除焦点
   currentFocus.value = null;
   isAutocompleteEdit.value = true;
-  const matchedSku = skuList.value.find(sku => sku.skuCode === form.value.details[index].productSku.skuCode);
+  if(skuList.value.length === 0){
+    initializeEmptyDetail(index);
+    return;
+  }
+  
+  const matchedSku = skuList.value.find(sku => sku.skuCode === form.value.details[index].productSkuVo.skuCode);
   if(!matchedSku){
     //console.log("提示：输入的商品编码不存在，未选中或未回车确认，清空输入框内容！");
-    form.value.details[index] = {}
+    initializeEmptyDetail(index);
     ElMessage.error('提示：输入的内容不存在，清空输入框内容！');
     return;
   }
-  if (matchedSku.productCode !== form.value.details[index].productSku.productCode) {
+  if (matchedSku.productCode !== form.value.details[index].productSkuVo.productCode) {
     //console.log("提示：输入的商品编码与列表不匹配，未选中或回车确认，清空输入框内容！");
-    form.value.details[index] = {}
+    initializeEmptyDetail(index);
     ElMessage.error('提示：没有选择或回车确认，清空输入框内容！');
     return;
   }
 };
+
+const initializeEmptyDetail = (index) => {
+  form.value.details[index].skuId = ''
+  form.value.details[index].productSkuVo = {
+    skuCode: '',
+    skuValue: '',
+    productName: '',
+    productCode: '',
+    skuStock: 0,
+  }
+  form.value.details[index].unitVo = {
+    unitId: '',
+    unitCode: '',
+  }
+  form.value.details[index].unitPrice = 0
+  form.value.details[index].receivedQuantity = 0
+  form.value.details[index].purchaseAmount = 0
+  form.value.details[index].discountRate = 0
+  form.value.details[index].discountAmount = 0
+  form.value.details[index].taxRate = 0
+  form.value.details[index].taxAmount = 0
+  form.value.details[index].netAmount = 0
+  form.value.details[index].quantity = 0
+  form.value.details[index].shortageQuantity = 0
+  form.value.details[index].batchNo = form.value.batchNo
+  form.value.details[index].expireDate  = null
+  form.value.details[index].purchaseOrderId = null
+  form.value.details[index].purchaseOrderNo = null
+}
+
 
 /** 添加商品行 */ 
 const addItem = () => {
@@ -1502,19 +1555,14 @@ const addItem = () => {
   const newItems = Array.from({ length: onceAddItemLength }, () => ({
     detailId: '',
     skuId: '',
-    productName: '',
-    productCode: '',
-    skuCode: '',
-    skuValue: '',
-    skuUnit:'',
-    productSku:{
+    productSkuVo:{
       skuCode: '',
       skuValue: '',
       productName: '',
       productCode: '',
       skuStock: 0,
     },
-    unit:{
+    unitVo:{
       unitId: '',
       unitCode: '',
     },
@@ -1530,7 +1578,9 @@ const addItem = () => {
     shortageQuantity: 0,
     batchNo: form.value.batchNo,
     expireDate : null,
-    purchaseOrderId: '',
+    purchaseOrderId: null,
+    purchaseOrderNo: null,
+    
   }))
   // 将新记录数组添加到现有数组中
   form.value.details.push(...newItems) 
@@ -1547,14 +1597,13 @@ const removeItem = (index) => {
 /** 订单计算 */
 const calculateRowAmount = (index) => {
   const item = form.value.details[index]
-  //item.shortageQuantity = item.shortageQuantity - item.receivedQuantity  // 更新缺货数量
   item.purchaseAmount = item.unitPrice * item.receivedQuantity
   item.discountAmount = item.purchaseAmount * item.discountRate * 0.01
   item.taxAmount = (item.purchaseAmount - item.discountAmount) * item.taxRate * 0.01
   item.netAmount = item.purchaseAmount - item.discountAmount + item.taxAmount
   
   // 合计总数量
-  form.value.totalQuantity = form.value.details.reduce((sum, item) => sum + (item.quantity || 0), 0)
+  form.value.totalQuantity = form.value.details.reduce((sum, item) => sum + (item.receivedQuantity || 0), 0)
   // 合计 采购金额
   form.value.totalPurchaseAmount = form.value.details.reduce((sum, item) => sum + (item.purchaseAmount || 0), 0)
   // 合计 折扣额
@@ -1614,6 +1663,14 @@ const handleSave = () => {
 /** 检查采购条目的必输项 */
 const validateItems = (submitItems) => {
   for (const item of submitItems) {
+    if(item.receivedQuantity == null ){
+      ElMessage.error("采购明细 数量不能为空!");
+      return false;
+    }
+    if (item.unitPrice == null) {
+      ElMessage.error("采购明细 采购单价不能为空!");
+      return false;
+    }
     if (item.receivedQuantity <= 0) {
       ElMessage.error("采购明细 数量必须大于 0 !");
       return false;
@@ -1628,16 +1685,16 @@ const validateItems = (submitItems) => {
 
 /** 检查采购条目是否有相同的skuId+unitPrice */
 const checkHaveSameSkuIdAndPrice = (submitItems) => {
-  const uniqueChecker  = new Set();
+  const skuChecker = new Set();
+
   for (const item of submitItems) {
-    let key = item.skuId.toString() + item.unitPrice.toString()
-    
-    if (uniqueChecker.has(key)) {
-      ElMessage.error("商品明细 sku 单价 重复，请检查！");
-      console.log("---------------key:",key)
-      return true;
-    }
-    uniqueChecker.add(key);
+    // 检查 skuId+unitPrice 重复
+      let skuKey = item.skuId.toString() + item.unitPrice.toString()
+      if (skuChecker.has(skuKey)) {
+        ElMessage.error("的商品明细 sku: "  + item.skuCode + " 重复，请检查！");
+        return true;
+      }
+      skuChecker.add(skuKey);
   }
   return false;
 }
@@ -1738,7 +1795,7 @@ const parseJson = () => {
   form.value.operateLog = orderOperateLog.value
   if(form.value.details){
     form.value.details.forEach(item => {
-    item.productSku.skuValue = JSON.parse(item.productSku.skuValue)
+    item.productSkuVo.skuValue = JSON.parse(item.productSkuVo.skuValue)
   })
   }
   
@@ -1747,7 +1804,7 @@ const parseJson = () => {
  /** 提交数据预处理 */ 
 const prepareData = () => {
   if(form.value.details){
-    form.value.details.forEach(item => item.productSku.skuValue = JSON.stringify(item.productSku.skuValue));
+    form.value.details.forEach(item => item.productSkuVo.skuValue = JSON.stringify(item.productSkuVo.skuValue));
   }
   if(orderOperateLog.value){
     form.value.operateLog = JSON.stringify(orderOperateLog.value);
@@ -1976,7 +2033,7 @@ const getInfoById = () => {
       // 还原数据
       if (form.value.details) {
         form.value.details.forEach(item => {
-          item.productSku.skuValue = JSON.parse(item.productSku.skuValue);
+          item.productSkuVo.skuValue = JSON.parse(item.productSkuVo.skuValue);
         });
       }
       // 是否引用采购单

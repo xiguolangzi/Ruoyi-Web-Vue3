@@ -72,10 +72,10 @@
     <el-table v-loading="loading" :data="purchaseOrderList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="订单编号" align="center" prop="orderNo" min-width="180" show-overflow-tooltip >
-        <template v-slot="scope">
-          <router-link :to="'/order/purchaseOrder/edit?orderId=' + scope.row.orderId" class="link-type">
-            <span>{{ scope.row.orderNo }}</span>
-          </router-link>
+        <template #default="scope">
+          <span class="link-type" @click="handleUpdate(scope.row)">
+            {{ scope.row.orderNo }}
+        </span>
         </template>
       </el-table-column>
       <el-table-column label="供应商" align="center" prop="supplierId" show-overflow-tooltip >
@@ -243,7 +243,6 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   const _orderId = row.orderId || ids.value[0];
-  console.log("修改的ID*******", _orderId);
   const obj = {path: "/order/purchaseOrder/edit", name:"editPurchaseOrder"}
   proxy.$tab.closePage(obj).then(
     () => {

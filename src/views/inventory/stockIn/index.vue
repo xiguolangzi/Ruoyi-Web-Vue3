@@ -41,6 +41,7 @@
           icon="Plus"
           @click="handleAdd"
           v-hasPermi="['inventory:stockIn:add']"
+          v-if="showOperation"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -51,6 +52,7 @@
           :disabled="single"
           @click="handleUpdate"
           v-hasPermi="['inventory:stockIn:edit']"
+          v-if="showOperation"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -61,6 +63,7 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['inventory:stockIn:remove']"
+          v-if="showOperation"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -76,20 +79,19 @@
     </el-row>
 
     <el-table v-loading="loading" :data="stockInList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" align="center" prop="index" width="50"/>
+      <el-table-column label="序号" align="center" type="index" width="50"/>
       <el-table-column label="入库类型" align="center" prop="inType">
         <template #default="scope">
           <dict-tag :options="erp_stock_in_type" :value="scope.row.inType"/>
         </template>
       </el-table-column>
-      <el-table-column label="入库单号" align="center" prop="inNo"  min-width="180" show-overflow-tooltip/>
+      <el-table-column label="入库单号" align="center" prop="inNo"  min-width="120" show-overflow-tooltip />
       <el-table-column label="入库时间" align="center" prop="inTime" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.inTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="仓库" align="center" prop="warehouse.warehouseName" />
+      <el-table-column label="仓库" align="center" prop="warehouseForStockInVo.warehouseName" />
       <el-table-column label="总数量" align="center" prop="totalQuantity" />
       <el-table-column label="总金额" align="center" prop="totalAmount" >
         <template #default="scope">
@@ -102,7 +104,7 @@
         </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" v-if="showOperation">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['inventory:stockIn:edit']">修改</el-button>
           <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['inventory:stockIn:remove']">删除</el-button>
@@ -168,7 +170,7 @@
         </el-row>
         <el-table :data="stockInDetailList" :row-class-name="rowStockInDetailIndex" @selection-change="handleStockInDetailSelectionChange" ref="stockInDetail">
           <el-table-column type="selection" width="50" align="center" />
-          <el-table-column label="序号" align="center" prop="index" width="50"/>
+          <el-table-column type="序号" align="center" prop="index" width="50"/>
           <el-table-column label="商品ID" prop="skuId" width="150">
             <template #default="scope">
               <el-input v-model="scope.row.skuId" placeholder="请输入商品ID" />
@@ -239,7 +241,7 @@
 <script setup name="StockIn">
 import { listStockIn, getStockIn, delStockIn, addStockIn, updateStockIn } from "@/api/inventory/stockIn";
 import useUserStore from "@/store/modules/user";
-
+import { ref } from "vue";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -258,6 +260,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+// 控制增删改查的操作
+const showOperation = ref(false)
 
 const data = reactive({
   form: {},
@@ -302,11 +306,6 @@ function getList() {
   });
 }
 
-/** 保留2位小数 */
-const formatTwo = (value) => {
-  // 使用 Number.isFinite 确保是有效的数字
-  return Number.isFinite(value) ? value.toFixed(2) : "0.00";
-};
 
 // 取消按钮
 function cancel() {

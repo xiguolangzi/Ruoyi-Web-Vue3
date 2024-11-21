@@ -5,6 +5,41 @@
  * Copyright (c) 2019 ruoyi
  */
 
+/** 金额保持两位小数 */
+export function formatTwo(value) {
+  // 首先检查是否为有效的有限数字
+  if (!Number.isFinite(Number(value))) {
+    return "0.00";
+  }
+  // 然后进行四舍五入和格式化
+  return (Math.round(Number(value) * 100) / 100).toFixed(2);
+};
+
+/** skuValue展示 */
+export function getSkuValue(skuValue) {
+  if (!skuValue) {
+    return [];
+  }
+
+  let paramsSkuValue;
+  try {
+    paramsSkuValue = JSON.parse(skuValue);
+  } catch (error) {
+    // 如果解析失败，返回空数组或进行其他处理
+    console.warn('Invalid JSON string:', skuValue);
+    return [];
+  }
+
+  if (!paramsSkuValue || typeof paramsSkuValue !== 'object') {
+    return [];
+  }
+
+  // 将 paramsSkuValue 转化成 [["型号","AA"] , ["尺寸","SS"]]
+  const tableData = ref(Object.entries(paramsSkuValue));
+  return tableData.value;
+};
+
+
 // 日期格式化
 export function parseTime(time, pattern) {
   if (arguments.length === 0 || !time) {
@@ -88,7 +123,7 @@ export function selectDictLabel(datas, value) {
 
 // 回显数据字典（字符串数组）
 export function selectDictLabels(datas, value, separator) {
-  if (value === undefined || value.length ===0) {
+  if (value === undefined || value.length === 0) {
     return "";
   }
   if (Array.isArray(value)) {

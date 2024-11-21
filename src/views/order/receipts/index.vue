@@ -139,9 +139,9 @@
       <el-table-column type="index" label="序号" width="55"  align="center"/>
       <el-table-column label="入库单号" align="center" prop="receiptsNo" min-width="150" show-overflow-tooltip>
         <template #default="scope">
-          <router-link :to="'/purchaseManage/receipts/edit?receiptsId='+scope.row.receiptsId" class="link-type">
-            <span>{{ scope.row.receiptsNo }}</span>
-          </router-link>
+          <span class="link-type" @click="handleUpdate(scope.row)">
+            {{ scope.row.receiptsNo }}
+        </span>
         </template>
       </el-table-column>
       <el-table-column label="供应商ID" align="left" header-align="center" prop="supplierId" min-width="120" show-overflow-tooltip>
@@ -149,6 +149,7 @@
           {{ getSuppliersName(scope.row.supplierId)}}
         </template>
       </el-table-column>
+      <el-table-column label="总条目数" align="right" header-align="center" prop="totalQuantity" min-width="120" show-overflow-tooltip />
       <el-table-column label="订单总金额" align="right" header-align="center" prop="totalPurchaseAmount" min-width="100" show-overflow-tooltip>
         <template v-slot="scope">
           <span> {{ formatTwo(scope.row.totalPurchaseAmount) }} €</span>
@@ -215,6 +216,7 @@
           <span> {{ formatTwo(scope.row.totalAmountCost) }} €</span>
         </template>
       </el-table-column>
+      <el-table-column label="备注：" align="center" prop="remark" show-overflow-tooltip/>
       <el-table-column label="创建者" align="center" prop="createBy" show-overflow-tooltip/>
       <el-table-column label="创建时间" align="center" prop="createTime" min-width="100" show-overflow-tooltip>
         <template #default="scope">
@@ -486,7 +488,6 @@ fetchLogisticsCompany()
 // 租户ID字段过滤使用
 const userStore = useUserStore();
 const router = useRouter();
-const route = useRoute();
 
 const { proxy } = getCurrentInstance();
 const { erp_delivery_type, erp_receipts_status } = proxy.useDict('erp_delivery_type', 'erp_receipts_status');
@@ -613,7 +614,6 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   const _receiptsId = row.receiptsId || ids.value
-  console.log("修改的ID*******", _receiptsId);
   const obj = {path: "/purchaseManage/receipts/edit", name:"editReceipts"}
   proxy.$tab.closePage(obj).then(
     () => {

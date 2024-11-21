@@ -43,15 +43,16 @@
 
     <el-table v-loading="loading" :data="skuList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"  v-if="controlUpdateAndDeleteSwitch" />
+      <el-table-column type="index" label="序号" width="50" align="center" />
       <el-table-column label="sku图片" align="center" prop="skuImage" width="100">
         <template #default="scope">
           <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
         </template>
       </el-table-column>
-      <el-table-column label="商品编码" align="center" prop="productCode" />
-      <el-table-column label="商品名称" align="center" prop="productName" />
-      <el-table-column label="suk编号" align="center" prop="skuCode" />
-      <el-table-column label="suk属性值" align="center" prop="skuValue">
+      <el-table-column label="商品编码" align="left" prop="productCode" show-overflow-tooltip/>
+      <el-table-column label="商品名称" align="left" prop="productName" show-overflow-tooltip/>
+      <el-table-column label="suk编号" align="left" prop="skuCode" show-overflow-tooltip/>
+      <el-table-column label="suk属性值" align="left" prop="skuValue" show-overflow-tooltip>
         <template #default="scope">
           <div v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
             <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
@@ -64,9 +65,9 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="单位" prop="skuUnit" width="80" align="center" show-overflow-tooltip>
+      <el-table-column label="单位" prop="unitVo.unitCode" width="80" align="center" show-overflow-tooltip>
         <template #default="scope">
-            <span>{{getUnitCode(scope.row.skuUnit)}}</span>
+            <span>{{scope.row.unitVo?.unitCode || '--'}}</span>
         </template>
       </el-table-column> 
       <el-table-column label="价格" header-align="center" align="left"  width="140" show-overflow-tooltip>
@@ -86,10 +87,23 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="库存数量" align="center" prop="skuStock" width="80" />
+      <el-table-column label="库存数量" align="center" prop="averageCostBySkuVo.currentStock" width="80" >
+        <template #default="scope">
+          <span>{{ scope.row.averageCostBySkuVo?.currentStock || 0 }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="sku状态" align="center" prop="skuStatus" width="80">
         <template #default="scope">
-          <dict-tag :options="product_status" :value="scope.row.skuStatus" />
+            <el-switch
+              v-model="scope.row.skuStatus"
+              :active-value="product_status[0].value"
+              :inactive-value="product_status[1].value"
+              inline-prompt
+              active-text="启用"
+              inactive-text="禁用"
+              style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
+              @change="handleStatusChange(scope.row)"
+            ></el-switch>
         </template>
       </el-table-column>
       <el-table-column label="创建信息" align="center" show-overflow-tooltip>
@@ -177,9 +191,8 @@
 </template>
 
 <script setup name="Sku">
-import { listSku, getSku, delSku, addSku, updateSku } from "@/api/product/sku";
+import { listSku, getSku, delSku, addSku, updateSku, changeSkuStatus } from "@/api/product/sku";
 import useUserStore from "@/store/modules/user";
-import { listUnit } from "@/api/product/unit";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -196,51 +209,21 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
-const unitList = ref([]);
-// 默认选择计量单位
-const baseUnit = "0";
 
-/** 获取计量单位code */
-const getUnitCode = (unitId) => {
-  if (!unitList.value) {
-    return "";
-  }
-  if (!unitId) {
-    return "";
-  }
-  let unitCode = "";
-  unitList.value.forEach((item) => {
-    if (item.unitId === unitId) {
-      unitCode = item.unitCode;
-    }
+/** SKU状态修改  */
+function handleStatusChange(row) {
+  let text = row.status === "0" ? "启用" : "停用";
+  proxy.$modal.confirm('确认要"' + text + '" 编码为："' + row.skuCode + '" 的SKU吗?').then(function () {
+    return changeSkuStatus(row.skuId, row.skuStatus, row.tenantId);
+  }).then(() => {
+    proxy.$modal.msgSuccess(text + "成功");
+  }).catch(function () {
+    row.skuStatus = row.skuStatus === "0" ? "1" : "0";
   });
-  return unitCode;
 };
 
 // 控制修改和删除的状态
 const controlUpdateAndDeleteSwitch = ref(false);
-/**  skuValue 转化成表格数据 */
-const getSkuValue = (skuValueList) => {
-  // 将 skuValueList 转化成 [["型号","AA"] , ["尺寸","SS"]]
-  const tableData = ref(Object.entries(skuValueList));
-  return tableData.value;
-};
-/** 保留2位小数 */
-const formatTwo = (value) => {
-  if (value) {
-    return value.toFixed(2);
-  } else {
-    return 0.00;
-  }
-};
-/** 保留3位小数 */
-const formatTree = (value) => {
-  if (value) {
-    return value.toFixed(3);
-  } else {
-    return 0.00;
-  }
-};
 
 const data = reactive({
   form: {},
@@ -266,10 +249,6 @@ function getList() {
   queryParams.value.tenantId = userStore.tenantId;
   listSku(queryParams.value).then(response => {
     skuList.value = response.rows;
-    // 转移 skuValue 的json格式
-    skuList.value.map((item) => {
-      item.skuValue = JSON.parse(item.skuValue);
-    });
     total.value = response.total;
     loading.value = false;
   });
@@ -382,24 +361,6 @@ function handleExport() {
   }, `sku_${new Date().getTime()}.xlsx`)
 }
 
-/** 获取计量单位下拉框数据 */
-function getUnitList() {
-  listUnit({})
-    .then((response) => {
-      // 产品只赋值基础单位
-      unitList.value = response.rows.filter((row) => row.unitType === baseUnit);
-      if (unitList.value.length > 0) {
-        form.value.unitId = unitList.value[0].unitId;
-      } else {
-        console.log("提示：请维护计量单位！！");
-      }
-    })
-    .catch((error) => {
-      console.error("获取计量单位列表时出错:", error);
-    });
-}
-
-getUnitList()
 getList();
 </script>
 

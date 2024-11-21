@@ -67,16 +67,16 @@
           </router-link>
         </template>
       </el-table-column>
-      <el-table-column label="商品名称" align="left" header-align="center" prop="productSku.productName"  min-width="150" show-overflow-tooltip/>
-      <el-table-column label="sku编码" align="left" header-align="center" prop="productSku.skuCode" min-width="150" show-overflow-tooltip/>
-      <el-table-column label="计量单位" align="center" prop="unit.unitCode" min-width="80" show-overflow-tooltip>
+      <el-table-column label="商品名称" align="left" header-align="center" prop="productSkuVo.productName"  min-width="150" show-overflow-tooltip/>
+      <el-table-column label="sku编码" align="left" header-align="center" prop="productSkuVo.skuCode" min-width="150" show-overflow-tooltip/>
+      <el-table-column label="计量单位" align="center" prop="unitVo.unitCode" min-width="80" show-overflow-tooltip>
         <template v-slot="scope">
-          {{ scope.row.unit?.unitCode || '--' }}
+          {{ scope.row.unitVo?.unitCode || '--' }}
         </template>
       </el-table-column>
-      <el-table-column label="suk规格" align="left" header-align="center" prop="productSku.skuValue" min-width="100" show-overflow-tooltip>
+      <el-table-column label="suk规格" align="left" header-align="center" prop="productSkuVo.skuValue" min-width="100" show-overflow-tooltip>
         <template #default="scope">
-          <div v-for="(item, index) in getSkuValue(scope.row.productSku.skuValue)" :key="index">
+          <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo.skuValue)" :key="index">
             <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
               {{ item[0] }}:
             </strong>
@@ -125,7 +125,16 @@
           <span> {{ formatTwo(scope.row.netAmount) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="缺货数量" align="center" prop="shortageQuantity" />
+      <el-table-column label="入库数量" align="center" prop="receivedQuantity" >
+        <template v-slot="scope">
+          <span> {{ scope.row.receivedQuantity || '--' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="缺货数量" align="center" prop="shortageQuantity" >
+        <template v-slot="scope">
+          <span> {{ scope.row.shortageQuantity || '--' }}</span>
+        </template>
+      </el-table-column>
     </el-table>
     
     <pagination
@@ -210,39 +219,6 @@ function handleExport() {
     ...queryParams.value
   }, `purchaseOrderDetail_${new Date().getTime()}.xlsx`)
 }
-
-/** 保留2位小数 */
-const formatTwo = (value) => {
-  if (value) {
-    return value.toFixed(2);
-  } else {
-    return 0;
-  }
-};
-
-/**  skuValue 转化成表格数据 */
-const getSkuValue = (skuValue) => {
-  if (!skuValue) {
-    return [];
-  }
-
-  let paramsSkuValue;
-  try {
-    paramsSkuValue = JSON.parse(skuValue);
-  } catch (error) {
-    // 如果解析失败，返回空数组或进行其他处理
-    console.warn('Invalid JSON string:', skuValue);
-    return [];
-  }
-
-  if (!paramsSkuValue || typeof paramsSkuValue !== 'object') {
-    return [];
-  }
-
-  // 将 paramsSkuValue 转化成 [["型号","AA"] , ["尺寸","SS"]]
-  const tableData = ref(Object.entries(paramsSkuValue));
-  return tableData.value;
-};
 
 getList();
 </script>

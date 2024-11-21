@@ -1,5 +1,27 @@
 import request from '@/utils/request'
 
+/** 订单查询商品 SKU */
+export function listSkuByAddOrder() {
+  return request({
+    url: '/product/sku/listSkuByAddOrder',
+    method: 'get',
+  })
+}
+
+// 修改SKU状态
+export function changeSkuStatus(skuId, skuStatus, tenantId) {
+  const data = {
+    skuId,
+    skuStatus,
+    tenantId
+  }
+  return request({
+    url: '/product/sku/changeStatus',
+    method: 'put',
+    data: data
+  })
+}
+
 // 根据skuID查询库存数量
 export function selectStockBySkuId(skuId) {
   return request({

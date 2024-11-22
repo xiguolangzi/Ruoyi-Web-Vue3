@@ -408,6 +408,7 @@ import { useRouter, useRoute } from "vue-router";
 import { listContainers } from "@/api/transportation/containers";
 import { listLogisticsCompanies} from "@/api/order/logisticsCompanies";
 import { listSupplier } from "@/api/order/supplier"
+import { ref } from "vue";
 
 // ****************************** 供应商 数据获取 start ******************************
 // 供应商 - 初始化列表
@@ -498,6 +499,7 @@ const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
+const nos = ref([]);
 const checkedErpGoodsReceiptsDetails = ref([]);
 const single = ref(true);
 const multiple = ref(true);
@@ -596,6 +598,7 @@ function resetQuery() {
 // 多选框选中数据
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.receiptsId);
+  nos.value = selection.map(item => item.receiptsNo);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
 }
@@ -647,7 +650,8 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _receiptsIds = row.receiptsId || ids.value;
-  proxy.$modal.confirm('是否确认删除采购入库单编号为"' + _receiptsIds + '"的数据项？').then(function() {
+  const _receiptsNos = row.receiptsNo || nos.value;
+  proxy.$modal.confirm('是否确认删除采购入库单编号为"' + _receiptsNos + '"的数据项？').then(function() {
     return delReceipts(_receiptsIds);
   }).then(() => {
     getList();

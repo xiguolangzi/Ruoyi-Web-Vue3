@@ -178,6 +178,7 @@ const purchaseOrderList = ref([]);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
+const nos = ref([]);
 const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
@@ -225,6 +226,7 @@ function resetQuery() {
 // 多选框选中数据
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.orderId);
+  nos.value = selection.map(item => item.orderNo);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
 }
@@ -255,7 +257,8 @@ function handleUpdate(row) {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _orderIds = row.orderId || ids.value;
-  proxy.$modal.confirm('是否确认删除采购订单编号为"' + _orderIds + '"的数据项？').then(function() {
+  const _orderNos = row.orderNo || nos.value;
+  proxy.$modal.confirm('是否确认删除采购订单编号为"' + _orderNos + '"的数据项？').then(function() {
     return delPurchaseOrder(_orderIds);
   }).then(() => {
     getList();

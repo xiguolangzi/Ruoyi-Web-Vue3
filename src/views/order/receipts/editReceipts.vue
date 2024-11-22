@@ -380,7 +380,7 @@ import { h } from 'vue'
 import { nextTick } from 'vue'
 import { debounce } from 'lodash'
 import { TableV2SortOrder } from 'element-plus'
-import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts, updateReceiptsStatus, received } from "@/api/order/receipts";
+import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts, updateReceiptsStatus, received, unReceived } from "@/api/order/receipts";
 import { listSupplier } from "@/api/order/supplier"
 import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
 import { listContainers } from "@/api/transportation/containers";
@@ -1399,6 +1399,7 @@ const form = ref({
   totalAmountCost: null,
   remark: '',
   operateLog: '',
+  operateType: '',
   receivedTime: new Date(),
   warehouseId: null,
   showPurchaseNo,
@@ -1879,7 +1880,7 @@ const submitApproval = async () => {
   const currentActionConfig = actions[currentAction.value]
   addApprovalLog(dialogTitle.value, currentActionConfig.status, approvalForm.value.remark, currentActionConfig.actionValue);
   form.value.receiptsStatus = currentActionConfig.status;
-  //form.value.operateLog = JSON.stringify(orderOperateLog.value);
+  form.value.operateType = currentActionConfig.actionValue;
 
   try {
     // 1 数据预处理 转json格式
@@ -1945,7 +1946,6 @@ const submitApproval = async () => {
       await received(form.value)
         // 修改状态更新操作日志
           .then( (res) => {
-            console.log("*******************入库结果",res)
             if (res.code === 500) {
               handleError("入库 操作失败")
             }

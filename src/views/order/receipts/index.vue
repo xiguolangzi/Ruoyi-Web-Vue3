@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="入库单号" prop="receiptsNo">
+      <el-form-item label="入库单号:" prop="receiptsNo">
         <el-input
           v-model="queryParams.receiptsNo"
           placeholder="请输入入库单号"
@@ -45,6 +45,22 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="发票号" prop="invoiceNo">
+        <el-input
+          v-model="queryParams.invoiceNo"
+          placeholder="请输入发票号"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="仓库名称" prop="warehouseName">
+        <el-input
+          v-model="queryParams.warehouseName"
+          placeholder="请输入仓库名称"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="物流公司" prop="deliveryCompanyId">
         <el-select
           v-model="queryParams.deliveryCompanyId"
@@ -87,7 +103,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item>
+      <el-form-item style="margin-left: 20px;">
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
@@ -144,12 +160,13 @@
         </span>
         </template>
       </el-table-column>
+      <el-table-column label="发票号" align="left" header-align="center" prop="invoiceNo" min-width="120" show-overflow-tooltip />
       <el-table-column label="供应商ID" align="left" header-align="center" prop="supplierId" min-width="120" show-overflow-tooltip>
         <template v-slot="scope">
           {{ getSuppliersName(scope.row.supplierId)}}
         </template>
       </el-table-column>
-      <el-table-column label="总条目数" align="right" header-align="center" prop="totalQuantity" min-width="120" show-overflow-tooltip />
+      <el-table-column label="总条目数" align="right" header-align="center" prop="totalQuantity" min-width="80" show-overflow-tooltip />
       <el-table-column label="订单总金额" align="right" header-align="center" prop="totalPurchaseAmount" min-width="100" show-overflow-tooltip>
         <template v-slot="scope">
           <span> {{ formatTwo(scope.row.totalPurchaseAmount) }} €</span>
@@ -170,6 +187,7 @@
           <span> {{ formatTwo(scope.row.totalNetAmount) }} €</span>
         </template>
       </el-table-column>
+      <el-table-column label="仓库名称" align="left" header-align="center" prop="warehouseName" min-width="100" show-overflow-tooltip />
       <el-table-column label="订单状态" align="center" prop="receiptsStatus">
         <template #default="scope">
           <dict-tag :options="erp_receipts_status" :value="scope.row.receiptsStatus"/>
@@ -518,6 +536,8 @@ const data = reactive({
     deliveryCompanyId: null,
     deliveryNo: null,
     containerNo: null,
+    invoiceNo: null,
+    warehouseName: null,
     tenantId: null,
   },
   rules: {

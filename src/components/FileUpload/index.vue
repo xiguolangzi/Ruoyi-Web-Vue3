@@ -27,11 +27,13 @@
     <!-- 文件列表 -->
     <transition-group class="upload-file-list el-upload-list el-upload-list--text" name="el-fade-in-linear" tag="ul">
       <li :key="file.uid" class="el-upload-list__item ele-upload-list__item-content" v-for="(file, index) in fileList">
-        <el-link :href="`${baseUrl}${file.url}`" :underline="false" target="_blank">
-          <span class="el-icon-document"> {{ getFileName(file.name) }} </span>
+        <el-link :href="`${baseUrl}${file.url}`" :underline="false" target="_blank" icon="Document" style="padding-left: 5px;">
+          <!-- <span class="el-icon-document" style=""> {{ getFileName(file.name) }} </span> -->
+           <el-text class="el-icon-document" truncated type="primary"  style="margin: 10px">{{ getFileName(file.name) }}</el-text>
         </el-link>
         <div class="ele-upload-list__item-content-action">
-          <el-link :underline="false" @click="handleDelete(index)" type="danger">删除</el-link>
+          <!-- <el-link :underline="false" @click="handleDelete(index)" type="danger">删除</el-link> -->
+          <el-button type="danger" :icon="Delete" circle @click="handleDelete(index)" style="margin: 5px;"/>
         </div>
       </li>
     </transition-group>
@@ -40,6 +42,7 @@
 
 <script setup>
 import { getToken } from "@/utils/auth";
+import { Delete } from "@element-plus/icons-vue";
 
 const props = defineProps({
   modelValue: [String, Object, Array],

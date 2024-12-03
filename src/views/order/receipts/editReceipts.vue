@@ -7,7 +7,7 @@
           <div class="title">
             <h2>采购入库单详情</h2>
             <el-tag :type=OrderStatusColor[form.receiptsStatus] >{{OrderStatusName[form.receiptsStatus]}}</el-tag>
-            <svg-icon icon-class="waitReceived" style="font-size: 40px;" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED"/>
+            <svg-icon icon-class="waitReceived" style="font-size: 40px;" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED || form.receiptsStatus === OrderStatusEnum.INVOICED"/>
             <svg-icon icon-class="invoice" style="font-size: 40px;"  v-if="form.receiptsStatus === OrderStatusEnum.INVOICED"/>
           </div>
           <div class="actions">
@@ -37,11 +37,11 @@
                 驳回入库申请
               </el-button>
 
-              <!-- 待入生成发票状态 -->
-              <el-button type="success" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_INVOICED" @click="handleInvoiced"  v-hasPermi="['order:receipts:invoiced']" >
+              <!-- 已入库状态 -->
+              <el-button type="success" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED" @click="handleInvoiced"  v-hasPermi="['order:receipts:invoiced']" >
                 生成发票
               </el-button>
-              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_INVOICED" @click="handleUnReceived"  v-hasPermi="['order:receipts:received']" >
+              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED" @click="handleUnReceived"  v-hasPermi="['order:receipts:received']" >
                 反入库
               </el-button>
 
@@ -112,6 +112,22 @@
           </el-form-item>
         </el-row>
         <el-row :gutter="20">
+          <el-form-item label="发票号:" prop="invoiceId" >
+             <el-select
+              v-model="form.invoiceId"
+              filterable
+              clearable
+              placeholder="请选择发票号"
+            >
+              <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
+              <el-option
+              v-for="item in purchaseInvoiceList"
+              :key="item.invoiceId"
+              :label="item.invoiceNo"
+              :value="item.invoiceId"
+              />
+            </el-select>
+          </el-form-item>
           <el-form-item label="配送方式" prop="deliveryType">
             <el-select v-model="form.deliveryType" placeholder="请选择配送方式" clearable>
               <el-option
@@ -380,13 +396,14 @@ import { h } from 'vue'
 import { nextTick } from 'vue'
 import { debounce } from 'lodash'
 import { TableV2SortOrder } from 'element-plus'
-import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts, updateReceiptsStatus, received, unReceived } from "@/api/order/receipts";
+import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts, updateReceiptsStatus, received, unReceived, invoiced, unInvoiced } from "@/api/order/receipts";
 import { listSupplier } from "@/api/order/supplier"
 import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
 import { listContainers } from "@/api/transportation/containers";
 import { listLogisticsCompanies} from "@/api/order/logisticsCompanies";
 import { listWarehouse} from "@/api/product/warehouse";
 import { listPurchaseOrderByStatus, getPurchaseOrder} from "@/api/order/purchaseOrder";
+import { listPurchaseInvoice } from "@/api/order/purchaseInvoice";
 
 
 const router = useRouter();
@@ -550,6 +567,31 @@ const calculateAmount = () => {
 // ****************************** 引入采购单 end   *******************************
 
 
+// ****************************** 发票号 数据获取 start *****************************
+const purchaseInvoiceList = ref([]);
+
+// 获取仓库列表
+const getPurchaseInvoiceList = (supplierId) => {
+  const purchaseInvoiceQueryParams = {
+    supplierId: supplierId || null,
+    // 未核销的发票
+    invoiceStatus: '1',
+    pageNum: 1,
+    pageSize: 1000,
+  }
+  listPurchaseInvoice(purchaseInvoiceQueryParams)
+    .then(response => {
+      purchaseInvoiceList.value = response.rows || [];
+    })
+    .catch (error => {
+      ElMessage.error("获取发票列表时出错:",error)
+    })
+};
+
+// ****************************** 仓库 数据获取 end ******************************
+
+
+
 // ****************************** 仓库 数据获取 start *****************************
 const warehouseList = ref([]);
 // 获取仓库列表
@@ -599,8 +641,9 @@ getSuppliers()
 
 let originalSupplierId = null; // 缓存原始的供应商ID
 const handleChangeSupplier = () => {
+  // 1 更新查询参数
   purchaseQueryParams.value.supplierId = form.value.supplierId;
-  // 如果开启了 显示采购订单号，更新供应商就会清空商品明细
+  // 2 如果开启了 显示采购订单号，更新供应商就会清空商品明细
   if(showPurchaseNo.value){
     // 切换供应商 清空入库商品明细
     ElMessageBox.confirm(
@@ -626,6 +669,8 @@ const handleChangeSupplier = () => {
     });
     
   }
+  // 3 获取供应商对应的发票号
+  getPurchaseInvoiceList(form.value.supplierId);
   
 
 
@@ -1405,6 +1450,7 @@ const form = ref({
   showPurchaseNo,
   batchNo: `${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}`,
   details: [],
+  invoiceId:null,
 })
 
 
@@ -1623,6 +1669,9 @@ const calculateRowAmount = (index) => {
 // 继续编辑订单
 const handleEdit = () => {
  openApprovalDialog('编辑订单', OrderOperateType.EDIT)
+ // 获取供应商对应的未核销发票
+ getPurchaseInvoiceList(form.value.supplierId)
+ 
 }
 
 // 删除订单
@@ -1705,24 +1754,24 @@ const handleSubmitForReceive = () => {
   openApprovalDialog('提交入库申请', OrderOperateType.SUBMIT)
 }
 
-/** 确认入库 */ 
-const handleReceived = () => {
-  openApprovalDialog('确认入库', OrderOperateType.RECEIVED)
-}
-
 /** 驳回 */ 
 const handleReject = () => {
   openApprovalDialog('驳回入库申请', OrderOperateType.REJECT)
 }
 
-/** 生成发票 */ 
-const handleInvoiced = () => {
-  openApprovalDialog('审核通过', OrderOperateType.INVOICED)
+/** 确认入库 */ 
+const handleReceived = () => {
+  openApprovalDialog('确认入库', OrderOperateType.RECEIVED)
 }
 
 /** 反入库 */ 
 const handleUnReceived = () => {
    openApprovalDialog('反入库', OrderOperateType.UN_RECEIVED)
+}
+
+/** 生成发票 */ 
+const handleInvoiced = () => {
+  openApprovalDialog('生成发票', OrderOperateType.INVOICED)
 }
 
 /** 反生成发票 */ 
@@ -1856,7 +1905,7 @@ const submitApproval = async () => {
       actionValue: OrderOperateType.REJECT
     },
     [OrderOperateType.RECEIVED]: {
-      status: OrderStatusEnum.WAIT_FOR_INVOICED,
+      status: OrderStatusEnum.RECEIVED,
       message: '入库成功 成功!',
       actionValue: OrderOperateType.RECEIVED
     },
@@ -1866,12 +1915,12 @@ const submitApproval = async () => {
       actionValue: OrderOperateType.INVOICED
     },
     [OrderOperateType.UN_RECEIVED]: {
-      status: OrderStatusEnum.EDIT,
+      status: OrderStatusEnum.SAVE,
       message: '反入库 成功!',
       actionValue: OrderOperateType.UN_RECEIVED
     },
     [OrderOperateType.UN_INVOICED]: {
-      status: OrderStatusEnum.WAIT_FOR_RECEIVED,
+      status: OrderStatusEnum.RECEIVED,
       message: '反生成发票 成功!',
       actionValue: OrderOperateType.UN_INVOICED
     },
@@ -2038,6 +2087,8 @@ const getInfoById = () => {
       }
       // 是否引用采购单
       showPurchaseNo.value = form.value.showPurchaseNo
+      // 获取供应商未核销的采购发票
+      getPurchaseInvoiceList(form.value.supplierId)
 
 
       console.log("初始化数据正常：",form.value);

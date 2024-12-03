@@ -88,7 +88,12 @@
 
  .el-form .el-form-item__label {
  	font-weight: 700;
- 	width: 100px !important;
+ 	width: 90px !important;
+
+ }
+
+ .el-form .el-form-item {
+ 	margin-right: 5px;
  }
 
  .el-select {
@@ -114,7 +119,7 @@
  		th {
  			word-break: break-word;
  			background-color: #f8f8f9 !important;
- 			color: #515a6e;
+ 			color: #565e70;
  			height: 40px !important;
  			font-size: 13px;
  		}

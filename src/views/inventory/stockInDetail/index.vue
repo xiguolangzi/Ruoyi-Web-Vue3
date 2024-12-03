@@ -95,13 +95,13 @@
     <el-table v-loading="loading" :data="stockInDetailList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" width="50"/>
-      <el-table-column label="入库单号" align="center" prop="inNo" />
-      <el-table-column label="商品编码" align="center" prop="productSkuVo.skuCode" >
+      <el-table-column label="入库单号" align="center" prop="inNo"  min-width="150" show-overflow-tooltip />
+      <el-table-column label="商品编码" align="center" prop="productSkuVo.skuCode" min-width="120" show-overflow-tooltip>
         <template #default="scope">
           <span> {{ scope.row.productSkuVo?.skuCode || '--' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="商品规格" align="center" prop="productSkuVo.skuValue" >
+      <el-table-column label="商品规格" align="left" header-align="center" prop="productSkuVo.skuValue" >
         <template #default="scope">
           <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
             <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
@@ -119,34 +119,34 @@
           <span> {{ scope.row.unitVo?.unitCode || '--' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="批次号" align="center" prop="batchNo" />
+      <el-table-column label="批次号" align="left" header-align="center" prop="batchNo" />
       <el-table-column label="入库数量" align="center" prop="quantity" />
-      <el-table-column label="单价" align="center" prop="unitPrice" >
+      <el-table-column label="单价" align="right" header-align="center" prop="unitPrice" >
         <template #default="scope">
           <span> {{ formatTwo(scope.row.unitPrice) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="单体费用" align="center" prop="unitExpense" >
+      <el-table-column label="单体费用" align="right" header-align="center" prop="unitExpense" >
         <template #default="scope">
           <span> {{ formatTwo(scope.row.unitExpense) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="单体成本" align="center" prop="unitCost" >
+      <el-table-column label="单体成本" align="right" header-align="center" prop="unitCost" >
           <template #default="scope">
             <span> {{ formatTwo(scope.row.unitCost) }} €</span>
           </template>
       </el-table-column>
-      <el-table-column label="总价" align="center" prop="totalPrice" >
+      <el-table-column label="总价" align="right" header-align="center" prop="totalPrice" >
         <template #default="scope">
           <span> {{ formatTwo(scope.row.totalPrice) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="总费用" align="center" prop="totalExpense" >
+      <el-table-column label="总费用" align="right" header-align="center" prop="totalExpense" >
         <template #default="scope">
           <span> {{ formatTwo(scope.row.totalExpense) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="总成本" align="center" prop="totalCost" >
+      <el-table-column label="总成本" align="right" header-align="center" prop="totalCost" >
         <template #default="scope">
           <span> {{ formatTwo(scope.row.totalCost) }} €</span>
         </template>

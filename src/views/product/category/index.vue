@@ -54,7 +54,7 @@
       :default-expand-all="isExpandAll"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
     >
-      <el-table-column label="分类名称" prop="categoryName" />
+      <el-table-column label="分类名称" prop="categoryName" min-width="100" show-overflow-tooltip/>
       <el-table-column label="排序" align="center" prop="orderNum" />
       <el-table-column label="分类状态" prop="status">
         <template #default="scope">
@@ -62,18 +62,18 @@
         </template>
       </el-table-column>
       <el-table-column label="创建者" prop="createBy" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" prop="createTime">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="更新者" prop="updateBy" />
-      <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
+      <el-table-column label="更新时间" align="center" prop="updateTime">
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="100">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['product:category:edit']">修改</el-button>
           <el-button link type="primary" icon="Plus" @click="handleAdd(scope.row)" v-hasPermi="['product:category:add']">新增</el-button>
@@ -279,7 +279,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除商品分类编号为"' + row.categoryId + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认 删除 分类名称："' + row.categoryName + '"  的数据项？').then(function() {
     return delCategory(row.categoryId);
   }).then(() => {
     getList();

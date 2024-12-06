@@ -71,6 +71,8 @@
       row-key="accountId"
       :default-expand-all="isExpandAll"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+      ref="accountTable"
+      @cell-click="handleCellClick"
     >
       <el-table-column label="科目编码" prop="accountCode" min-width="100" show-overflow-tooltip/>
       <el-table-column label="科目名称" align="center" prop="accountName" show-overflow-tooltip/>
@@ -186,10 +188,20 @@ const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const title = ref("");
-const isExpandAll = ref(true);
+const isExpandAll = ref(false);
 const refreshTable = ref(true);
 // 编辑科目 - 选中绑定父节点
 const accountTreeSelectRef = ref(null);
+// 添加 ref，用于操作表格实例
+const accountTable = ref(null);
+
+/** 控制单行展开折叠 */
+const handleCellClick = (row) => {
+  if (row.children && row.children.length > 0) {
+    // 获取当前展开状态
+    accountTable.value.toggleRowExpansion(row)
+  }
+}
 
 /** 获取选中父节点的科目编码 */
 const getSelectedParentAccountCode = () => {

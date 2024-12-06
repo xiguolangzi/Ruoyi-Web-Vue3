@@ -53,6 +53,8 @@
       row-key="categoryId"
       :default-expand-all="isExpandAll"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+      ref="categoryTable"
+      @cell-click="handleCellClick"
     >
       <el-table-column label="分类名称" prop="categoryName" min-width="100" show-overflow-tooltip/>
       <el-table-column label="排序" align="center" prop="orderNum" />
@@ -136,8 +138,18 @@ const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const title = ref("");
-const isExpandAll = ref(true);
+const isExpandAll = ref(false);
 const refreshTable = ref(true);
+// 添加 ref，用于操作表格实例
+const categoryTable = ref(null);
+
+/** 控制单行展开折叠 */
+const handleCellClick = (row) => {
+  if (row.children && row.children.length > 0) {
+    // 获取当前展开状态
+    categoryTable.value.toggleRowExpansion(row)
+  }
+}
 
 const data = reactive({
   form: {},

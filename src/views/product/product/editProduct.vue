@@ -13,11 +13,18 @@
             <el-row gutter="20">
               <el-col span="8">
                 <el-form-item label="商品分类:" prop="categoryId">
-                  <el-tree-select v-model="form.categoryId" :data="categoryList" :props="{
+                  <el-tree-select 
+                  v-model="form.categoryId" 
+                  :data="categoryList" 
+                  :props="{
                       value: 'categoryId',
                       label: 'categoryName',
                       children: 'children',
-                    }" value-key="categoryId" placeholder="请选择商品分类" style="width: 195px" clearable />
+                    }" 
+                  value-key="categoryId" 
+                  placeholder="请选择商品分类" 
+                  style="width: 195px" 
+                  clearable />
                 </el-form-item>
               </el-col>
               <el-col span="8">
@@ -705,10 +712,9 @@ function getCategoryList() {
         "categoryId",
         "parentId"
       );
-      console.log("categoryList:", categoryList.value);
     })
     .catch((error) => {
-      console.error("获取分类列表时出错:", error);
+      ElMessage.error("获取分类列表时出错:", error);
     });
 }
 /** 获取计量单位下拉框数据 */

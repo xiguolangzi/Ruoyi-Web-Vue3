@@ -67,6 +67,7 @@
     <el-table
       v-if="refreshTable"
       v-loading="loading"
+      border
       :data="accountList"
       row-key="accountId"
       :default-expand-all="isExpandAll"
@@ -84,6 +85,14 @@
       <el-table-column label="上级科目" align="center" prop="parentCode" show-overflow-tooltip>
         <template #default="scope">
           <span> {{ scope.row.parentCode ? scope.row.parentCode : '--' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="辅助项" align="center" prop="assistTypes"  show-overflow-tooltip>
+        <template #default="scope">
+            <el-tag v-for="item in scope.row.assistTypes" :key="item" size="mini">
+              <dict-tag :options="finance_assist_type" :value="item"/>
+            </el-tag>
+            <span v-if="scope.row.assistTypes.length == 0">--</span>
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="status">
@@ -147,6 +156,16 @@
             ></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="辅助项" prop="assistTypes" v-if="form.isLeaf == '0'">
+          <el-select v-model="form.assistTypes" multiple placeholder="请选择科目类型" style="width: 90%;">
+            <el-option
+              v-for="dict in finance_assist_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio
@@ -180,7 +199,7 @@ import { ref } from "vue";
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
-const { erp_finance_account_style, project_general_status } = proxy.useDict('erp_finance_account_style', 'project_general_status');
+const { erp_finance_account_style, project_general_status, finance_assist_type } = proxy.useDict('erp_finance_account_style', 'project_general_status', 'finance_assist_type');
 
 const accountList = ref([]);
 const accountOptions = ref([]);
@@ -331,7 +350,7 @@ function reset() {
     parentId: null,
     accountLevel: null,
     ancestors: null,
-    isLeaf: null,
+    isLeaf: '0',
     orderNum: null,
     status: '0',
     createBy: null,
@@ -339,7 +358,8 @@ function reset() {
     updateBy: null,
     updateTime: null,
     remark: null,
-    tenantId: null
+    tenantId: null,
+    assistTypes:[]
   };
   proxy.resetForm("accountRef");
 }
@@ -421,7 +441,7 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除财务 - 科目编号为"' + row.accountId + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除财务 - 科目编码为  "' + row.accountCode + '"  的数据项？').then(function() {
     return delAccount(row.accountId);
   }).then(() => {
     getList();

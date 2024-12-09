@@ -88,7 +88,7 @@
 
  .el-form .el-form-item__label {
  	font-weight: 700;
- 	width: 90px !important;
+ 	width: 98px !important;
 
  }
 
@@ -97,7 +97,15 @@
  }
 
  .el-select {
- 	width: 195px;
+ 	width: 160px;
+ }
+
+ //  .el-input {
+ //  	width: 160px;
+ //  }
+
+ .el-date-editor {
+ 	width: 160px !important;
  }
 
 

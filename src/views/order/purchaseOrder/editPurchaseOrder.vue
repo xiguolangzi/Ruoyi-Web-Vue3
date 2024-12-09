@@ -1491,7 +1491,6 @@ const goBack = () => {
 
 const RefreshTab = () => {
   // 刷新当前页
-  //proxy.$tab.refreshPage(view)
   getInfoById()
 }
 

@@ -75,7 +75,7 @@
         <template #default="scope">
           <span class="link-type" @click="handleUpdate(scope.row)">
             {{ scope.row.orderNo }}
-        </span>
+          </span>
         </template>
       </el-table-column>
       <el-table-column label="供应商" align="center" prop="supplierId" show-overflow-tooltip >

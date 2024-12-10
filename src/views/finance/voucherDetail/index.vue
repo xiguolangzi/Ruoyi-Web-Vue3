@@ -51,6 +51,7 @@
           icon="Plus"
           @click="handleAdd"
           v-hasPermi="['finance:voucherDetail:add']"
+          v-if="showOperationButton"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -61,6 +62,7 @@
           :disabled="single"
           @click="handleUpdate"
           v-hasPermi="['finance:voucherDetail:edit']"
+           v-if="showOperationButton"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -71,6 +73,7 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['finance:voucherDetail:remove']"
+           v-if="showOperationButton"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -87,25 +90,33 @@
 
     <el-table v-loading="loading" :data="voucherDetailList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="明细ID" align="center" prop="detailId" />
+      <el-table-column label="序号" align="center" type="index" width="55"/>
       <el-table-column label="凭证ID" align="center" prop="voucherId" />
       <el-table-column label="科目ID" align="center" prop="accountId" />
-      <el-table-column label="借方金额" align="center" prop="debitAmount" />
-      <el-table-column label="贷方金额" align="center" prop="creditAmount" />
-      <el-table-column label="摘要" align="center" prop="summary" />
-      <el-table-column label="辅助类型" align="center" prop="auxiliaryType">
+      <el-table-column label="借方金额" align="right" header-align="center" prop="debitAmount" >
         <template #default="scope">
-          <dict-tag :options="finance_auxiliary_type" :value="scope.row.auxiliaryType"/>
+          <span>{{ formatTwo(scope.row.debitAmount) }} € </span>
         </template>
       </el-table-column>
-      <el-table-column label="辅助ID" align="center" prop="auxiliaryId" />
+      <el-table-column label="贷方金额" align="right" header-align="center" prop="creditAmount" >
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.creditAmount) }} € </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="摘要" align="center" prop="summary" />
+      <el-table-column label="辅助项类型" align="center" prop="assistType">
+        <template #default="scope">
+          <dict-tag :options="finance_auxiliary_type" :value="scope.row.assistType"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="辅助项" align="center" prop="assistName" />
       <el-table-column label="单据类型" align="center" prop="documentType">
         <template #default="scope">
           <dict-tag :options="finance_document_type" :value="scope.row.documentType"/>
         </template>
       </el-table-column>
       <el-table-column label="单据号" align="center" prop="documentNo" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width"  v-if="showOperationButton">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['finance:voucherDetail:edit']">修改</el-button>
           <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['finance:voucherDetail:remove']">删除</el-button>
@@ -195,6 +206,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+// 控制操作的显隐
+const showOperationButton = ref(false);
 
 const data = reactive({
   form: {},
@@ -249,8 +262,9 @@ function reset() {
     debitAmount: null,
     creditAmount: null,
     summary: null,
-    auxiliaryType: null,
-    auxiliaryId: null,
+    assistType: null,
+    assistId: null,
+    assistName:null,
     documentType: null,
     documentNo: null,
     tenantId: null

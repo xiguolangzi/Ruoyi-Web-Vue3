@@ -103,17 +103,17 @@
     <!-- 数据展示 -->
     <el-table v-loading="loading" :data="voucherList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="会计年度" align="center" prop="periodYear">
+      <el-table-column label="会计年度" align="center" prop="periodYear" width="80">
         <template #default="scope">
           <dict-tag :options="finance_period_year" :value="scope.row.periodYear"/>
         </template>
       </el-table-column>
-      <el-table-column label="会计月份" align="center" prop="periodMonth">
+      <el-table-column label="会计月份" align="center" prop="periodMonth"  width="80">
         <template #default="scope">
           <dict-tag :options="finance_period_month" :value="scope.row.periodMonth"/>
         </template>
       </el-table-column>
-      <el-table-column label="凭证编号" align="center" prop="voucherNo" />
+      <el-table-column label="凭证编号" align="center" prop="voucherNo"  min-width="150"/>
       <el-table-column label="凭证类型" align="center" prop="voucherType">
         <template #default="scope">
           <dict-tag :options="finance_voucher_type" :value="scope.row.voucherType"/>
@@ -134,24 +134,23 @@
           <dict-tag :options="finance_voucher_status" :value="scope.row.voucherStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="操作人ID" align="center" prop="operatorId" />
-      <el-table-column label="创建者" align="center" prop="createBy" />
-      <el-table-column label="创建时间" align="center" prop="createTime" >
+      <el-table-column label="制单人" align="center" prop="createBy" show-overflow-tooltip/>
+      <el-table-column label="制单时间" align="center" prop="createTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="更新者" align="center" prop="updateBy" />
-      <el-table-column label="更新时间" align="center" prop="updateTime" >
+      <el-table-column label="修改人" align="center" prop="updateBy" show-overflow-tooltip/>
+      <el-table-column label="修改时间" align="center" prop="updateTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="凭证备注" align="center" prop="remark"  show-overflow-tooltip/>
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="150">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['finance:voucher:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['finance:voucher:remove']">删除</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['finance:voucher:remove']">作废</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -217,6 +216,8 @@
         </div>
         
       </template>
+
+      <!-- 表头数据 -->
       <el-form ref="voucherRef" :model="form" :rules="rules" label-width="80px" :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT">
         <el-row :gutter="20" >
           <el-col :span="4">
@@ -224,7 +225,7 @@
               <el-text>{{form.periodYear}}-{{form.periodMonth}}</el-text>
             </el-form-item>
           </el-col>
-          <el-col :span="6">
+          <el-col :span="7">
             <el-form-item label="凭证编号" prop="voucherNo">
               <el-input v-model="form.voucherNo" placeholder="系统自动生成" style="width: 100%" disabled = "false" />
             </el-form-item>
@@ -242,7 +243,7 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <el-col :span="8">
+          <el-col :span="6">
             <el-form-item label="凭证日期" prop="voucherDate">
               <el-date-picker
                 v-model="form.voucherDate"
@@ -255,6 +256,14 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-row :gutter="20">
+          <el-col :span="23">
+            <el-form-item label="凭证备注" prop="remark">
+              <el-input v-model="form.remark" placeholder="凭证备注" type="text" maxlength="30" show-word-limit></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        
       </el-form>
 
       <!-- 分割线 -->
@@ -266,7 +275,7 @@
       <!-- 分录明细 -->
       <el-table
         v-loading="loading"
-        :data="form.detailList"
+        :data="form.voucherDetailList"
         border
         style="width: 100%"
         :summary-method="getSummaryRow"
@@ -368,7 +377,7 @@
       </el-table>
 
       <!-- 添加按钮 -->
-      <div class="table-operations" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT && form.detailList.length < maxLength" style="margin: 5px 0px 10px 0px;">
+      <div class="table-operations" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT && form.voucherDetailList.length < maxLength" style="margin: 5px 0px 10px 0px;">
         <el-button type="primary" @click="addDetail">
           <el-icon><Plus /></el-icon>   
           <span> 添加分录 (限制最多 {{ maxLength }} 条流水)</span>
@@ -461,47 +470,41 @@
       </el-dialog>
 
       <!-- 订单操作记录 -->
-    <el-card class="operation-card">
-      <template #header>
-        <div class="card-header">
-          <span>凭证操作记录</span>
-        </div>
-      </template>
-      <el-timeline>
-        <el-timeline-item v-for="(activity, index) in orderOperateLog" :key="index"
-          :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top">
-          {{ activity.operator }} - {{ activity.action }}
-          <span v-if="activity.remark"> - -  描述 : </span>
-          <span class="remark">{{ activity.remark }}</span>
-        </el-timeline-item>
-      </el-timeline>
-    </el-card>
+      <el-card class="operation-card">
+        <template #header>
+          <div class="card-header">
+            <span>凭证操作记录</span>
+          </div>
+        </template>
+        <el-timeline>
+          <el-timeline-item v-for="(activity, index) in orderOperateLog" :key="index"
+            :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top">
+            {{ activity.operator }} - {{ activity.action }}
+            <span v-if="activity.remark"> - -  描述 : </span>
+            <span class="remark">{{ activity.remark }}</span>
+          </el-timeline-item>
+        </el-timeline>
+      </el-card>
 
-    <!-- 操作意见弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
-      <!-- 强制填写备注 -->
-      <el-form :model="approvalForm" label-width="80px">
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="actionRequiresRemark.includes(currentAction)">
-          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)" />
-        </el-form-item>
-      </el-form>
-      <!-- 不强制填写备注 -->
-      <span v-if="actionRequiresNoRemark.includes(currentAction)"> 您确认要 {{ dialogTitle }} 吗？</span>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitApproval" >
-            确认
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
-      
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-        </div>
-      </template>
+      <!-- 操作意见弹窗 -->
+      <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
+        <!-- 强制填写备注 -->
+        <el-form :model="approvalForm" label-width="80px">
+          <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="actionRequiresRemark.includes(currentAction)">
+            <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)" />
+          </el-form-item>
+        </el-form>
+        <!-- 不强制填写备注 -->
+        <span v-if="actionRequiresNoRemark.includes(currentAction)"> 您确认要 {{ dialogTitle }} 吗？</span>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="dialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="submitApproval" >
+              确认
+            </el-button>
+          </span>
+        </template>
+      </el-dialog>
     </el-dialog>
   </div>
 </template>
@@ -591,7 +594,7 @@ const VoucherStatusName = {
 }
 
 const data = reactive({
-  form: {detailList: []},
+  form: {voucherDetailList: []},
   queryParams: {
     pageNum: 1,
     pageSize: 10,
@@ -626,7 +629,6 @@ function reset() {
     voucherNo: null,
     totalAmount: null,
     voucherStatus: VoucherStatusEnum.VOUCHER_STATUS_DRAFT,
-    operatorId: null,
     createBy: null,
     createTime: null,
     updateBy: null,
@@ -634,7 +636,7 @@ function reset() {
     remark: null,
     tenantId: null,
     operateLog: null,
-    detailList: []
+    voucherDetailList: []
   };
   proxy.resetForm("voucherRef");
   totalDebitAmount = 0;
@@ -916,20 +918,20 @@ const addDetail = () => {
     assistName: null
   }))
   // 将新记录数组添加到现有数组中
-  form.value.detailList.push(...newDetails)
+  form.value.voucherDetailList.push(...newDetails)
 }
 
 /** 删除分录 */
 const handleDeleteDetail = (index) => {
   // 找到要删除的记录的索引
-  form.value.detailList.splice(index, 1);
+  form.value.voucherDetailList.splice(index, 1);
 }
 
 
 /** 计算借贷方合计金额 */
 const calculateTotalAmount = () => {
-  totalDebitAmount = form.value.detailList.reduce((sum, detail) => sum + (detail.debitAmount || 0), 0);
-  totalCreditAmount = form.value.detailList.reduce((sum, detail) => sum + (detail.creditAmount || 0), 0);
+  totalDebitAmount = form.value.voucherDetailList.reduce((sum, detail) => sum + (detail.debitAmount || 0), 0);
+  totalCreditAmount = form.value.voucherDetailList.reduce((sum, detail) => sum + (detail.creditAmount || 0), 0);
   form.value.totalAmount = totalDebitAmount || 0
 }
 
@@ -939,7 +941,7 @@ const getSummaryRow = (param) => {
   const sums = []
   
   columns.forEach((column, index) => {
-    // Only calculate for specific columns
+    // 只计算特定列
     if (column.property === 'debitAmount') {
       // 计算借方总金额
       const totalDebit = data.reduce((sum, item) => {
@@ -1100,11 +1102,6 @@ const parseJson = () => {
   form.value.operateLog = orderOperateLog.value
 }
 
- /** 提交数据预处理 */ 
-const prepareData = () => {
-  form.value.operateLog = JSON.stringify(orderOperateLog.value);
-};
-
 /** 提交数据错误处理函数 */ 
 const handleError = (message = "操作失败") => {
   // 恢复 skuValue operateLog 的Json格式
@@ -1169,14 +1166,32 @@ const submitApproval = async () => {
   // 4 业务处理
   try{
     if( currentAction.value === VoucherOperateType.SAVE) {
-      if(form.value.voucherId){
-        // 修改业务
-        ElMessage.success("修改业务流程")
-
-      } else {
-        // 新增业务
-        ElMessage.success("新增业务流程")
-      }
+      proxy.$refs["voucherRef"].validate(valid => {
+        if (valid) {
+          // 修改 / 新增 业务
+          if (form.value.voucherId != null) {
+            updateVoucher(form.value)
+            .then(response => {
+              proxy.$modal.msgSuccess("修改成功");
+              parseJson();
+              getList();
+            })
+            .catch(error => {
+              handleError(error.message);
+            });
+          } else {
+            addVoucher(form.value)
+            .then(response => {
+              proxy.$modal.msgSuccess("新增成功");
+              parseJson();
+              getList();
+            })
+            .catch(error => {
+              handleError(error.message);
+            });
+          }
+        }
+      });
     }
     if(currentAction.value === VoucherOperateType.AUDITED){
       // 审核业务
@@ -1248,6 +1263,11 @@ function handleUpdate(row) {
   const _voucherId = row.voucherId || ids.value
   getVoucher(_voucherId).then(response => {
     form.value = response.data;
+    // 还原数据
+    if (form.value.operateLog) {
+      orderOperateLog.value = JSON.parse(form.value.operateLog);
+      form.value.operateLog = JSON.parse(form.value.operateLog);
+    }
     open.value = true;
     title.value = "修改会计凭证";
   });

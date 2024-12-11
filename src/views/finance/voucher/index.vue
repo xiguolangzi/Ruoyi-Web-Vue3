@@ -3,52 +3,27 @@
     <!-- 过滤条件 -->
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="会计年度" prop="periodYear">
-        <el-select v-model="queryParams.periodYear" placeholder="请选择会计年度" clearable >
-          <el-option
-            v-for="dict in finance_period_year"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+        <el-select v-model="queryParams.periodYear" placeholder="请选择会计年度" clearable>
+          <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="会计月份" prop="periodMonth">
-        <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份" clearable >
-          <el-option
-            v-for="dict in finance_period_month"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+        <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份" clearable>
+          <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="凭证类型" prop="voucherType">
-        <el-select v-model="queryParams.voucherType" placeholder="请选择凭证类型" clearable >
-          <el-option
-            v-for="dict in finance_voucher_type"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+        <el-select v-model="queryParams.voucherType" placeholder="请选择凭证类型" clearable>
+          <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="凭证编号" prop="voucherNo" >
-        <el-input
-          v-model="queryParams.voucherNo"
-          placeholder="请输入凭证编号"
-          clearable
-          @keyup.enter="handleQuery"
-          style="width: 150px;"
-        />
+      <el-form-item label="凭证编号" prop="voucherNo">
+        <el-input v-model="queryParams.voucherNo" placeholder="请输入凭证编号" clearable @keyup.enter="handleQuery"
+          style="width: 150px;" />
       </el-form-item>
       <el-form-item label="凭证状态" prop="voucherStatus">
-        <el-select v-model="queryParams.voucherStatus" placeholder="请选择凭证状态" clearable >
-          <el-option
-            v-for="dict in finance_voucher_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+        <el-select v-model="queryParams.voucherStatus" placeholder="请选择凭证状态" clearable>
+          <el-option v-for="dict in finance_voucher_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item style="margin-left: 20px;">
@@ -60,42 +35,20 @@
     <!-- 操作按钮 -->
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['finance:voucher:add']"
-        >填制凭证</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd"
+          v-hasPermi="['finance:voucher:add']">填制凭证</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['finance:voucher:edit']"
-        >修改凭证</el-button>
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
+          v-hasPermi="['finance:voucher:edit']">修改凭证</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['finance:voucher:remove']"
-        >作废凭证</el-button>
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete"
+          v-hasPermi="['finance:voucher:remove']">作废凭证</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['finance:voucher:export']"
-        >导出</el-button>
+        <el-button type="warning" plain icon="Download" @click="handleExport"
+          v-hasPermi="['finance:voucher:export']">导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
@@ -105,18 +58,18 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="会计年度" align="center" prop="periodYear" width="80">
         <template #default="scope">
-          <dict-tag :options="finance_period_year" :value="scope.row.periodYear"/>
+          <dict-tag :options="finance_period_year" :value="scope.row.periodYear" />
         </template>
       </el-table-column>
-      <el-table-column label="会计月份" align="center" prop="periodMonth"  width="80">
+      <el-table-column label="会计月份" align="center" prop="periodMonth" width="80">
         <template #default="scope">
-          <dict-tag :options="finance_period_month" :value="scope.row.periodMonth"/>
+          <dict-tag :options="finance_period_month" :value="scope.row.periodMonth" />
         </template>
       </el-table-column>
-      <el-table-column label="凭证编号" align="center" prop="voucherNo"  min-width="150"/>
+      <el-table-column label="凭证编号" align="center" prop="voucherNo" min-width="150" />
       <el-table-column label="凭证类型" align="center" prop="voucherType">
         <template #default="scope">
-          <dict-tag :options="finance_voucher_type" :value="scope.row.voucherType"/>
+          <dict-tag :options="finance_voucher_type" :value="scope.row.voucherType" />
         </template>
       </el-table-column>
       <el-table-column label="凭证日期" align="center" prop="voucherDate" width="180">
@@ -124,78 +77,81 @@
           <span>{{ parseTime(scope.row.voucherDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="总金额" align="center" prop="totalAmount" >
+      <el-table-column label="总金额" align="center" prop="totalAmount">
         <template #default="scope">
           <span>{{ formatTwo(scope.row.totalAmount) }} € </span>
         </template>
       </el-table-column>
       <el-table-column label="凭证状态" align="center" prop="voucherStatus">
         <template #default="scope">
-          <dict-tag :options="finance_voucher_status" :value="scope.row.voucherStatus"/>
+          <dict-tag :options="finance_voucher_status" :value="scope.row.voucherStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="制单人" align="center" prop="createBy" show-overflow-tooltip/>
+      <el-table-column label="制单人" align="center" prop="createBy" show-overflow-tooltip />
       <el-table-column label="制单时间" align="center" prop="createTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="修改人" align="center" prop="updateBy" show-overflow-tooltip/>
+      <el-table-column label="修改人" align="center" prop="updateBy" show-overflow-tooltip />
       <el-table-column label="修改时间" align="center" prop="updateTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="凭证备注" align="center" prop="remark"  show-overflow-tooltip/>
+      <el-table-column label="凭证备注" align="center" prop="remark" show-overflow-tooltip />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="150">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['finance:voucher:edit']">修改</el-button>
-          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['finance:voucher:remove']">作废</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+            v-hasPermi="['finance:voucher:edit']">修改</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
+            v-hasPermi="['finance:voucher:remove']">作废</el-button>
         </template>
       </el-table-column>
     </el-table>
-    
+
     <!-- 分页控件 -->
-    <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+      @pagination="getList" />
 
     <!-- 添加或修改会计凭证对话框 -->
-    <el-dialog v-model="open" width="61.8%"  :show-close="false">
-      <template #header="{ titleId, titleClass }" >
+    <el-dialog v-model="open" width="61.8%" :show-close="false" :close-on-click-modal="false">
+      <template #header="{ titleId, titleClass }">
         <div class="header-content">
           <div class="header-title">
             <h4 :id="titleId" :class="titleClass">{{ title }}</h4>
-            <dict-tag :options="finance_voucher_status" :value="form.voucherStatus"/>
+            <dict-tag :options="finance_voucher_status" :value="form.voucherStatus" />
           </div>
           <div class="header-actions">
             <!-- 根据不同状态显示不同的操作按钮 -->
             <el-button-group class="mr-4">
               <!-- 草稿状态 -->
-              <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT" @click="handleSave" :loading="loading">
+              <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
+                @click="handleSave" :loading="loading">
                 保存
               </el-button>
-              <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT" @click="handleAudited" :loading="loading">
+              <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
+                @click="handleAudited" :loading="loading">
                 审核
               </el-button>
-              <el-button type="danger" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT" @click="handleVoided" :loading="loading">
+              <el-button type="danger" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
+                @click="handleVoided" :loading="loading">
                 作废
               </el-button>
-              
+
               <!-- 审核状态 -->
-              <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_AUDITED" @click="handlePosted" :loading="loading">
+              <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_AUDITED"
+                @click="handlePosted" :loading="loading">
                 过账
               </el-button>
-              <el-button type="warning" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_AUDITED" @click="handleUnAudited" :loading="loading">
+              <el-button type="warning" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_AUDITED"
+                @click="handleUnAudited" :loading="loading">
                 反审核
               </el-button>
 
               <!-- 已过帐状态 -->
-              <el-button type="success" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_POSTED" @click="handleUnPosted" :loading="loading">
+              <el-button type="success" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_POSTED"
+                @click="handleUnPosted" :loading="loading">
                 反过账
               </el-button>
 
@@ -208,18 +164,21 @@
               <el-button @click="handlePrintVoucher">打印</el-button>
               <el-button @click="handleExportVoucher">导出</el-button>
               <el-button type="danger" @click="cancel">
-                <el-icon class="el-icon--left"><CircleCloseFilled /></el-icon>
+                <el-icon class="el-icon--left">
+                  <CircleCloseFilled />
+                </el-icon>
                 退出
               </el-button>
             </el-button-group>
           </div>
         </div>
-        
+
       </template>
 
       <!-- 表头数据 -->
-      <el-form ref="voucherRef" :model="form" :rules="rules" label-width="80px" :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT">
-        <el-row :gutter="20" >
+      <el-form ref="voucherRef" :model="form" :rules="rules" label-width="80px"
+        :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT">
+        <el-row :gutter="20">
           <el-col :span="4">
             <el-form-item label="会计期间:" prop="period">
               <el-text>{{form.periodYear}}-{{form.periodMonth}}</el-text>
@@ -227,31 +186,21 @@
           </el-col>
           <el-col :span="7">
             <el-form-item label="凭证编号" prop="voucherNo">
-              <el-input v-model="form.voucherNo" placeholder="系统自动生成" style="width: 100%" disabled = "false" />
+              <el-input v-model="form.voucherNo" placeholder="系统自动生成" style="width: 100%" disabled="false" />
             </el-form-item>
           </el-col>
           <el-col :span="6">
-             <el-form-item label="凭证类型" prop="voucherType">
+            <el-form-item label="凭证类型" prop="voucherType">
               <el-select v-model="form.voucherType" placeholder="凭证类型" clearable style="width: 100%">
-                <el-option
-                  v-for="dict in finance_voucher_type"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                  
-                ></el-option>
+                <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label"
+                  :value="dict.value"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="凭证日期" prop="voucherDate">
-              <el-date-picker
-                v-model="form.voucherDate"
-                type="date"
-                placeholder="凭证日期"
-                :disabled-date="disabledDate"
-                style="width: 100%;"
-              >
+              <el-date-picker v-model="form.voucherDate" type="date" placeholder="凭证日期" :disabled-date="disabledDate"
+                style="width: 100%;">
               </el-date-picker>
             </el-form-item>
           </el-col>
@@ -263,97 +212,59 @@
             </el-form-item>
           </el-col>
         </el-row>
-        
+
       </el-form>
 
       <!-- 分割线 -->
       <el-divider content-position="left">
         <strong style="margin-right: 30px;">分录明细</strong>
-        <el-button type="primary" size="small" icon="Refresh" @click="handleTrialBalance" v-if="form.voucherStatus == VoucherStatusEnum.VOUCHER_STATUS_DRAFT">试算平衡</el-button>
+        <el-button type="primary" size="small" icon="Refresh" @click="handleTrialBalance"
+          v-if="form.voucherStatus == VoucherStatusEnum.VOUCHER_STATUS_DRAFT">试算平衡</el-button>
       </el-divider>
 
       <!-- 分录明细 -->
-      <el-table
-        v-loading="loading"
-        :data="form.voucherDetailList"
-        border
-        style="width: 100%"
-        :summary-method="getSummaryRow"
-        show-summary
-      >
+      <el-table v-loading="loading" :data="form.voucherDetailList" border style="width: 100%"
+        :summary-method="getSummaryRow" show-summary>
         <el-table-column type="index" label="序号" align="center" width="55px"></el-table-column>
-        <el-table-column label="科目名称" prop="accountId" align="center"  min-width="150px" show-overflow-tooltip>
+        <el-table-column label="科目名称" prop="accountId" align="center" min-width="150px" show-overflow-tooltip>
           <template #default="scope">
-            <el-tree-select 
-              v-model="scope.row.accountId" 
-              :data="accountTree" 
-              :props="treeProps"
-              value-key="accountId"
-              placeholder="请选择科目"
-              style="width: 100%;"
-              @node-click="(data) => handleAccountChange(scope.row, data)"
-              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
-            >
+            <el-tree-select v-model="scope.row.accountId" :data="accountTree" :props="treeProps" value-key="accountId"
+              placeholder="请选择科目" style="width: 100%;" @node-click="(data) => handleAccountChange(scope.row, data)"
+              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT">
             </el-tree-select>
           </template>
         </el-table-column>
-        <el-table-column label="借方金额" prop="debitAmount" align="center"  >
+        <el-table-column label="借方金额" prop="debitAmount" align="center">
           <template #default="scope">
-            <el-input-number 
-              v-model="scope.row.debitAmount" 
-              placeholder="借方金额" 
-              :max='99999999' 
-              :min='0' 
-              :precision='2' 
-              :step='0' 
-              :controls="false"   
-              @change="calculateTotalAmount" 
-              style="width: 100%;"
-              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
-            />
+            <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'debitAmount')" v-model="scope.row.debitAmount"
+              placeholder="借方金额" :max='99999999' :min='0' :precision='2' :step='0' :controls="false"
+              @change="calculateTotalAmount" style="width: 100%;" @focus="handleFocus(scope.$index, 'debitAmount')"
+              @click="handleFocus(scope.$index, 'debitAmount')"
+              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
           </template>
         </el-table-column>
-        <el-table-column label="贷方金额" prop="creditAmount" align="center" >
+        <el-table-column label="贷方金额" prop="creditAmount" align="center">
           <template #default="scope">
-            <el-input-number 
-              v-model="scope.row.creditAmount" 
-              placeholder="贷方金额" 
-              :max='99999999' 
-              :min='0' 
-              :precision='2' 
-              :step='0' 
-              :controls="false"  
-              @change="calculateTotalAmount"  
-              style="width: 100%;"
-              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
-            />
+            <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'creditAmount')" v-model="scope.row.creditAmount"
+              placeholder="贷方金额" :max='99999999' :min='0' :precision='2' :step='0' :controls="false"
+              @change="calculateTotalAmount" style="width: 100%;" @focus="handleFocus(scope.$index, 'creditAmount')" @click="handleFocus(scope.$index, 'creditAmount')"
+              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
           </template>
         </el-table-column>
         <el-table-column label="摘要" prop="summary" align="center" min-width="150">
           <template #default="scope">
-            <el-tooltip 
-              :content="scope.row.summary"
-              placement="top"
-              :disabled="scope.row.summary===null"
-            >
-              <el-input 
-                v-model="scope.row.summary" 
-                placeholder="摘要" 
-                type="text" 
-                :maxlength="20" 
-                show-word-limit 
-                style="width: 100%;" 
-                :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
-              />
+            <el-tooltip :content="scope.row.summary" placement="top" :disabled="scope.row.summary===null">
+              <el-input v-model="scope.row.summary" placeholder="摘要" type="text" :maxlength="20" show-word-limit
+                style="width: 100%;" :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column label="辅助项" prop="assistType" align="center" min-width="50" show-overflow-tooltip >
+        <el-table-column label="辅助项" prop="assistType" align="center" min-width="50" show-overflow-tooltip>
           <template #default="scope">
-            <dict-tag :options="finance_assist_type" :value="scope.row.assistType"/>
+            <dict-tag :options="finance_assist_type" :value="scope.row.assistType" />
           </template>
         </el-table-column>
-        <el-table-column label="辅助值" prop="assistName" align="center" min-width="50" show-overflow-tooltip >
+        <el-table-column label="辅助值" prop="assistName" align="center" min-width="50" show-overflow-tooltip>
           <template #default="scope">
             <span class="link-type" @click="openSetAssistDialog(scope.row)">
               {{ scope.row.assistName }}
@@ -362,24 +273,22 @@
         </el-table-column>
         <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="50">
           <template #default="scope">
-            <el-button 
-              link 
-              type="danger" 
-              icon="Delete" 
-              @click="handleDeleteDetail(scope.$index)" 
-              v-if="form.voucherStatus == VoucherStatusEnum.VOUCHER_STATUS_DRAFT" 
-              style="width: 100%;"
-            >删除</el-button>
+            <el-button link type="danger" icon="Delete" @click="handleDeleteDetail(scope.$index)"
+              v-if="form.voucherStatus == VoucherStatusEnum.VOUCHER_STATUS_DRAFT" style="width: 100%;">删除</el-button>
           </template>
         </el-table-column>
 
-      
+
       </el-table>
 
       <!-- 添加按钮 -->
-      <div class="table-operations" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT && form.voucherDetailList.length < maxLength" style="margin: 5px 0px 10px 0px;">
+      <div class="table-operations"
+        v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT && form.voucherDetailList.length < maxLength"
+        style="margin: 5px 0px 10px 0px;">
         <el-button type="primary" @click="addDetail">
-          <el-icon><Plus /></el-icon>   
+          <el-icon>
+            <Plus />
+          </el-icon>
           <span> 添加分录 (限制最多 {{ maxLength }} 条流水)</span>
         </el-button>
       </div>
@@ -390,70 +299,42 @@
           <el-row :gutter="20">
             <el-col :span="12">
               <el-form-item label="辅助项类型:" prop="assistType">
-                <el-select v-model="assistForm.assistType" placeholder="请选择辅助项类型"  @change="getAssistValueList" style="width: 100%;">
-                  <el-option
-                    v-for="dict in currentAssistTypesDict"
-                    :key="dict.value"
-                    :label="dict.label"
-                    :value="dict.value"
-                  />
+                <el-select v-model="assistForm.assistType" placeholder="请选择辅助项类型" @change="getAssistValueList"
+                  style="width: 100%;">
+                  <el-option v-for="dict in currentAssistTypesDict" :key="dict.value" :label="dict.label"
+                    :value="dict.value" />
                 </el-select>
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <!-- 辅助项 - 客户 -->
-              <el-form-item :label="assistTypeLabel" prop="assistName" v-if="assistForm.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER" >
-                <el-select 
-                  v-model="assistForm.assistId" 
-                  :placeholder="assistTypeLabel"  
-                  @change="setAssistForm" 
-                  style="width: 100%;"
-                  filterable
-                >
-                  <el-option
-                    v-for="item in customerList"
-                    :key="item.customerId"
-                    :label= "item.customerName"
-                    :value="item.customerId"
-                  >
-                    <span>{{  '客户名称：' + item.customerName + ' ---- ' + '客户编码：' + item.customerCode }}</span>
+              <el-form-item :label="assistTypeLabel" prop="assistName"
+                v-if="assistForm.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER">
+                <el-select v-model="assistForm.assistId" :placeholder="assistTypeLabel" @change="setAssistForm"
+                  style="width: 100%;" filterable>
+                  <el-option v-for="item in customerList" :key="item.customerId" :label="item.customerName"
+                    :value="item.customerId">
+                    <span>{{ '客户名称：' + item.customerName + ' ---- ' + '客户编码：' + item.customerCode }}</span>
                   </el-option>
                 </el-select>
               </el-form-item>
               <!-- 辅助项 - 供应商 -->
-              <el-form-item :label="assistTypeLabel" prop="assistName" v-if="assistForm.assistType == AssistTypeEnum.ASSIST_TYPE_SUPPLIER" >
-                <el-select 
-                  v-model="assistForm.assistId" 
-                  :placeholder="assistTypeLabel" 
-                  style="width: 120px;" 
-                  @change="setAssistForm"
-                  filterable
-                >
-                  <el-option
-                    v-for="item in supplierList"
-                    :key="item.supplierId"
-                    :label= "item.supplierName"
-                    :value="item.supplierId"
-                  >
-                    <span>{{  '供应商名称：' + item.supplierName + ' ---- ' +  '供应商编码：' + item.supplierCode }}</span>
+              <el-form-item :label="assistTypeLabel" prop="assistName"
+                v-if="assistForm.assistType == AssistTypeEnum.ASSIST_TYPE_SUPPLIER">
+                <el-select v-model="assistForm.assistId" :placeholder="assistTypeLabel" style="width: 120px;"
+                  @change="setAssistForm" filterable>
+                  <el-option v-for="item in supplierList" :key="item.supplierId" :label="item.supplierName"
+                    :value="item.supplierId">
+                    <span>{{ '供应商名称：' + item.supplierName + ' ---- ' + '供应商编码：' + item.supplierCode }}</span>
                   </el-option>
                 </el-select>
               </el-form-item>
               <!-- 辅助项 - 员工 -->
-              <el-form-item :label="assistTypeLabel" prop="assistName" v-if="assistForm.assistType == AssistTypeEnum.ASSIST_TYPE_EMPLOYEE" >
-                <el-select 
-                  v-model="assistForm.assistId" 
-                  :placeholder="assistTypeLabel" 
-                  style="width: 120px;" 
-                  @change="setAssistForm"
-                  filterable
-                >
-                  <el-option
-                    v-for="item in userList"
-                    :key="item.userId"
-                    :label="item.userName"
-                    :value="item.userId"
-                  >
+              <el-form-item :label="assistTypeLabel" prop="assistName"
+                v-if="assistForm.assistType == AssistTypeEnum.ASSIST_TYPE_EMPLOYEE">
+                <el-select v-model="assistForm.assistId" :placeholder="assistTypeLabel" style="width: 120px;"
+                  @change="setAssistForm" filterable>
+                  <el-option v-for="item in userList" :key="item.userId" :label="item.userName" :value="item.userId">
                     <span>{{ '登录名：' + item.userName + ' ---- ' + '昵称：' + item.nickName }}</span>
                   </el-option>
                 </el-select>
@@ -480,7 +361,7 @@
           <el-timeline-item v-for="(activity, index) in orderOperateLog" :key="index"
             :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top">
             {{ activity.operator }} - {{ activity.action }}
-            <span v-if="activity.remark"> - -  描述 : </span>
+            <span v-if="activity.remark"> - - 描述 : </span>
             <span class="remark">{{ activity.remark }}</span>
           </el-timeline-item>
         </el-timeline>
@@ -490,8 +371,10 @@
       <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
         <!-- 强制填写备注 -->
         <el-form :model="approvalForm" label-width="80px">
-          <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="actionRequiresRemark.includes(currentAction)">
-            <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)" />
+          <el-form-item :label="getRemarkMessage(currentAction) + ':'"
+            v-if="actionRequiresRemark.includes(currentAction)">
+            <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20"
+              :placeholder="'请输入' + getRemarkMessage(currentAction)" />
           </el-form-item>
         </el-form>
         <!-- 不强制填写备注 -->
@@ -499,7 +382,7 @@
         <template #footer>
           <span class="dialog-footer">
             <el-button @click="dialogVisible = false">取消</el-button>
-            <el-button type="primary" @click="submitApproval" >
+            <el-button type="primary" @click="submitApproval">
               确认
             </el-button>
           </span>
@@ -510,14 +393,34 @@
 </template>
 
 <script setup name="Voucher">
-import { listVoucher, getVoucher, delVoucher, addVoucher, updateVoucher } from "@/api/finance/voucher";
+import { listVoucher, getVoucher, delVoucher, addVoucher, updateVoucher, auditedVoucher, unAuditedVoucher, postedVoucher, unPostedVoucher, voidedVoucher } from "@/api/finance/voucher";
 import useUserStore from "@/store/modules/user";
 import { listAccount } from "@/api/finance/account";
 import { ElMessage } from "element-plus";
-import { ref } from "vue";
+import { nextTick, ref } from "vue";
 import { listSupplier} from "@/api/order/supplier";
 import { listCustomer} from "@/api/order/customer";
 import { listUser } from "@/api/system/user";
+
+// ------------------------------------ 输入框聚焦选中 start ------------------------------------
+const inputRefs = ref({}); // 使用对象存储各列引用
+// 动态管理每列引用
+const setInputRef = (el, rowIndex, column) => {
+  if (!inputRefs.value[column]) {
+    inputRefs.value[column] = [];
+  }
+  inputRefs.value[column][rowIndex] = el;
+};
+
+// 聚焦时选中内容
+const handleFocus = (rowIndex, column) => {
+  const inputEl = inputRefs.value[column]?.[rowIndex]?.$el.querySelector('input');
+  if (inputEl) {
+    inputEl.select(); // 选中输入框内容
+  }
+};
+
+// ------------------------------------ 输入框聚焦选中 end ------------------------------------
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -927,7 +830,6 @@ const handleDeleteDetail = (index) => {
   form.value.voucherDetailList.splice(index, 1);
 }
 
-
 /** 计算借贷方合计金额 */
 const calculateTotalAmount = () => {
   totalDebitAmount = form.value.voucherDetailList.reduce((sum, detail) => sum + (detail.debitAmount || 0), 0);
@@ -1183,6 +1085,8 @@ const submitApproval = async () => {
             addVoucher(form.value)
             .then(response => {
               proxy.$modal.msgSuccess("新增成功");
+              form.value.voucherId = response.data.voucherId;
+              form.value.voucherNo = response.data.voucherNo;
               parseJson();
               getList();
             })
@@ -1195,23 +1099,63 @@ const submitApproval = async () => {
     }
     if(currentAction.value === VoucherOperateType.AUDITED){
       // 审核业务
-       ElMessage.success("审核业务流程")
+      auditedVoucher(form.value)
+        .then(response => {
+          ElMessage.success("审核成功")
+          parseJson();
+          getList();
+        })
+        .catch(error => {
+          handleError(error.message);
+        });
     }
     if(currentAction.value === VoucherOperateType.UN_AUDITED){
       // 反审核业务
-       ElMessage.success("反审核业务流程")
+      unAuditedVoucher(form.value)
+        .then(response => {
+          ElMessage.success("反审核成功")
+          parseJson();
+          getList();
+        })
+        .catch(error => {
+          handleError(error.message);
+        });
     }
     if(currentAction.value === VoucherOperateType.POSTED){
       // 过账业务
-       ElMessage.success("过账业务流程")
+      postedVoucher(form.value)
+        .then(response => {
+          ElMessage.success("过账成功")
+          parseJson();
+          getList();
+        })
+        .catch(error => {
+          handleError(error.message);
+        });
     }
     if(currentAction.value === VoucherOperateType.UN_POSTED){
       // 反过账业务
-       ElMessage.success("反过账业务业务流程")
+      unPostedVoucher(form.value)
+        .then(response => {
+          ElMessage.success("反过账成功")
+          parseJson();
+          getList();
+        })
+        .catch(error => {
+          handleError(error.message);
+        });
     }
     if(currentAction.value === VoucherOperateType.VOIDED){
       // 作废业务
-       ElMessage.success("作废流程")
+      voidedVoucher(form.value)
+        .then(response => {
+          ElMessage.success("作废成功")
+          parseJson();
+          getList();
+        })
+        .catch(error => {
+          handleError(error.message);
+        });
     }
 
   } catch (error) {

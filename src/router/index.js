@@ -43,6 +43,12 @@ export const constantRoutes = [
     hidden: true
   },
   {
+    path: '/goodsShow',
+    component: () => import('@/views/goodsShow'),
+    hidden: true
+
+  },
+  {
     path: '/register',
     component: () => import('@/views/register'),
     hidden: true
@@ -200,6 +206,7 @@ export const dynamicRoutes = [
       }
     ]
   },
+
 ]
 
 const router = createRouter({

@@ -2,21 +2,11 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="菜品名称" prop="name">
-        <el-input
-          v-model="queryParams.name"
-          placeholder="请输入菜品名称"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.name" placeholder="请输入菜品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="销售状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择销售状态" clearable  style="width: 180px;">
-          <el-option
-            v-for="dict in sky_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+        <el-select v-model="queryParams.status" placeholder="请选择销售状态" clearable style="width: 180px;">
+          <el-option v-for="dict in sky_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -27,65 +17,43 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['sky:dish:add']"
-        >新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['sky:dish:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['sky:dish:edit']"
-        >修改</el-button>
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
+          v-hasPermi="['sky:dish:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['sky:dish:remove']"
-        >删除</el-button>
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete"
+          v-hasPermi="['sky:dish:remove']">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['sky:dish:export']"
-        >导出</el-button>
+        <el-button type="warning" plain icon="Download" @click="handleExport"
+          v-hasPermi="['sky:dish:export']">导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="dishList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column type="index" label="序号" align="center" width="60" />
-      <el-table-column label="菜品编码" align="center" prop="id" />
-      <el-table-column label="菜品名称" align="center" prop="name" />
-      <el-table-column label="菜品价格" align="center" prop="price">
+      <el-table-column label="产品图片" align="center" prop="image" width="100">
+        <template #default="scope">
+          <image-preview :src="scope.row.image" :width="50" :height="50" />
+        </template>
+      </el-table-column>
+      <el-table-column label="产品编码" align="center" prop="id" />
+      <el-table-column label="产品名称" align="center" prop="name" />
+      <el-table-column label="产品价格" align="center" prop="price">
         <template #default="scope">
           <span>{{ scope.row.price }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="图片" align="center" prop="image" width="100">
-        <template #default="scope">
-          <image-preview :src="scope.row.image" :width="50" :height="50"/>
-        </template>
-      </el-table-column>
+      <el-table-column label="产品数量" align="center" prop="store" />
+
       <el-table-column label="描述信息" align="center" prop="description" />
       <el-table-column label="销售状态" align="center" prop="status">
         <template #default="scope">
-          <dict-tag :options="sky_status" :value="scope.row.status"/>
+          <dict-tag :options="sky_status" :value="scope.row.status" />
         </template>
       </el-table-column>
       <el-table-column label="更新时间" align="center" prop="updateTime" width="180">
@@ -95,49 +63,55 @@
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['sky:dish:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['sky:dish:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+            v-hasPermi="['sky:dish:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
+            v-hasPermi="['sky:dish:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-    
-    <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+
+    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+      @pagination="getList" />
 
     <!-- 添加或修改菜品管理对话框 -->
-    <el-dialog :title="title" v-model="open" width="600px" append-to-body>
+    <el-dialog 
+      :title="title" 
+      v-model="open" 
+      width="600px" 
+      append-to-body 
+      style="padding: 10px 50px 10px 10px;"
+      :close-on-click-modal="false"
+    >
       <el-form ref="dishRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="菜品名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入菜品名称" />
+        <el-form-item label="产品编码" prop="id">
+          <el-input v-model="form.id" placeholder="请输入产品编码" />
         </el-form-item>
-        <el-form-item label="菜品价格" prop="price">
-          <el-input v-model="form.price" placeholder="请输入菜品价格" >
+        <el-form-item label="产品名称" prop="name">
+          <el-input v-model="form.name" placeholder="请输入产品名称" />
+        </el-form-item>
+        <el-form-item label="产品价格" prop="price">
+          <el-input v-model="form.price" placeholder="请输入产品价格">
             <template #append>€</template>
           </el-input>
         </el-form-item>
-        <el-form-item label="图片" prop="image">
-          <image-upload v-model="form.image"/>
+        <el-form-item label="产品数量" prop="store">
+          <el-input-number v-model="form.store" placeholder="请输入产品数量" />
+        </el-form-item>
+        <el-form-item label="产品图片" prop="image">
+          <image-upload v-model="form.image" :limit="20" />
         </el-form-item>
         <el-form-item label="描述信息" prop="description">
-          <el-input v-model="form.description" placeholder="请输入描述信息" />
+          <el-input v-model="form.description" placeholder="请输入描述信息" type="textarea" maxlength="50" show-word-limit/>
         </el-form-item>
         <el-form-item label="销售状态" prop="status">
           <el-select v-model="form.status" placeholder="请选择销售状态">
-            <el-option
-              v-for="dict in sky_status"
-              :key="dict.value"
-              :label="dict.label"
-              :value="parseInt(dict.value)"
-            ></el-option>
+            <el-option v-for="dict in sky_status" :key="dict.value" :label="dict.label"
+              :value="parseInt(dict.value)"></el-option>
           </el-select>
         </el-form-item>
-        <el-divider content-position="center">菜品口味关系信息</el-divider>
-        <el-row :gutter="10" class="mb8">
+        <el-divider content-position="center" v-if="false">菜品口味关系信息</el-divider>
+        <el-row :gutter="10" class="mb8" v-if="false">
           <el-col :span="1.5">
             <el-button type="primary" icon="Plus" @click="handleAddDishFlavor">添加</el-button>
           </el-col>
@@ -145,32 +119,26 @@
             <el-button type="danger" icon="Delete" @click="handleDeleteDishFlavor">删除</el-button>
           </el-col>
         </el-row>
-        <el-table :data="dishFlavorList" :row-class-name="rowDishFlavorIndex" @selection-change="handleDishFlavorSelectionChange" ref="dishFlavor">
+        <el-table :data="dishFlavorList" :row-class-name="rowDishFlavorIndex"
+          @selection-change="handleDishFlavorSelectionChange" ref="dishFlavor" v-if="false">
           <el-table-column type="selection" width="50" align="center" />
-          <el-table-column label="序号" align="center" prop="index" width="50"/>
+          <el-table-column label="序号" align="center" prop="index" width="50" />
           <el-table-column label="口味名称" prop="name" width="150">
             <template #default="scope">
               <!-- <el-input v-model="scope.row.name" placeholder="请输入口味名称" /> -->
-              <el-select v-model="scope.row.name" placeholder="请选择口味名称" @change="getDishFlavorValue(scope.row)" >
-                <el-option
-                  v-for="dishFlavor in dishFlavorData"
-                  :key="dishFlavor.name"
-                  :label="dishFlavor.name"
-                  :value="dishFlavor.name"
-                ></el-option>
+              <el-select v-model="scope.row.name" placeholder="请选择口味名称" @change="getDishFlavorValue(scope.row)">
+                <el-option v-for="dishFlavor in dishFlavorData" :key="dishFlavor.name" :label="dishFlavor.name"
+                  :value="dishFlavor.name"></el-option>
               </el-select>
             </template>
           </el-table-column>
           <el-table-column label="口味列表" prop="value" width="300">
             <template #default="scope">
               <!-- <el-input v-model="scope.row.value" placeholder="请输入口味列表" /> -->
-              <el-select v-model="scope.row.value" placeholder="请选择口味列表" multiple @focus="handleDishFlavorFocus(scope.row)" >
-                <el-option
-                  v-for="value in dishFlavorDataCheckList"
-                  :key="value"
-                  :label="value"
-                  :value="value"
-                ></el-option>
+              <el-select v-model="scope.row.value" placeholder="请选择口味列表" multiple
+                @focus="handleDishFlavorFocus(scope.row)">
+                <el-option v-for="value in dishFlavorDataCheckList" :key="value" :label="value"
+                  :value="value"></el-option>
               </el-select>
             </template>
           </el-table-column>
@@ -218,9 +186,6 @@ const data = reactive({
     ],
     price: [
       { required: true, message: "菜品价格不能为空", trigger: "blur" }
-    ],
-    image: [
-      { required: true, message: "图片不能为空", trigger: "blur" }
     ],
     status: [
       { required: true, message: "销售状态不能为空", trigger: "change" }
@@ -279,7 +244,7 @@ function reset() {
     price: null,
     image: null,
     description: null,
-    status: null,
+    status: 1,
     createTime: null,
     updateTime: null
   };

@@ -42,3 +42,49 @@ export function delVoucher(voucherId) {
     method: 'delete'
   })
 }
+
+/** 审核凭证 */
+export function auditedVoucher(data) {
+  return request({
+    url: '/finance/voucher/audited',
+    method: 'put',
+    data: data
+  })
+}
+
+/** 反审核凭证 */
+export function unAuditedVoucher(data) {
+  return request({
+    url: '/finance/voucher/unAudited',
+    method: 'put',
+    data: data
+  })
+}
+
+/** 过账凭证 */
+export function postedVoucher(data) {
+  return request({
+    url: '/finance/voucher/posted',
+    method: 'put',
+    data: data
+  })
+}
+
+/** 反过账凭证 */
+export function unPostedVoucher(data) {
+  return request({
+    url: '/finance/voucher/unPosted',
+    method: 'put',
+    data: data
+  })
+}
+
+/** 作废凭证 */
+export function voidedVoucher(data) {
+  return request({
+    url: '/finance/voucher/voided',
+    method: 'put',
+    data: data
+  })
+}
+

@@ -2,39 +2,20 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="科目编码" prop="accountCode">
-        <el-input
-          v-model="queryParams.accountCode"
-          placeholder="请输入科目编码"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.accountCode" placeholder="请输入科目编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="科目名称" prop="accountName">
-        <el-input
-          v-model="queryParams.accountName"
-          placeholder="请输入科目名称"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.accountName" placeholder="请输入科目名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="科目类型" prop="accountType">
         <el-select v-model="queryParams.accountType" placeholder="请选择科目类型" clearable>
-          <el-option
-            v-for="dict in erp_finance_account_style"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+          <el-option v-for="dict in erp_finance_account_style" :key="dict.value" :label="dict.label"
+            :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
-          <el-option
-            v-for="dict in project_general_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+          <el-option v-for="dict in project_general_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -45,41 +26,23 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['finance:account:add']"
-        >新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd"
+          v-hasPermi="['finance:account:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="info"
-          plain
-          icon="Sort"
-          @click="toggleExpandAll"
-        >展开/折叠</el-button>
+        <el-button type="info" plain icon="Sort" @click="toggleExpandAll">展开/折叠</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table
-      v-if="refreshTable"
-      v-loading="loading"
-      border
-      :data="accountList"
-      row-key="accountId"
-      :default-expand-all="isExpandAll"
-      :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-      ref="accountTable"
-      @cell-click="handleCellClick"
-    >
-      <el-table-column label="科目编码" prop="accountCode" min-width="100" show-overflow-tooltip/>
-      <el-table-column label="科目名称" align="center" prop="accountName" show-overflow-tooltip/>
+    <el-table v-if="refreshTable" v-loading="loading" border :data="accountList" row-key="accountId"
+      :default-expand-all="isExpandAll" :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+      ref="accountTable" @cell-click="handleCellClick">
+      <el-table-column label="科目编码" prop="accountCode" min-width="100" show-overflow-tooltip />
+      <el-table-column label="科目名称" align="center" prop="accountName" show-overflow-tooltip />
       <el-table-column label="科目类型" align="center" prop="accountType">
         <template #default="scope">
-          <dict-tag :options="erp_finance_account_style" :value="scope.row.accountType"/>
+          <dict-tag :options="erp_finance_account_style" :value="scope.row.accountType" />
         </template>
       </el-table-column>
       <el-table-column label="上级科目" align="center" prop="parentCode" show-overflow-tooltip>
@@ -87,96 +50,81 @@
           <span> {{ scope.row.parentCode ? scope.row.parentCode : '--' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="辅助项" align="center" prop="assistTypes"  show-overflow-tooltip>
+      <el-table-column label="辅助项" align="center" prop="assistTypes" show-overflow-tooltip>
         <template #default="scope">
-            <el-tag v-for="item in scope.row.assistTypes" :key="item" size="mini">
-              <dict-tag :options="finance_assist_type" :value="item"/>
-            </el-tag>
-            <span v-if="scope.row.assistTypes.length == 0">--</span>
+          <el-tag v-for="item in scope.row.assistTypes" :key="item" size="mini">
+            <dict-tag :options="finance_assist_type" :value="item" />
+          </el-tag>
+          <span v-if="scope.row.assistTypes.length == 0">--</span>
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="status">
         <template #default="scope">
-          <dict-tag :options="project_general_status" :value="scope.row.status"/>
+          <dict-tag :options="project_general_status" :value="scope.row.status" />
         </template>
       </el-table-column>
-      <el-table-column label="创建者" align="center" prop="createBy" show-overflow-tooltip/>
+      <el-table-column label="创建者" align="center" prop="createBy" show-overflow-tooltip />
       <el-table-column label="创建时间" align="center" prop="createTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="更新者" align="center" prop="updateBy" show-overflow-tooltip/>
+      <el-table-column label="更新者" align="center" prop="updateBy" show-overflow-tooltip />
       <el-table-column label="更新时间" align="center" prop="updateTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip/>
+      <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="150">
         <template #default="scope">
-            <el-button link type="primary" icon="Plus" @click="handleAdd(scope.row)" v-hasPermi="['finance:account:add']">新增</el-button>
-            <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['finance:account:edit']">修改</el-button>
-            <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['finance:account:remove']">删除</el-button>
+          <el-button link type="primary" icon="Plus" @click="handleAdd(scope.row)"
+            v-hasPermi="['finance:account:add']">新增</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+            v-hasPermi="['finance:account:edit']">修改</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
+            v-hasPermi="['finance:account:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
 
     <!-- 添加或修改财务 - 科目对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="500px" append-to-body :close-on-click-modal="false">
       <el-form ref="accountRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="上级科目" prop="parentId">
-          <el-tree-select
-            ref="accountTreeSelectRef"
-            v-model="form.parentId"
-            :data="accountOptions"
-            :props="{ value: 'accountId', label: 'accountCode', children: 'children' }"
-            value-key="accountId"
-            placeholder="请选择上级科目ID"
-            check-strictly
-            @change="updateParentCode"
-            :disabled = "form.accountId"
-          />
+          <el-tree-select ref="accountTreeSelectRef" v-model="form.parentId" :data="accountOptions"
+            :props="{ value: 'accountId', label: 'accountCode', children: 'children' }" value-key="accountId"
+            placeholder="请选择上级科目ID" check-strictly @change="updateParentCode" :disabled="form.accountId" />
           <el-text type="danger" style="margin-left: 10px;"> 科目级长 4-2-2-2 </el-text>
         </el-form-item>
 
         <el-form-item label="科目编码" prop="accountCode">
-          <el-input v-model="form.accountCode" placeholder="请输入科目编码" style="width: 90%;" @change="updateAccountCode" :disabled = "form.accountId"/>
+          <el-input v-model="form.accountCode" placeholder="请输入科目编码" style="width: 90%;" @change="updateAccountCode"
+            :disabled="form.accountId" />
         </el-form-item>
         <el-form-item label="科目名称" prop="accountName">
-          <el-input v-model="form.accountName" placeholder="请输入科目名称" style="width: 90%;"/>
+          <el-input v-model="form.accountName" placeholder="请输入科目名称" style="width: 90%;" />
         </el-form-item>
         <el-form-item label="科目类型" prop="accountType">
-          <el-select v-model="form.accountType" placeholder="请选择科目类型" :disabled = "form.accountId">
-            <el-option
-              v-for="dict in erp_finance_account_style"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            ></el-option>
+          <el-select v-model="form.accountType" placeholder="请选择科目类型" :disabled="form.accountId">
+            <el-option v-for="dict in erp_finance_account_style" :key="dict.value" :label="dict.label"
+              :value="dict.value"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="辅助项" prop="assistTypes" v-if="form.isLeaf == '0'">
           <el-select v-model="form.assistTypes" multiple placeholder="请选择科目类型" style="width: 90%;">
-            <el-option
-              v-for="dict in finance_assist_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            ></el-option>
+            <el-option v-for="dict in finance_assist_type" :key="dict.value" :label="dict.label"
+              :value="dict.value"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio
-              v-for="dict in project_general_status"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
+            <el-radio v-for="dict in project_general_status" :key="dict.value"
+              :label="dict.value">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" style="width: 90%;"/>
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" style="width: 90%;" />
         </el-form-item>
       </el-form>
       <template #footer>

@@ -1,8 +1,8 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="菜品名称" prop="name">
-        <el-input v-model="queryParams.name" placeholder="请输入菜品名称" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="产品名称" prop="name">
+        <el-input v-model="queryParams.name" placeholder="请输入产品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="销售状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择销售状态" clearable style="width: 180px;">
@@ -51,6 +51,7 @@
       <el-table-column label="产品数量" align="center" prop="store" />
 
       <el-table-column label="描述信息" align="center" prop="description" />
+      <el-table-column label="排序" align="center" prop="orderNum" />
       <el-table-column label="销售状态" align="center" prop="status">
         <template #default="scope">
           <dict-tag :options="sky_status" :value="scope.row.status" />
@@ -74,18 +75,19 @@
     <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
       @pagination="getList" />
 
-    <!-- 添加或修改菜品管理对话框 -->
+    <!-- 添加或修改产品管理对话框 -->
     <el-dialog 
       :title="title" 
       v-model="open" 
       width="600px" 
       append-to-body 
+      draggable
       style="padding: 10px 50px 10px 10px;"
       :close-on-click-modal="false"
     >
       <el-form ref="dishRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="产品编码" prop="id">
-          <el-input v-model="form.id" placeholder="请输入产品编码" />
+          <el-input v-model="form.id" placeholder="系统自动生成" disabled />
         </el-form-item>
         <el-form-item label="产品名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入产品名称" />
@@ -99,10 +101,13 @@
           <el-input-number v-model="form.store" placeholder="请输入产品数量" />
         </el-form-item>
         <el-form-item label="产品图片" prop="image">
-          <image-upload v-model="form.image" :limit="20" />
+          <image-upload v-model="form.image" :limit="20" :fileSize="5"/>
         </el-form-item>
         <el-form-item label="描述信息" prop="description">
-          <el-input v-model="form.description" placeholder="请输入描述信息" type="textarea" maxlength="50" show-word-limit/>
+          <el-input v-model="form.description" placeholder="请输入描述信息" type="textarea" maxlength="70" show-word-limit/>
+        </el-form-item>
+        <el-form-item label="排序" prop="orderNum">
+          <el-input-number v-model="form.orderNum" placeholder="请输入排序" />
         </el-form-item>
         <el-form-item label="销售状态" prop="status">
           <el-select v-model="form.status" placeholder="请选择销售状态">
@@ -110,7 +115,7 @@
               :value="parseInt(dict.value)"></el-option>
           </el-select>
         </el-form-item>
-        <el-divider content-position="center" v-if="false">菜品口味关系信息</el-divider>
+        <el-divider content-position="center" v-if="false">产品属性关系信息</el-divider>
         <el-row :gutter="10" class="mb8" v-if="false">
           <el-col :span="1.5">
             <el-button type="primary" icon="Plus" @click="handleAddDishFlavor">添加</el-button>
@@ -156,6 +161,7 @@
 
 <script setup name="Dish">
 import { listDish, getDish, delDish, addDish, updateDish } from "@/api/sky/dish";
+import { orderBy } from "lodash";
 
 const { proxy } = getCurrentInstance();
 const { sky_status } = proxy.useDict('sky_status');
@@ -182,13 +188,10 @@ const data = reactive({
   },
   rules: {
     name: [
-      { required: true, message: "菜品名称不能为空", trigger: "blur" }
+      { required: true, message: "产品名称不能为空", trigger: "blur" }
     ],
     price: [
-      { required: true, message: "菜品价格不能为空", trigger: "blur" }
-    ],
-    status: [
-      { required: true, message: "销售状态不能为空", trigger: "change" }
+      { required: true, message: "产品价格不能为空", trigger: "blur" }
     ],
   }
 });
@@ -220,9 +223,10 @@ function handleDishFlavorFocus(row) {
 
 // ----------------------------
 
-/** 查询菜品管理列表 */
+/** 查询产品管理列表 */
 function getList() {
   loading.value = true;
+  console.log("请求参数是：",queryParams.value)
   listDish(queryParams.value).then(response => {
     dishList.value = response.rows;
     total.value = response.total;
@@ -246,7 +250,8 @@ function reset() {
     description: null,
     status: 1,
     createTime: null,
-    updateTime: null
+    updateTime: null,
+    orderNum: 1
   };
   dishFlavorList.value = [];
   proxy.resetForm("dishRef");
@@ -275,7 +280,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加菜品管理";
+  title.value = "添加产品管理";
 }
 
 /** 修改按钮操作 */
@@ -293,7 +298,7 @@ function handleUpdate(row) {
     }
   
     open.value = true;
-    title.value = "修改菜品管理";
+    title.value = "修改产品管理";
   });
 }
 
@@ -329,7 +334,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除菜品编码为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除产品编码为"' + _ids + '"的数据项？').then(function() {
     return delDish(_ids);
   }).then(() => {
     getList();
@@ -337,12 +342,12 @@ function handleDelete(row) {
   }).catch(() => {});
 }
 
-/** 菜品口味关系序号 */
+/** 产品口味关系序号 */
 function rowDishFlavorIndex({ row, rowIndex }) {
   row.index = rowIndex + 1;
 }
 
-/** 菜品口味关系添加按钮操作 */
+/** 产品口味关系添加按钮操作 */
 function handleAddDishFlavor() {
   let obj = {};
   obj.name = "";
@@ -350,10 +355,10 @@ function handleAddDishFlavor() {
   dishFlavorList.value.push(obj);
 }
 
-/** 菜品口味关系删除按钮操作 */
+/** 产品口味关系删除按钮操作 */
 function handleDeleteDishFlavor() {
   if (checkedDishFlavor.value.length == 0) {
-    proxy.$modal.msgError("请先选择要删除的菜品口味关系数据");
+    proxy.$modal.msgError("请先选择要删除的产品口味关系数据");
   } else {
     const dishFlavors = dishFlavorList.value;
     const checkedDishFlavors = checkedDishFlavor.value;

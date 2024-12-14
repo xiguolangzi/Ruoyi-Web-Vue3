@@ -66,6 +66,30 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
+          type="primary"
+          plain
+          icon="Stamp"
+          :disabled="multiple"
+          @click="handleAudited"
+          v-hasPermi="['order:purchaseInvoice:audited']"
+        >
+          {{ '审核' }}
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="danger"
+          plain
+          icon="Stamp"
+          :disabled="multiple"
+          @click="handleAudited"
+          v-hasPermi="['order:purchaseInvoice:audited']"
+        >
+          {{ '反审核' }}
+        </el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
           type="danger"
           plain
           icon="Delete"
@@ -444,6 +468,17 @@ function handleUpdate(row) {
     open.value = true;
     title.value = "修改采购发票";
   });
+}
+
+/** 审核操作 */
+function handleAudited(row) {
+  const _invoiceIds = row.invoiceId || ids.value
+  proxy.$modal.confirm('是否确认审核采购发票编号为"' + _invoiceIds + '"的数据项？').then(function() {
+    return auditedPurchaseInvoice(_invoiceId);
+  }).then(() => {
+    getList();
+    proxy.$modal.msgSuccess("审核成功");
+  }).catch(()=> {});
 }
 
 /** 提交按钮 */

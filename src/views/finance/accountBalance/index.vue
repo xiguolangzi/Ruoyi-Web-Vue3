@@ -1,21 +1,21 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="科目编码:" prop="accountCode">
-        <el-input
-          v-model="queryParams.accountCode"
-          placeholder="请输入科目编码"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+      <el-form-item label="科目名称" prop="accountId" style="width: 250px;">
+        <el-tree-select v-model="queryParams.accountId" :data="accountTree" :props="treeProps" value-key="accountId"
+          placeholder="请选择科目" style="width: 100%;"
+        >
+        </el-tree-select>
       </el-form-item>
-      <el-form-item label="会计期间:" prop="financePeriod">
-        <el-input
-          v-model="queryParams.financePeriod"
-          placeholder="请输入会计期间(YYYY-MM)"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+      <el-form-item label="会计年度:" prop="periodYear">
+        <el-select v-model="queryParams.periodYear" placeholder="请选择会计年度" clearable>
+          <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="dict.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="会计月份:" prop="periodMonth">
+        <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份" clearable>
+          <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="dict.value" />
+        </el-select>
       </el-form-item>
       <el-form-item style="margin-left: 10px;">
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -82,7 +82,16 @@
           <dict-tag :options="project_general_status" :value="scope.row.accountVo.status"/>
         </template>
       </el-table-column>
-      <el-table-column label="会计期间" align="center" prop="financePeriod" />
+      <el-table-column label="会计年度" align="center" prop="periodYear" width="80">
+        <template #default="scope">
+          <dict-tag :options="finance_period_year" :value="scope.row.periodYear" />
+        </template>
+      </el-table-column>
+      <el-table-column label="会计月份" align="center" prop="periodMonth" width="80">
+        <template #default="scope">
+          <dict-tag :options="finance_period_month" :value="scope.row.periodMonth" />
+        </template>
+      </el-table-column>
       <el-table-column label="期初余额" align="center" prop="beginBalance" >
         <template #default="scope">
           <span>{{ formatTwo(scope.row.beginBalance) }} € </span>
@@ -127,11 +136,21 @@
     <!-- 添加或修改 科目余额表对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="accountBalanceRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="科目ID" prop="accountId">
-          <el-input v-model="form.accountId" placeholder="请输入科目ID" />
+        <el-form-item label="科目名称" prop="accountId">
+          <el-tree-select v-model="form.accountId" :data="accountTree" :props="treeProps" value-key="accountId"
+            placeholder="请选择科目" style="width: 100%;" 
+          >
+          </el-tree-select>
         </el-form-item>
-        <el-form-item label="会计期间" prop="financePeriod">
-          <el-input v-model="form.financePeriod" placeholder="请输入会计期间(YYYY-MM)" />
+        <el-form-item label="会计年度" prop="periodYear">
+          <el-select v-model="form.periodYear" placeholder="请选择会计年度" clearable>
+            <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="dict.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="会计月份" prop="periodMonth">
+          <el-select v-model="form.periodMonth" placeholder="请选择会计月份" clearable>
+            <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="dict.value" />
+          </el-select>
         </el-form-item>
         <el-form-item label="期初余额" prop="beginBalance">
           <el-input v-model="form.beginBalance" placeholder="请输入期初余额" />
@@ -144,14 +163,6 @@
         </el-form-item>
         <el-form-item label="期末余额" prop="endBalance">
           <el-input v-model="form.endBalance" placeholder="请输入期末余额" />
-        </el-form-item>
-        <el-form-item label="最后修改时间" prop="lastChangeTime">
-          <el-date-picker clearable
-            v-model="form.lastChangeTime"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择最后修改时间">
-          </el-date-picker>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -167,12 +178,13 @@
 <script setup name="AccountBalance">
 import { listAccountBalance, getAccountBalance, delAccountBalance, addAccountBalance, updateAccountBalance } from "@/api/finance/accountBalance";
 import useUserStore from "@/store/modules/user";
+import { listAccount } from "@/api/finance/account";
 import { ref } from "vue";
 // 租户ID字段过滤使用
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
-const { erp_finance_account_style, project_general_status } = proxy.useDict('erp_finance_account_style', 'project_general_status');
+const { erp_finance_account_style, project_general_status, finance_period_year, finance_period_month } = proxy.useDict('erp_finance_account_style', 'project_general_status', 'finance_period_year', 'finance_period_month');
 
 const accountBalanceList = ref([]);
 const open = ref(false);
@@ -192,7 +204,8 @@ const data = reactive({
     pageNum: 1,
     pageSize: 30,
     accountId: null,
-    financePeriod: null,
+    periodYear: null,
+    periodMonth: null,
     tenantId: null,
     accountCode: null,
     accountName: null,
@@ -209,6 +222,31 @@ const data = reactive({
 });
 
 const { queryParams, form, rules } = toRefs(data);
+
+// ----------------- 1 获取科目列表数据
+// 会计科目 - 初始化列表
+const accountList = ref([])
+const accountTree = ref([])
+/** 会计科目 - 获取列表 */
+const getAccountList = async () => {
+    listAccount()
+      .then(response => {
+        accountTree.value = proxy.handleTree(response.data, "accountId", "parentId") || [];
+        accountList.value = response.data || [];
+      })
+      .catch(error => {
+        ElMessage.error("获取会计科目列表时出错:",error)
+      })
+};
+getAccountList()
+
+/** el-tree-select 配置 */ 
+const treeProps = {
+  value: "accountId",
+  label: (node) => `${node.accountCode} - ${node.accountName}`, // 自定义显示内容
+  children: "children",
+  disabled: (node) => node.status == '1'
+};
 
 /** 查询 科目余额表列表 */
 function getList() {
@@ -233,7 +271,8 @@ function reset() {
   form.value = {
     balanceId: null,
     accountId: null,
-    financePeriod: null,
+    periodYear: null,
+    periodMonth: null,
     beginBalance: null,
     debitAmount: null,
     creditAmount: null,

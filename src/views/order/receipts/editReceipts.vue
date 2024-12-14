@@ -278,10 +278,23 @@
     <!-- 引入采购订单 -->
     <el-dialog :title="linkPurchaseOrderTitle" v-model="open" width="70%" append-to-body >
       <el-card>
-      <!---- 采购单选择器 -->
+      <!---- 采购订单选择器 -->
       <el-row>
-        <el-col :span="12">
-          <el-form-item label="采购单号:" prop="orderNo">
+         <el-col :span="5">
+          <el-form-item label="开启采购订单引入">
+            <el-switch
+              v-model="showPurchaseNo"
+              size="large"
+              width="60"
+              inline-prompt
+              style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
+              active-text="开启"
+              inactive-text="关闭"
+            />
+          </el-form-item>
+          </el-col>
+          <el-col :span="6">
+          <el-form-item label="采购订单号:" prop="orderNo" style="margin-right: 20px">
             <el-select 
               v-model="linkPurchaseOrderId" 
               filterable 
@@ -298,22 +311,18 @@
               </el-select>
           </el-form-item>
          </el-col>
-         <el-col :span="12">
-          <el-form-item label="开启采购订单引入">
-            <el-switch
-              v-model="showPurchaseNo"
-              size="large"
-              width="60"
-              inline-prompt
-              style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
-              active-text="开启"
-              inactive-text="关闭"
-            />
+          <el-col :span="5">
+          <el-form-item>
+            <el-button-group >
+              <el-button type="primary" @click="syncPurchaseQuantity" :disabled="!showPurchaseNo">同步采购数量</el-button>
+              <el-button type="success" @click="syncShortageQuantity" :disabled="!showPurchaseNo">同步缺货数量</el-button>
+            </el-button-group>
           </el-form-item>
         </el-col>
       </el-row>
+      
         
-      <!-- 采购单明细 -->
+      <!-- 采购订单明细 -->
       <el-table v-loading="loading" :data="purchaseOrder.details" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column type="index" label="序号" width="50"  align="center"/>
@@ -439,6 +448,7 @@ const handleLinkPurchaseOrder = () => {
 /** 获取采购订单列表 */
 const linkPurchaseOrderList = ref([]);
 const purchaseQueryParams = ref({
+  // 采购订单状态是 审核 或 进行中
   statusList: [3,4],
   supplierId: null,
 });
@@ -488,6 +498,31 @@ function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.detailId);
 }
 
+/** 采购订单引入 - 同步采购数量 */
+const syncPurchaseQuantity = () => {
+  if(purchaseOrder.value.details){
+    // 入库数量同分采购数量
+    purchaseOrder.value.details = purchaseOrder.value.details.map(item => ({
+      ...item,
+      inputQuantity: item.quantity
+    }));
+  }
+  
+}
+
+
+/** 采购订单引入 - 同步缺货数量 */
+const syncShortageQuantity = () => {
+  if(purchaseOrder.value.details){
+    // 同步缺货数量
+    purchaseOrder.value.details = purchaseOrder.value.details.map(item => ({
+      ...item,
+      inputQuantity: item.shortageQuantity
+    }));
+  }
+  
+}
+
 /** 提交引入采购单 */
 const submitLinkPurchaseOrder = () => {
   if (!linkPurchaseOrderId.value) {
@@ -530,13 +565,91 @@ const submitLinkPurchaseOrder = () => {
     expireDate: item.expireDate,
   }));
 
-  // 添加新的明细到form中
-  form.value.details.push(...newDetails);
-  
-  calculateAmount()
+  // 先判断是否存在相同的sku,如果存在提示覆盖还是累加
+  const existingItemList = form.value.details.filter(detail => 
+    newDetails.some(newItem => newItem.skuId === detail.skuId)
+  );
 
-  ElMessage.warning("已将引入的数据加入到商品明细中！")
-  open.value = false;
+  console.log("已存在的商品：",existingItemList)
+  if (existingItemList.length > 0) {
+    ElMessageBox.confirm('存在相同的商品，如何处理？', '提示', {
+      distinguishCancelAndClose: true,
+      confirmButtonText: '覆盖相同商品',
+      cancelButtonText: '数量累加',
+      type: 'warning',
+    })
+      .then(() => {
+          // 覆盖逻辑：直接用新的商品信息替换原有的商品
+          const mergedDetails = form.value.details.map(existingItem => {
+            const newItem = newDetails.find(item => item.skuId === existingItem.skuId);
+            return newItem ? newItem : existingItem;
+          });
+          // 添加新的不重复的商品
+          const newUniqueItems = newDetails.filter(
+            newItem => !form.value.details.some(detail => detail.skuId === newItem.skuId)
+          );
+
+          form.value.details = [...mergedDetails, ...newUniqueItems];
+          ElMessage.warning("已覆盖重复的商品！");
+          console.log("覆盖流程 - mergedDetails",mergedDetails)
+          console.log("覆盖流程 - newUniqueItems",newUniqueItems)
+          console.log("覆盖流程 - form.value.details",form.value.details)
+
+          // 计算汇总金额
+          calculateAmount();
+          open.value = false;
+      })
+      .catch((action) => {
+        if(action === 'cancel')
+        {
+          // 累加逻辑：对于相同SKU的商品，累加数量
+          const mergedDetails = form.value.details.map(existingItem => {
+            const newItem = newDetails.find(item => item.skuId === existingItem.skuId);
+            console.log("累加流程 - 累加商品newItem：",newItem)
+            if (newItem) {
+              const totalReceivedQuantity = Number((existingItem.receivedQuantity || 0) + (newItem.receivedQuantity || 0)).toFixed(2);
+              const unitPrice = Number(existingItem.unitPrice || 0);
+              const discountRate = Number(existingItem.discountRate || 0) * 0.01;
+              const taxRate = Number(existingItem.taxRate || 0) * 0.01;
+
+              return {
+                ...existingItem,
+                receivedQuantity: totalReceivedQuantity,
+                purchaseAmount: Number((totalReceivedQuantity * unitPrice).toFixed(2)),
+                discountAmount: Number((totalReceivedQuantity * unitPrice * discountRate).toFixed(2)),
+                taxAmount: Number((totalReceivedQuantity * unitPrice * (1 - discountRate) * taxRate).toFixed(2)),
+                netAmount: Number((totalReceivedQuantity * unitPrice *( 1- discountRate ) * ( 1 + taxRate )).toFixed(2)),
+              };
+            }
+            return existingItem;
+          });
+
+          // 添加新的不重复的商品
+          const newUniqueItems = newDetails.filter(
+            newItem => !form.value.details.some(detail => detail.skuId === newItem.skuId)
+          );
+
+          form.value.details = [...mergedDetails, ...newUniqueItems];
+          ElMessage.success("已累加重复商品的数量！");
+
+          // 计算汇总金额
+          calculateAmount();
+          open.value = false;
+          
+        } else {
+          // 用户取消操作
+          ElMessage.info("已取消操作");
+        }
+        
+      })
+  } else {
+    // 添加新的明细到form中
+    form.value.details = [...form.value.details, ...newDetails];
+    calculateAmount();
+    ElMessage.warning("已将引入的数据加入到商品明细中！")
+    open.value = false;
+  } 
+
 }
 
 /** 计算金额*/
@@ -574,10 +687,8 @@ const purchaseInvoiceList = ref([]);
 const getPurchaseInvoiceList = (supplierId) => {
   const purchaseInvoiceQueryParams = {
     supplierId: supplierId || null,
-    // 未核销的发票
-    invoiceStatus: '1',
-    pageNum: 1,
-    pageSize: 1000,
+    // 已审核的发票
+    invoiceStatus: '2',
   }
   listPurchaseInvoice(purchaseInvoiceQueryParams)
     .then(response => {

@@ -684,19 +684,32 @@ const calculateAmount = () => {
 const purchaseInvoiceList = ref([]);
 
 // 获取仓库列表
-const getPurchaseInvoiceList = (supplierId) => {
-  const purchaseInvoiceQueryParams = {
-    supplierId: supplierId || null,
-    // 已审核的发票
-    invoiceStatus: '2',
+const getPurchaseInvoiceList = async (supplierId) => {
+  // 定义发票状态: 草稿 未审核 已审核
+  const invoiceStatuses = ['1', '2', '3'];
+
+  try {
+    // 并行发起请求
+    const requests = invoiceStatuses.map(status => 
+      listPurchaseInvoice({
+        supplierId: supplierId || null,
+        invoiceStatus: status
+      })
+    );
+
+    // 等待所有请求完成
+    const responses = await Promise.all(requests);
+
+    // 合并数据并去重
+    purchaseInvoiceList.value = [
+      ...new Set(
+        responses.flatMap(response => response.rows || [])
+      )
+    ];
+  } catch (error) {
+    console.error("获取发票列表时出错:", error);
+    ElMessage.error(`获取发票列表失败: ${error.message}`);
   }
-  listPurchaseInvoice(purchaseInvoiceQueryParams)
-    .then(response => {
-      purchaseInvoiceList.value = response.rows || [];
-    })
-    .catch (error => {
-      ElMessage.error("获取发票列表时出错:",error)
-    })
 };
 
 // ****************************** 仓库 数据获取 end ******************************

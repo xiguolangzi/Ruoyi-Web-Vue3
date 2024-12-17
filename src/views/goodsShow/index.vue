@@ -46,12 +46,6 @@
       </el-table-column>
       <el-table-column label="产品名称" align="center" prop="name" min-width="150" />
       <el-table-column label="产品编码" align="center" prop="id" min-width="80" />
-      <el-table-column label="产品数量" align="center" prop="store" min-width="80" >
-        <template #default="scope">
-          <span>{{ scope.row.store ? scope.row.store : 0 }}</span>
-        </template>
-      </el-table-column>
-      
       <el-table-column label="加入购物车" align="center" class-name="small-padding fixed-width"  min-width="100px">
         <template #default="scope">
           <el-badge :value="scope.row.cartNo" class="item" :offset="[-80, 13]" :hidden="scope.row.cartNo == 0">

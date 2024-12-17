@@ -358,6 +358,7 @@ function submitForm() {
   proxy.$refs["orderRef"].validate(valid => {
     if (valid) {
       form.value.tbDishOrderDetailList = tbDishOrderDetailList.value;
+      calculateTotalAmount()
       if (form.value.orderId != null) {
         updateOrder(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
@@ -401,6 +402,7 @@ function handleAddTbDishOrderDetail() {
   obj.amount = "";
   obj.dish = {}
   tbDishOrderDetailList.value.push(obj);
+  calculateTotalAmount()
 }
 
 /** ${subTable.functionName}删除按钮操作 */
@@ -413,6 +415,8 @@ function handleDeleteTbDishOrderDetail() {
     tbDishOrderDetailList.value = tbDishOrderDetails.filter(function(item) {
       return checkedTbDishOrderDetails.indexOf(item.index) == -1
     });
+    calculateTotalAmount()
+  
   }
 }
 

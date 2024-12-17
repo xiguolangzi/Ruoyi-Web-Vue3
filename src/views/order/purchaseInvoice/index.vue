@@ -26,8 +26,14 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      
-     
+      <el-form-item label="订单号码:" prop="orderNo">
+        <el-input
+          v-model="queryParams.orderNo"
+          placeholder="请输入订单号码"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="发票状态:" prop="invoiceStatus">
         <el-select v-model="queryParams.invoiceStatus" placeholder="请选择发票状态:未核销、已核销" clearable>
           <el-option
@@ -73,7 +79,7 @@
           @click="handleAudited"
           v-hasPermi="['order:purchaseInvoice:audited']"
         >
-          {{ '审核' }}
+          {{ '批量审核' }}
         </el-button>
       </el-col>
       <el-col :span="1.5">
@@ -82,10 +88,10 @@
           plain
           icon="Stamp"
           :disabled="multiple"
-          @click="handleAudited"
+          @click="handleUnAudited"
           v-hasPermi="['order:purchaseInvoice:audited']"
         >
-          {{ '反审核' }}
+          {{ '批量反审核' }}
         </el-button>
       </el-col>
       <el-col :span="1.5">
@@ -96,7 +102,7 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['order:purchaseInvoice:remove']"
-        >删除</el-button>
+        >批量删除</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -113,9 +119,15 @@
     <el-table v-loading="loading" :data="purchaseInvoiceList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" width="50"/>
-      <el-table-column label="采购发票号码" align="left" header-align="center" prop="invoiceNo"  min-width="150" show-overflow-tooltip >
+      <el-table-column label="发票号码" align="left" header-align="center" prop="invoiceNo"  min-width="150" show-overflow-tooltip >
         <template #default="scope">
           <el-link :underline="false" type="primary" @click="handleView(scope.row)">{{ scope.row.invoiceNo }}</el-link>
+        </template>
+      </el-table-column>
+      <el-table-column label="订单号码" align="left" header-align="center" prop="orderNo"  min-width="150" show-overflow-tooltip >
+        <template #default="scope">
+          <el-link :underline="false" type="danger
+          " @click="handleView(scope.row)">{{ scope.row.orderNo }}</el-link>
         </template>
       </el-table-column>
       <el-table-column label="供应商" align="left" header-align="center" prop="supplierId" min-width="150" show-overflow-tooltip>
@@ -192,95 +204,155 @@
     />
 
     <!-- 添加或修改采购发票对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="50%" append-to-body :show-close="false" :close-on-click-modal="false">
+      <template #header="{ titleId, titleClass }">
+        <div class="header-content">
+          <div class="header-title">
+            <h4 :id="titleId" :class="titleClass">{{ title }}</h4>
+            <dict-tag :options="erp_purchase_invoice_status" :value="form.invoiceStatus" />
+          </div>
+          <div class="header-actions">
+            <!-- 根据不同状态显示不同的操作按钮 -->
+            <el-button-group class="mr-4">
+              <!-- 草稿状态 -->
+              <el-button type="primary" 
+                @click="submitForm" :loading="loading" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_DRAFT"
+                v-hasPermi="['order:purchaseInvoice:edit']"
+              >
+                保存
+              </el-button>
+              <el-button type="danger" 
+                @click="handleDialogDelete" :loading="loading" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_DRAFT && insertStatus == false"
+                v-hasPermi="['order:purchaseInvoice:remove']"
+              >
+                删除
+              </el-button>
+
+              <!-- 未审核状态 -->
+              <el-button type="primary" 
+                @click="handleDialogAudited" :loading="loading" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED"
+                v-hasPermi="['order:purchaseInvoice:audited']"
+              >
+                审核
+              </el-button>
+              <el-button type="warning" 
+                @click="handleDialogContinueEdit" :loading="loading" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED"
+                v-hasPermi="['order:purchaseInvoice:edit']"
+              >
+                继续编辑
+              </el-button>
+
+              <!-- 审核状态 -->
+               <el-button type="danger" 
+                @click="handleDialogUnAudited" :loading="loading" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_AUDITED"
+                v-hasPermi="['order:purchaseInvoice:audited']"
+              >
+                反审核
+              </el-button>
+
+            </el-button-group>
+            <el-button type="danger" @click="cancel">
+              <el-icon class="el-icon--left">
+                <CircleCloseFilled />
+              </el-icon>
+              退出
+            </el-button>
+          </div>
+        </div>
+        
+      </template>
       <el-form ref="purchaseInvoiceRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="供应商ID" prop="supplierId">
-        <el-select
-          v-model="form.supplierId"
-          filterable
-          clearable
-          placeholder="请选中供应商"
-          style="width: 150px"
-          :disabled="onlyView"
-        >
-          <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
-          <el-option
-          v-for="item in supplierList"
-          :key="item.supplierId"
-          :label="item.supplierName"
-          :value="item.supplierId"
-          />
-        </el-select>
-      </el-form-item>
-        <el-form-item label="发票号码" prop="invoiceNo">
-          <el-input v-model="form.invoiceNo" placeholder="请输入发票号码" :disabled="onlyView"/>
-        </el-form-item>
-        <el-form-item label="开票日期" prop="invoiceDate">
-          <el-date-picker 
+          <el-select
+            v-model="form.supplierId"
+            filterable
             clearable
-            v-model="form.invoiceDate"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择开票日期"
-            :disabled="onlyView"
+            placeholder="请选中供应商"
+            style="width: 150px"
+            :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT"
           >
-          </el-date-picker>
+            <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
+            <el-option
+            v-for="item in supplierList"
+            :key="item.supplierId"
+            :label="item.supplierName"
+            :value="item.supplierId"
+            />
+          </el-select>
         </el-form-item>
-         <el-form-item label="付款日期" prop="paymentDueDate">
-          <el-date-picker 
-            clearable
-            v-model="form.paymentDueDate"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择付款日期"
-            :disabled="onlyView"
-          >
-          </el-date-picker>
+        <el-form-item label="发票号码" prop="invoiceNo" style="width: 80%;">
+          <el-input v-model="form.invoiceNo" placeholder="请输入发票号码" :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT"/>
         </el-form-item>
-        <el-form-item label="发票金额" prop="invoiceAmount" >
-          <el-input-number v-model="form.invoiceAmount" placeholder="请输入发票金额" :controls="false" :precision="2" @change="calculateTotalAmount" :disabled="onlyView">
-            <template #suffix >
-              <span> €</span>
-            </template>
-          </el-input-number>
+        <el-form-item label="订单号码" prop="orderNo" style="width: 80%;">
+          <el-input v-model="form.orderNo" placeholder="请输入订单号码" :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT"/>
         </el-form-item>
-        <el-form-item label="发票税额" prop="invoiceTaxAmount">
-          <el-input-number v-model="form.invoiceTaxAmount" placeholder="请输入发票税额" :controls="false" :precision="2" @change="calculateTotalAmount" :disabled="onlyView">
-            <template #suffix >
-              <span> €</span>
-            </template>
-          </el-input-number>
-        </el-form-item>
-        <el-form-item label="发票总额" prop="invoiceTotalAmount">
-          <el-input-number v-model="form.invoiceTotalAmount" placeholder="请输入发票总额" disabled :controls="false" :precision="2" >
-            <template #suffix >
-              <span> €</span>
-            </template>
-          </el-input-number>
-        </el-form-item>
+        <el-row>
+          <el-form-item label="开票日期" prop="invoiceDate">
+            <el-date-picker 
+              clearable
+              v-model="form.invoiceDate"
+              type="date"
+              value-format="YYYY-MM-DD"
+              placeholder="请选择开票日期"
+              :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT"
+            >
+            </el-date-picker>
+          </el-form-item>
+          <el-form-item label="付款日期" prop="paymentDueDate">
+            <el-date-picker 
+              clearable
+              v-model="form.paymentDueDate"
+              type="date"
+              value-format="YYYY-MM-DD"
+              placeholder="请选择付款日期"
+              :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT"
+            >
+            </el-date-picker>
+          </el-form-item>
+        </el-row>
+        <el-row>
+          <el-form-item label="发票金额" prop="invoiceAmount" >
+            <el-input-number v-model="form.invoiceAmount" placeholder="请输入发票金额" :controls="false" :precision="2" @change="calculateTotalAmount" :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT">
+              <template #suffix >
+                <span> €</span>
+              </template>
+            </el-input-number>
+          </el-form-item>
+          <el-form-item label="发票税额" prop="invoiceTaxAmount">
+            <el-input-number v-model="form.invoiceTaxAmount" placeholder="请输入发票税额" :controls="false" :precision="2" @change="calculateTotalAmount" :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT">
+              <template #suffix >
+                <span> €</span>
+              </template>
+            </el-input-number>
+          </el-form-item>
+          <el-form-item label="发票总额" prop="invoiceTotalAmount">
+            <el-input-number v-model="form.invoiceTotalAmount" placeholder="请输入发票总额" disabled :controls="false" :precision="2" >
+              <template #suffix >
+                <span> €</span>
+              </template>
+            </el-input-number>
+          </el-form-item>
+        </el-row>
+        
+        
        
         <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" show-word-limit :maxlength="30" :disabled="onlyView"/>
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" show-word-limit :maxlength="30" :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT"/>
         </el-form-item>
-        <el-form-item label="上传附件" prop="uploadedFile" :disabled="onlyView">
+        <el-form-item label="上传附件" prop="uploadedFile" :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT">
           <file-upload v-model="form.uploadedFile" />
         </el-form-item>
       </el-form>
-      <template #footer>
-        <div class="dialog-footer" v-if="!onlyView">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
-        </div>
-      </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup name="PurchaseInvoice">
-import { listPurchaseInvoice, getPurchaseInvoice, delPurchaseInvoice, addPurchaseInvoice, updatePurchaseInvoice } from "@/api/order/purchaseInvoice";
+import { listPurchaseInvoice, getPurchaseInvoice, delPurchaseInvoice, addPurchaseInvoice, updatePurchaseInvoice, auditPurchaseInvoice, unAuditPurchaseInvoice, continueEditPurchaseInvoice } from "@/api/order/purchaseInvoice";
 import useUserStore from "@/store/modules/user";
 import { listSupplier } from "@/api/order/supplier"
 import { ref } from "vue";
+import { ElMessage } from "element-plus";
 
 
 
@@ -298,7 +370,17 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+const insertStatus = ref(false);
 
+/** 自定义校验规则 */ 
+const validateOneRequired = (rule, value, callback) => {
+  const { invoiceNo, orderNo } = form.value
+  if (!invoiceNo && !orderNo) {
+    callback(new Error('发票号和订单号必须至少填写一个!'))
+  } else {
+    callback()
+  }
+}
 
 const data = reactive({
   form: {},
@@ -307,22 +389,19 @@ const data = reactive({
     pageSize: 10,
     supplierId: null,
     invoiceNo: null,
-    invoiceDate: null,
-    invoiceAmount: null,
-    invoiceTaxAmount: null,
-    invoiceTotalAmount: null,
+    orderNo: null,
     invoiceStatus: null,
-    accountsPayable: null,
-    paymentDueDate: null,
-    paymentAmount: null,
     tenantId: null,
   },
   rules: {
+    invoiceNo: [
+      { validator: validateOneRequired, trigger: "blur" }
+    ],
+    orderNo: [
+      { validator: validateOneRequired, trigger: "blur" }
+    ],
     supplierId: [
       { required: true, message: "供应商ID不能为空", trigger: "blur" }
-    ],
-    invoiceNo: [
-      { required: true, message: "发票号码不能为空", trigger: "blur" }
     ],
     invoiceDate: [
       { required: true, message: "开票日期不能为空", trigger: "blur" }
@@ -339,9 +418,19 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
+/** 发票状态 */ 
+const InvoiceStatusEnum = {
+  // 草稿
+  INVOICE_STATUS_DRAFT: '1',
+  // 待审核
+  INVOICE_STATUS_WAIT_AUDITED: '2',
+  // 已审核
+  INVOICE_STATUS_AUDITED: '3',
+  // 已核销
+  INVOICE_STATUS_WRITE: '4',
+}
+
 /** 查询采购发票列表 */
-// 附件的参数
-const baseUrl = import.meta.env.VITE_APP_BASE_API;
 function getList() {
   loading.value = true;
   // 请求参数增加租户ID
@@ -364,20 +453,17 @@ function getFileName(filePaths) {
 }
 
 /** 查看发票详情 */
-// 是否只查看
-const onlyView = ref(false)
 const handleView = (row) =>{
   reset();
   const _invoiceId = row.invoiceId || ids.value
   getPurchaseInvoice(_invoiceId).then(response => {
     form.value = response.data;
     open.value = true;
-    onlyView.value = true
     title.value = "查看采购发票详情";
   });
 }
 
-// **************************************** 获取供应商数据 ****************************************
+// **************************** 获取供应商数据 start ****************************************
 // 供应商 - 初始化列表
 const supplierList = ref([])
 /** 供应商 - 获取列表 */
@@ -394,12 +480,10 @@ getSuppliers()
 const getSuppliersName = (id) => {
   return supplierList.value.find(supplier => supplier.supplierId === id)?.supplierName || '--'
  }
-// 取消按钮
-function cancel() {
-  open.value = false;
-  onlyView.value = false
-  reset();
-}
+
+ // **************************** 获取供应商数据 end ****************************************
+
+ // **************************** 操作 start ****************************************
 
 // 表单重置
 function reset() {
@@ -424,7 +508,6 @@ function reset() {
     uploadedFile: null
   };
   proxy.resetForm("purchaseInvoiceRef");
-  onlyView.value = false;
 }
 
 /** 金额计算 */
@@ -455,7 +538,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  
+  insertStatus.value = true;
   title.value = "添加采购发票";
 }
 
@@ -470,21 +553,57 @@ function handleUpdate(row) {
   });
 }
 
-/** 审核操作 */
+/** 批量审核操作 */
 function handleAudited(row) {
   const _invoiceIds = row.invoiceId || ids.value
-  proxy.$modal.confirm('是否确认审核采购发票编号为"' + _invoiceIds + '"的数据项？').then(function() {
-    return auditedPurchaseInvoice(_invoiceId);
+  proxy.$modal.confirm('是否确认 批量审核 所选中的数据?')
+  .then(function() {
+    return auditPurchaseInvoice(_invoiceIds);
   }).then(() => {
     getList();
     proxy.$modal.msgSuccess("审核成功");
   }).catch(()=> {});
 }
 
-/** 提交按钮 */
+/** 批量反审核操作 */
+function handleUnAudited(row) {
+  const _invoiceIds = row.invoiceId || ids.value
+  proxy.$modal.confirm('是否确认 批量反审核 所选中的数据?')
+  .then(function() {
+    return unAuditPurchaseInvoice(_invoiceIds);
+  }).then(() => {
+    getList();
+    proxy.$modal.msgSuccess("审核成功");
+  }).catch(()=> {});
+}
+
+/** 批量删除按钮操作 */
+function handleDelete(row) {
+  const _invoiceIds = row.invoiceId || ids.value;
+  proxy.$modal.confirm('是否确认 批量删除 所选中的数据?')
+  .then(function() {
+    return delPurchaseInvoice(_invoiceIds);
+  }).then(() => {
+    getList();
+    proxy.$modal.msgSuccess("删除成功");
+  }).catch(() => {});
+}
+
+/** 导出按钮操作 */
+function handleExport() {
+  proxy.download('order/purchaseInvoice/export', {
+    ...queryParams.value
+  }, `purchaseInvoice_${new Date().getTime()}.xlsx`)
+}
+
+ // **************************** 操作 end ****************************************
+
+// **************************** dialog操作 start ****************************************
+ /** /** 编辑界面 - 保存 */
 function submitForm() {
   proxy.$refs["purchaseInvoiceRef"].validate(valid => {
     if (valid) {
+      form.value.invoiceStatus = InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED
       if (form.value.invoiceId != null) {
         updatePurchaseInvoice(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
@@ -502,23 +621,95 @@ function submitForm() {
   });
 }
 
-/** 删除按钮操作 */
-function handleDelete(row) {
-  const _invoiceIds = row.invoiceId || ids.value;
-  proxy.$modal.confirm('是否确认删除采购发票编号为"' + _invoiceIds + '"的数据项？').then(function() {
-    return delPurchaseInvoice(_invoiceIds);
-  }).then(() => {
-    getList();
-    proxy.$modal.msgSuccess("删除成功");
-  }).catch(() => {});
+// 退出按钮
+function cancel() {
+  open.value = false;
+  insertStatus.value = false;
+  reset();
 }
 
-/** 导出按钮操作 */
-function handleExport() {
-  proxy.download('order/purchaseInvoice/export', {
-    ...queryParams.value
-  }, `purchaseInvoice_${new Date().getTime()}.xlsx`)
+/** 编辑界面 - 删除 */
+const handleDialogDelete = () => {
+  const nowNo = form.value.invoiceNo ? '是否确认删除 发票号 为 "' + form.value.invoiceNo  + '" 的采购发票？' : '是否确认删除 订单号 为 "' + form.value.orderNo + '" 的采购订单？';
+  proxy.$modal.confirm(nowNo).then(function() {
+    return delPurchaseInvoice(form.value.invoiceId);
+  }).then(() => {
+    proxy.$modal.msgSuccess("删除成功");
+    open.value = false;
+    getList();
+  }).catch(() => {});
+
 }
+
+/** 编辑界面 - 审核 */
+const handleDialogAudited = () => {
+  if(form.value.invoiceId){
+    auditPurchaseInvoice(form.value.invoiceId)
+      .then(response => {
+        ElMessage.success("审核成功")
+        getList();
+        form.value.invoiceStatus = InvoiceStatusEnum.INVOICE_STATUS_AUDITED
+      })
+      .catch(error => {
+        ElMessage.error(error.message ? error.message : '操作失败');
+      });
+  }
+
+}
+
+/** 编辑界面 - 反审核 */
+const handleDialogUnAudited = () => {
+  if(form.value.invoiceId){
+    unAuditPurchaseInvoice(form.value.invoiceId)
+      .then(response => {
+        ElMessage.success("反审核成功")
+        getList();
+        form.value.invoiceStatus = InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED
+      })
+      .catch(error => {
+        ElMessage.error(error.message ? error.message : '操作失败');
+      });
+  }
+}
+
+/** /** 编辑界面 - 继续编辑 */ 
+const handleDialogContinueEdit = () => {
+  if(form.value.invoiceId){
+    continueEditPurchaseInvoice(form.value.invoiceId)
+      .then(response => {
+        ElMessage.success("继续编辑成功")
+        getList();
+        form.value.invoiceStatus = InvoiceStatusEnum.INVOICE_STATUS_DRAFT
+      })
+      .catch(error => {
+        ElMessage.error(error.message ? error.message : '操作失败');
+      });
+  } 
+}
+
+
+// **************************** dialog操作 end ****************************************
 
 getList();
 </script>
+
+<style lang="scss" scoped>
+ /* 头部样式 */
+.header-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 16px;
+  }
+}
+</style>

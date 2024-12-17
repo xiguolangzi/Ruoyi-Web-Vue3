@@ -42,3 +42,27 @@ export function delPurchaseInvoice(invoiceId) {
     method: 'delete'
   })
 }
+
+/** 审核 */
+export function auditPurchaseInvoice(invoiceId) {
+  return request({
+    url: '/order/purchaseInvoice/audit/' + invoiceId,
+    method: 'get'
+  })
+}
+
+/** 反审核 */
+export function unAuditPurchaseInvoice(invoiceId) {
+  return request({
+    url: '/order/purchaseInvoice/unAudit/' + invoiceId,
+    method: 'get'
+  })
+}
+
+/** 继续编辑 */
+export function continueEditPurchaseInvoice(invoiceId) {
+  return request({
+    url: '/order/purchaseInvoice/continueEdit/' + invoiceId,
+    method: 'get'
+  })
+}

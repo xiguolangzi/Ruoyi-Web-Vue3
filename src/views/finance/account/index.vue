@@ -1,19 +1,13 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="科目编码" prop="accountCode">
+      <el-form-item label="科目编码:" prop="accountCode">
         <el-input v-model="queryParams.accountCode" placeholder="请输入科目编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="科目名称" prop="accountName">
+      <el-form-item label="科目名称:" prop="accountName">
         <el-input v-model="queryParams.accountName" placeholder="请输入科目名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="科目类型" prop="accountType">
-        <el-select v-model="queryParams.accountType" placeholder="请选择科目类型" clearable>
-          <el-option v-for="dict in erp_finance_account_style" :key="dict.value" :label="dict.label"
-            :value="dict.value" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="状态" prop="status">
+      <el-form-item label="启用状态:" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择状态" clearable>
           <el-option v-for="dict in project_general_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
@@ -22,24 +16,39 @@
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
-    </el-form>
+    
 
-    <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button type="primary" plain icon="Plus" @click="handleAdd"
-          v-hasPermi="['finance:account:add']">新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button type="info" plain icon="Sort" @click="toggleExpandAll">展开/折叠</el-button>
-      </el-col>
-      <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
-    </el-row>
+      <el-row :gutter="10" class="mb8">
+        <el-col :span="1.5">
+          <el-button type="primary" plain icon="Plus" @click="handleAdd"
+            v-hasPermi="['finance:account:add']">新增</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-button type="info" plain icon="Sort" @click="toggleExpandAll">展开/折叠</el-button>
+        </el-col>
+        <el-col :span="1.5">
+          <el-form-item label="科目类型:" prop="accountType">
+            <el-radio-group v-model="queryParams.accountType">
+              <el-radio-button 
+                v-for="dict in erp_finance_account_style" 
+                :key="dict.value" 
+                :label="dict.label"
+                :value="dict.value" 
+                @change="handleQuery" 
+              />
+            </el-radio-group>
+          </el-form-item>
+        </el-col>
+        
+        <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
+      </el-row>
+    </el-form>
 
     <el-table v-if="refreshTable" v-loading="loading" border :data="accountList" row-key="accountId"
       :default-expand-all="isExpandAll" :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
       ref="accountTable" @cell-click="handleCellClick">
       <el-table-column label="科目编码" prop="accountCode" min-width="100" show-overflow-tooltip />
-      <el-table-column label="科目名称" align="center" prop="accountName" show-overflow-tooltip />
+      <el-table-column label="科目名称" align="left" header-align="center" prop="accountName" min-width="100" show-overflow-tooltip />
       <el-table-column label="科目类型" align="center" prop="accountType">
         <template #default="scope">
           <dict-tag :options="erp_finance_account_style" :value="scope.row.accountType" />
@@ -164,10 +173,11 @@ const accountTable = ref(null);
 
 /** 控制单行展开折叠 */
 const handleCellClick = (row) => {
-  if (row.children && row.children.length > 0) {
-    // 获取当前展开状态
-    accountTable.value.toggleRowExpansion(row)
-  }
+  // if (row.children && row.children.length > 0) {
+  //   // 获取当前展开状态
+  //   accountTable.value.toggleRowExpansion(row)
+  // }
+  return;
 }
 
 /** 获取选中父节点的科目编码 */
@@ -200,8 +210,8 @@ const data = reactive({
   queryParams: {
     accountCode: null,
     accountName: null,
-    accountType: null,
-    status: null,
+    accountType: '1',
+    status: '0',
     tenantId: null
   },
   rules: {
@@ -294,7 +304,7 @@ function reset() {
     accountId: null,
     accountCode: null,
     accountName: null,
-    accountType: null,
+    accountType: queryParams.value.accountType,
     parentId: null,
     accountLevel: null,
     ancestors: null,

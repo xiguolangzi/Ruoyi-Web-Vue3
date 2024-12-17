@@ -4,6 +4,9 @@
       <el-form-item label="产品名称" prop="name">
         <el-input v-model="queryParams.name" placeholder="请输入产品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
+      <el-form-item label="产品编码" prop="id">
+        <el-input v-model="queryParams.id" placeholder="请输入产品编码" clearable @keyup.enter="handleQuery" />
+      </el-form-item>
       <el-form-item label="销售状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择销售状态" clearable style="width: 180px;">
           <el-option v-for="dict in sky_status" :key="dict.value" :label="dict.label" :value="dict.value" />

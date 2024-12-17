@@ -40,11 +40,7 @@
       </el-col>
       <el-col :span="1.5">
         <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
-          v-hasPermi="['finance:voucher:edit']">修改凭证</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete"
-          v-hasPermi="['finance:voucher:remove']">作废凭证</el-button>
+          v-hasPermi="['finance:voucher:edit']">编辑凭证</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="warning" plain icon="Download" @click="handleExport"
@@ -66,7 +62,11 @@
           <dict-tag :options="finance_period_month" :value="scope.row.periodMonth" />
         </template>
       </el-table-column>
-      <el-table-column label="凭证编号" align="center" prop="voucherNo" min-width="150" />
+      <el-table-column label="凭证编号" align="center" prop="voucherNo" min-width="150">
+        <template #default="scope">
+          <span class="link-type" @click="handleUpdate(scope.row)">{{ scope.row.voucherNo }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="凭证类型" align="center" prop="voucherType">
         <template #default="scope">
           <dict-tag :options="finance_voucher_type" :value="scope.row.voucherType" />
@@ -100,14 +100,6 @@
         </template>
       </el-table-column>
       <el-table-column label="凭证备注" align="center" prop="remark" show-overflow-tooltip />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="150">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
-            v-hasPermi="['finance:voucher:edit']">修改</el-button>
-          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
-            v-hasPermi="['finance:voucher:remove']">作废</el-button>
-        </template>
-      </el-table-column>
     </el-table>
 
     <!-- 分页控件 -->
@@ -127,31 +119,51 @@
             <el-button-group class="mr-4">
               <!-- 草稿状态 -->
               <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
-                @click="handleSave" :loading="loading">
+                @click="handleSave" :loading="loading"
+                v-hasPermi="['finance:voucher:edit']"
+              >
                 保存
               </el-button>
-              <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
-                @click="handleAudited" :loading="loading">
+              <el-button type="danger" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT && insertStatus == false"
+                @click="handleVoided" :loading="loading"
+                v-hasPermi="['finance:voucher:edit']"
+              >
+                作废
+              </el-button>
+
+              <!-- 待审核状态 -->
+               <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED"
+                @click="handleAudited" :loading="loading" 
+                v-hasPermi="['finance:voucher:audited']"
+              >
                 审核
               </el-button>
-              <el-button type="danger" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
-                @click="handleVoided" :loading="loading">
-                作废
+              <el-button type="warning" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED"
+                @click="handleContinueEdit" :loading="loading"
+                v-hasPermi="['finance:voucher:edit']"
+              >
+                继续编辑
               </el-button>
 
               <!-- 审核状态 -->
               <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_AUDITED"
-                @click="handlePosted" :loading="loading">
+                @click="handlePosted" :loading="loading"
+                v-hasPermi="['finance:voucher:posted']"
+              >
                 过账
               </el-button>
               <el-button type="warning" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_AUDITED"
-                @click="handleUnAudited" :loading="loading">
+                @click="handleUnAudited" :loading="loading"
+                v-hasPermi="['finance:voucher:audited']"
+              >
                 反审核
               </el-button>
 
               <!-- 已过帐状态 -->
               <el-button type="success" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_POSTED"
-                @click="handleUnPosted" :loading="loading">
+                @click="handleUnPosted" :loading="loading"
+                v-hasPermi="['finance:voucher:posted']"
+              >
                 反过账
               </el-button>
 
@@ -226,6 +238,14 @@
       <el-table v-loading="loading" :data="form.voucherDetailList" border style="width: 100%"
         :summary-method="getSummaryRow" show-summary>
         <el-table-column type="index" label="序号" align="center" width="55px"></el-table-column>
+        <el-table-column label="摘要" prop="summary" align="center" min-width="150">
+          <template #default="scope">
+            <el-tooltip :content="scope.row.summary" placement="top" :disabled="scope.row.summary===null">
+              <el-input v-model="scope.row.summary" placeholder="摘要" type="text" :maxlength="20" show-word-limit
+                style="width: 100%;" :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column label="科目名称" prop="accountId" align="center" min-width="150px" show-overflow-tooltip>
           <template #default="scope">
             <el-tree-select v-model="scope.row.accountId" :data="accountTree" :props="treeProps" value-key="accountId"
@@ -251,14 +271,7 @@
               :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
           </template>
         </el-table-column>
-        <el-table-column label="摘要" prop="summary" align="center" min-width="150">
-          <template #default="scope">
-            <el-tooltip :content="scope.row.summary" placement="top" :disabled="scope.row.summary===null">
-              <el-input v-model="scope.row.summary" placeholder="摘要" type="text" :maxlength="20" show-word-limit
-                style="width: 100%;" :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
-            </el-tooltip>
-          </template>
-        </el-table-column>
+        
         <el-table-column label="辅助项" prop="assistType" align="center" min-width="50" show-overflow-tooltip>
           <template #default="scope">
             <dict-tag :options="finance_assist_type" :value="scope.row.assistType" />
@@ -438,6 +451,7 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const maxLength = ref(20);
+const insertStatus = ref(false);
 // 初始化借贷方合计金额
 let totalDebitAmount = 0;
 let totalCreditAmount = 0;
@@ -446,18 +460,22 @@ let totalCreditAmount = 0;
 const VoucherStatusEnum = {
   // 草稿
   VOUCHER_STATUS_DRAFT: '1',
+  // 待审核
+  VOUCHER_STATUS_WAIT_AUDITED: '2',
   // 已审核
-  VOUCHER_STATUS_AUDITED: '2',
+  VOUCHER_STATUS_AUDITED: '3',
   // 已过账
-  VOUCHER_STATUS_POSTED: '3',
+  VOUCHER_STATUS_POSTED: '4',
   // 已作废
-  VOUCHER_STATUS_VOIDED: '4',
+  VOUCHER_STATUS_VOIDED: '5',
 }
 
 // 订单操作类型
 const VoucherOperateType = {
   // 保存
   SAVE: 'save',
+  // 继续编辑
+  CONTINUE_EDIT: 'continueEdit',
   // 审核
   AUDITED: 'audited',
   // 反审核
@@ -480,21 +498,23 @@ const  AssistTypeEnum = {
   ASSIST_TYPE_EMPLOYEE: '3'
 }
 
-// 订单状态颜色
-const VoucherStatusColor = {
-  '1':'info',
-  '2':'primary',
-  '3':'success',
-  '4':'danger',
-}
+// // 订单状态颜色
+// const VoucherStatusColor = {
+//   '1':'info',
+//   '2':'warning',
+//   '3':'primary',
+//   '4':'success',
+//   '5':'danger'
+// }
 
-// 订单状态描述
-const VoucherStatusName = {
-  '1':'草稿',
-  '2':'已审核',
-  '3':'已过帐',
-  '4':'已作废',
-}
+// // 订单状态描述
+// const VoucherStatusName = {
+//   '1':'草稿',
+//   '2':'待审核',
+//   '3':'已审核',
+//   '4':'已过帐',
+//   '5':'已作废',
+// }
 
 const data = reactive({
   form: {voucherDetailList: []},
@@ -602,12 +622,7 @@ const handleAccountChange = (row,data) =>{
   resetInnerDialog()
   // 检查是否有辅助项
   nextTick(() => {
-    console.log("会计科目列表：",accountList.value)
-    console.log("当前行的信息",row)
-    console.log("当前选中的科目信息",data)
     const account2 = accountList.value.find(account => account.accountId == data.accountId)
-    console.log("选择的会计科目：",account2)
-    
     if (!account2 || !row) {
       // 方法未正常获取到 row 或 data  -> 直接退出操作
       ElMessage.error("出现未知错误, 导致退出，请从新编辑凭证!")
@@ -635,7 +650,6 @@ const handleAccountChange = (row,data) =>{
 const initRowData = (row) => {
   row.debitAmount= 0
   row.creditAmount= 0
-  row.summary= null
   row.assistType= null
   row.assistId= null
   row.assistName= null
@@ -888,6 +902,7 @@ function getList() {
 // 取消按钮
 function cancel() {
   open.value = false;
+  insertStatus.value = false;
   reset();
 }
 
@@ -895,7 +910,27 @@ function cancel() {
 
 // *************************************** 操作 start ******************************
 const handleSave = () => {
-  openApprovalDialog('编辑保存凭证', VoucherOperateType.SAVE)
+  // 0 表单预校验提交校验 
+  proxy.$refs["voucherRef"].validate().then(() => {
+    // 1 过滤空数据
+    form.value.voucherDetailList = form.value.voucherDetailList.filter(item => item.accountId !== null);
+    // 2 检查存在分录
+    if(form.value.voucherDetailList.length <= 0){
+      proxy.$modal.msgError("请添加分录！")
+    }
+    // 3 检查试算平衡
+    if(totalDebitAmount !== totalCreditAmount){
+      proxy.$modal.msgError("借贷不平，请检查！")
+      return;
+    }
+    // 4 保存操作
+    openApprovalDialog('保存凭证', VoucherOperateType.SAVE)
+
+  })  
+}
+
+const handleContinueEdit = () => {
+  openApprovalDialog('继续编辑凭证', VoucherOperateType.CONTINUE_EDIT)
 }
 
 const handleAudited = () => {
@@ -939,7 +974,8 @@ const approvalForm = ref({
 /** 根据操作返回提示信息 */
 function getRemarkMessage(action) {
   const messages = {
-    [VoucherOperateType.SAVE]: '保存编辑原因',
+    [VoucherOperateType.SAVE]: '保存原因',
+    [VoucherOperateType.CONTINUE_EDIT]: '继续编辑原因',
     [VoucherOperateType.AUDITED]: '审核通过原因',
     [VoucherOperateType.UN_AUDITED]: '反审核原因',
     [VoucherOperateType.POSTED]: '过账原因',
@@ -988,6 +1024,7 @@ const addApprovalLog = (action, status, remark, actionValue) => {
 const getTimelineItemType = (actionValue) => {
   const typeMap = {
     save: 'info',
+    continueEdit: 'warning',
     audited: 'primary',
     unAudited: 'danger',
     posted: 'success',
@@ -1016,7 +1053,7 @@ const handleError = (message = "操作失败") => {
 // 强制输入描述信息: 反审核 反过账 过账 作废
 const actionRequiresRemark = [VoucherOperateType.UN_AUDITED, VoucherOperateType.UN_POSTED, VoucherOperateType.POSTED, VoucherOperateType.VOIDED];
 // 不需要输入描述信息: 保存 审核
-const actionRequiresNoRemark = [VoucherOperateType.SAVE, VoucherOperateType.AUDITED];
+const actionRequiresNoRemark = [VoucherOperateType.SAVE, VoucherOperateType.AUDITED, VoucherOperateType.CONTINUE_EDIT];
 
 const submitApproval = async () => {
   // 1 强制输入描述信息 检查
@@ -1028,9 +1065,14 @@ const submitApproval = async () => {
   // 2 定义动作及相应状态
   const actions = {
     [VoucherOperateType.SAVE]: {
-      status: VoucherStatusEnum.VOUCHER_STATUS_DRAFT,
+      status: VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED,
       message: '保存成功',
       actionValue: VoucherOperateType.SAVE
+    },
+    [VoucherOperateType.CONTINUE_EDIT]: {
+      status: VoucherStatusEnum.VOUCHER_STATUS_DRAFT,
+      message: '继续编辑成功',
+      actionValue: VoucherOperateType.CONTINUE_EDIT
     },
     [VoucherOperateType.AUDITED]: {
       status: VoucherStatusEnum.VOUCHER_STATUS_AUDITED,
@@ -1038,7 +1080,7 @@ const submitApproval = async () => {
       actionValue: VoucherOperateType.AUDITED
     },
     [VoucherOperateType.UN_AUDITED]: {
-      status: VoucherStatusEnum.VOUCHER_STATUS_DRAFT,
+      status: VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED,
       message: '反审核 成功!',
       actionValue: VoucherOperateType.UN_AUDITED
     },
@@ -1097,8 +1139,20 @@ const submitApproval = async () => {
         }
       });
     }
+    if(currentAction.value === VoucherOperateType.CONTINUE_EDIT){
+      // 继续编辑
+      auditedVoucher(form.value)
+        .then(response => {
+          ElMessage.success("继续编辑凭证成功")
+          parseJson();
+          getList();
+        })
+        .catch(error => {
+          handleError(error.message);
+        });
+    }
     if(currentAction.value === VoucherOperateType.AUDITED){
-      // 审核业务
+      // 审核
       auditedVoucher(form.value)
         .then(response => {
           ElMessage.success("审核成功")
@@ -1110,7 +1164,7 @@ const submitApproval = async () => {
         });
     }
     if(currentAction.value === VoucherOperateType.UN_AUDITED){
-      // 反审核业务
+      // 反审核
       unAuditedVoucher(form.value)
         .then(response => {
           ElMessage.success("反审核成功")
@@ -1122,7 +1176,7 @@ const submitApproval = async () => {
         });
     }
     if(currentAction.value === VoucherOperateType.POSTED){
-      // 过账业务
+      // 过账
       postedVoucher(form.value)
         .then(response => {
           ElMessage.success("过账成功")
@@ -1134,7 +1188,7 @@ const submitApproval = async () => {
         });
     }
     if(currentAction.value === VoucherOperateType.UN_POSTED){
-      // 反过账业务
+      // 反过账
       unPostedVoucher(form.value)
         .then(response => {
           ElMessage.success("反过账成功")
@@ -1146,7 +1200,7 @@ const submitApproval = async () => {
         });
     }
     if(currentAction.value === VoucherOperateType.VOIDED){
-      // 作废业务
+      // 作废
       voidedVoucher(form.value)
         .then(response => {
           ElMessage.success("作废成功")
@@ -1164,6 +1218,7 @@ const submitApproval = async () => {
   } finally {
     // 关闭对话框和加载状态
     dialogVisible.value = false;
+    insertStatus.value = false;
   }
 
 
@@ -1198,6 +1253,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
+  insertStatus.value = true;
   title.value = "添加会计凭证";
 }
 
@@ -1213,7 +1269,7 @@ function handleUpdate(row) {
       form.value.operateLog = JSON.parse(form.value.operateLog);
     }
     open.value = true;
-    title.value = "修改会计凭证";
+    title.value = "编辑会计凭证";
   });
 }
 
@@ -1238,16 +1294,6 @@ function submitForm() {
   });
 }
 
-/** 删除按钮操作 */
-function handleDelete(row) {
-  const _voucherIds = row.voucherId || ids.value;
-  proxy.$modal.confirm('是否确认删除会计凭证编号为"' + _voucherIds + '"的数据项？').then(function() {
-    return delVoucher(_voucherIds);
-  }).then(() => {
-    getList();
-    proxy.$modal.msgSuccess("删除成功");
-  }).catch(() => {});
-}
 
 /** 导出按钮操作 */
 function handleExport() {

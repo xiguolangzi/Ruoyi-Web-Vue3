@@ -95,6 +95,11 @@
           <span>{{ scope.row.totalAmount }} €</span>
         </template>
       </el-table-column>
+      <el-table-column label="订单总数量" align="center" prop="totalNumber" >
+        <template #default="scope">
+          <span>{{ scope.row.totalNumber }} </span>
+        </template>
+      </el-table-column>
       <el-table-column label="订单状态" align="center" prop="orderStatus" >
         <template #default="scope">
           <span>{{ orderStatusFormat(scope.row.orderStatus) }}</span>
@@ -182,7 +187,7 @@
               <span>{{ scope.row.dish?.price }} €</span>
             </template>
           </el-table-column>
-          <el-table-column label="单价" align="center" prop="dishPrice" width="130">
+          <el-table-column label="单价" align="center" prop="dishPrice" width="150">
             <template #default="scope">
               <el-input-number v-model="scope.row.dishPrice" placeholder="请输入单价" style="width: 100%;" @change="calculateAmount(scope.$index)" />
             </template>
@@ -204,6 +209,10 @@
           <strong>
             <span style="color: #999;">合计金额：</span>
             <span style="color: #f56c6c;">{{ form.totalAmount }} €</span>
+          </strong>
+          <strong style="margin-left: 20px; margin-right: 20px;">
+            <span style="color: #999;">合计数量：</span>
+            <span style="color: #f56c6c;">{{ form.totalNumber }} </span>
           </strong>
           <el-button type="primary" @click="submitForm" style="margin-left: 30px;">确 定</el-button>
           <el-button @click="cancel">取 消</el-button>
@@ -250,6 +259,7 @@ const calculateAmount = (index) => {
 /** 计算总金额 */
 const calculateTotalAmount = () => {
   form.value.totalAmount = tbDishOrderDetailList.value.reduce((sum, detail) => sum + detail.amount, 0);
+  form.value.totalNumber = tbDishOrderDetailList.value.reduce((sum, detail) => sum + detail.dishNo, 0);
 }
 
 const { proxy } = getCurrentInstance();
@@ -270,7 +280,7 @@ const data = reactive({
   form: {},
   queryParams: {
     pageNum: 1,
-    pageSize: 10,
+    pageSize: 50,
     userName: null,
     userType: null,
     userAdress: null,
@@ -309,6 +319,7 @@ function reset() {
     orderNo: null,
     orderTime: null,
     totalAmount: null,
+    totalNumber: null,
     orderStatus:0
   };
   tbDishOrderDetailList.value = [];

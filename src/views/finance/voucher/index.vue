@@ -249,7 +249,7 @@
         <el-table-column label="科目名称" prop="accountId" align="center" min-width="150px" show-overflow-tooltip>
           <template #default="scope">
             <el-tree-select v-model="scope.row.accountId" :data="accountTree" :props="treeProps" value-key="accountId"
-              placeholder="请选择科目" style="width: 100%;" @node-click="(data) => handleAccountChange(scope.row, data)"
+              placeholder="请选择科目" style="width: 100%;" @node-click="(data) => handleAccountChange(scope.row, data)" filterable
               :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT">
             </el-tree-select>
           </template>

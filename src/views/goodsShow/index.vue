@@ -106,8 +106,12 @@
       <template #footer>
         <div class="dialog-footer">
           <strong>
-            <span style="color: #999;">合计金额：</span>
+            <span style="color: #999;">总金额： </span>
             <span style="color: #f56c6c;">{{ form.totalAmount }} €</span>
+          </strong>
+          <strong style="margin-left: 20px; margin-right: 20px;">
+            <span style="color: #999;"> 总数量：</span>
+            <span style="color: #f56c6c;">{{ form.totalNumber }} </span>
           </strong>
           <el-button type="primary" @click="submitForm" style="margin-left: 30px;">确认下单</el-button>
           <el-button @click="cancel">取 消</el-button>
@@ -132,9 +136,14 @@
         <el-table-column label="联系名称" align="center" prop="userName" />
         <el-table-column label="联系方式" align="center" prop="userType" />
         <el-table-column label="备注信息" align="center" prop="userAdress"  show-overflow-tooltip/>
-        <el-table-column label="订单总金额" align="center" prop="totalAmount" >
+        <el-table-column label="总金额" align="center" prop="totalAmount" >
           <template #default="scope">
             <span>{{ scope.row.totalAmount }} €</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="总数量" align="center" prop="totalNumber" >
+          <template #default="scope">
+            <span>{{ scope.row.totalNumber }} </span>
           </template>
         </el-table-column>
         <el-table-column label="订单状态" align="center" prop="orderStatus" >
@@ -178,9 +187,15 @@
               </strong>
             </div>
             <div>
-              <span >合计金额：</span>
+              <span >总金额：</span>
               <strong>
                 <span style="color: #f56c6c;">{{ form2.totalAmount }} €</span>
+              </strong>
+            </div>
+            <div>
+              <span >总数量：</span>
+              <strong>
+                <span style="color: #f56c6c;">{{ form2.totalNumber }} </span>
               </strong>
             </div>
           </div>
@@ -352,6 +367,7 @@ const totalNumber = computed(() => {
 /** 计算总金额 */
 const calculateTotalAmount = () => {
   form.value.totalAmount = tbDishOrderDetailList.value.reduce((sum, detail) => sum + detail.amount, 0);
+  form.value.totalNumber = tbDishOrderDetailList.value.reduce((sum, detail) => sum + detail.dishNo, 0);
   /** 将购物车加入缓存 */
   setCache()
 }
@@ -394,12 +410,6 @@ const init = () => {
   if (formData) {
     form.value = JSON.parse(formData);
   }
-
-  // const dishListData = localStorage.getItem('dishList');
-  // if(dishListData){
-  //   dishList.value = JSON.parse(dishListData);
-  // }
-
   
 }
 
@@ -439,6 +449,7 @@ const data = reactive({
     orderNo: null,
     orderTime: null,
     totalAmount: null,
+    totalNumber: null,
     tbDishOrderDetailList: []
   },
   queryParams: {

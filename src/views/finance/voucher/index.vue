@@ -498,24 +498,6 @@ const  AssistTypeEnum = {
   ASSIST_TYPE_EMPLOYEE: '3'
 }
 
-// // 订单状态颜色
-// const VoucherStatusColor = {
-//   '1':'info',
-//   '2':'warning',
-//   '3':'primary',
-//   '4':'success',
-//   '5':'danger'
-// }
-
-// // 订单状态描述
-// const VoucherStatusName = {
-//   '1':'草稿',
-//   '2':'待审核',
-//   '3':'已审核',
-//   '4':'已过帐',
-//   '5':'已作废',
-// }
-
 const data = reactive({
   form: {voucherDetailList: []},
   queryParams: {
@@ -575,14 +557,14 @@ const accountList = ref([])
 const accountTree = ref([])
 /** 会计科目 - 获取列表 */
 const getAccountList = async () => {
-    listAccount()
-      .then(response => {
-        accountTree.value = proxy.handleTree(response.data, "accountId", "parentId") || [];
-        accountList.value = response.data || [];
-      })
-      .catch(error => {
-        ElMessage.error("获取会计科目列表时出错:",error)
-      })
+  listAccount()
+    .then(response => {
+      accountTree.value = proxy.handleTree(response.data, "accountId", "parentId") || [];
+      accountList.value = response.data || [];
+    })
+    .catch(error => {
+      ElMessage.error("获取会计科目列表时出错:",error)
+    })
 };
 
 /** el-tree-select 配置 */ 
@@ -1121,6 +1103,7 @@ const submitApproval = async () => {
               getList();
             })
             .catch(error => {
+              form.value.voucherStatus = VoucherStatusEnum.VOUCHER_STATUS_DRAFT;
               handleError(error.message);
             });
           } else {
@@ -1133,6 +1116,7 @@ const submitApproval = async () => {
               getList();
             })
             .catch(error => {
+              form.value.voucherStatus = VoucherStatusEnum.VOUCHER_STATUS_DRAFT;
               handleError(error.message);
             });
           }
@@ -1148,6 +1132,7 @@ const submitApproval = async () => {
           getList();
         })
         .catch(error => {
+          form.value.voucherStatus = VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED;
           handleError(error.message);
         });
     }
@@ -1160,6 +1145,7 @@ const submitApproval = async () => {
           getList();
         })
         .catch(error => {
+          form.value.voucherStatus = VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED;
           handleError(error.message);
         });
     }
@@ -1172,6 +1158,7 @@ const submitApproval = async () => {
           getList();
         })
         .catch(error => {
+          form.value.voucherStatus = VoucherStatusEnum.VOUCHER_STATUS_AUDITED;
           handleError(error.message);
         });
     }
@@ -1184,6 +1171,7 @@ const submitApproval = async () => {
           getList();
         })
         .catch(error => {
+          form.value.voucherStatus = VoucherStatusEnum.VOUCHER_STATUS_AUDITED;
           handleError(error.message);
         });
     }
@@ -1196,6 +1184,7 @@ const submitApproval = async () => {
           getList();
         })
         .catch(error => {
+          form.value.voucherStatus = VoucherStatusEnum.VOUCHER_STATUS_POSTED;
           handleError(error.message);
         });
     }
@@ -1208,6 +1197,7 @@ const submitApproval = async () => {
           getList();
         })
         .catch(error => {
+          form.value.voucherStatus = VoucherStatusEnum.VOUCHER_STATUS_DRAFT;
           handleError(error.message);
         });
     }
@@ -1270,27 +1260,6 @@ function handleUpdate(row) {
     }
     open.value = true;
     title.value = "编辑会计凭证";
-  });
-}
-
-/** 提交按钮 */
-function submitForm() {
-  proxy.$refs["voucherRef"].validate(valid => {
-    if (valid) {
-      if (form.value.voucherId != null) {
-        updateVoucher(form.value).then(response => {
-          proxy.$modal.msgSuccess("修改成功");
-          open.value = false;
-          getList();
-        });
-      } else {
-        addVoucher(form.value).then(response => {
-          proxy.$modal.msgSuccess("新增成功");
-          open.value = false;
-          getList();
-        });
-      }
-    }
   });
 }
 

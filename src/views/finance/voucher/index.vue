@@ -3,12 +3,12 @@
     <!-- 过滤条件 -->
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="会计年度" prop="periodYear">
-        <el-select v-model="queryParams.periodYear" placeholder="请选择会计年度" clearable>
+        <el-select v-model="queryParams.periodYear" placeholder="请选择会计年度" >
           <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="会计月份" prop="periodMonth">
-        <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份" clearable>
+        <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份" >
           <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
@@ -16,10 +16,6 @@
         <el-select v-model="queryParams.voucherType" placeholder="请选择凭证类型" clearable>
           <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
-      </el-form-item>
-      <el-form-item label="凭证编号" prop="voucherNo">
-        <el-input v-model="queryParams.voucherNo" placeholder="请输入凭证编号" clearable @keyup.enter="handleQuery"
-          style="width: 150px;" />
       </el-form-item>
       <el-form-item label="凭证状态" prop="voucherStatus">
         <el-select v-model="queryParams.voucherStatus" placeholder="请选择凭证状态" clearable>
@@ -103,8 +99,8 @@
     </el-table>
 
     <!-- 分页控件 -->
-    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-      @pagination="getList" />
+    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
+
 
     <!-- 添加或修改会计凭证对话框 -->
     <el-dialog v-model="open" width="61.8%" :show-close="false" :close-on-click-modal="false">
@@ -119,13 +115,13 @@
             <el-button-group class="mr-4">
               <!-- 草稿状态 -->
               <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
-                @click="handleSave" :loading="loading"
+                @click="handleSave" :loading="loading" :disabled="isInDisabledTypes"
                 v-hasPermi="['finance:voucher:edit']"
               >
                 保存
               </el-button>
               <el-button type="danger" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT && insertStatus == false"
-                @click="handleVoided" :loading="loading"
+                @click="handleVoided" :loading="loading" :disabled="isInDisabledTypes"
                 v-hasPermi="['finance:voucher:edit']"
               >
                 作废
@@ -133,13 +129,13 @@
 
               <!-- 待审核状态 -->
                <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED"
-                @click="handleAudited" :loading="loading" 
+                @click="handleAudited" :loading="loading" :disabled="isInDisabledTypes"
                 v-hasPermi="['finance:voucher:audited']"
               >
                 审核
               </el-button>
               <el-button type="warning" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED"
-                @click="handleContinueEdit" :loading="loading"
+                @click="handleContinueEdit" :loading="loading" :disabled="isInDisabledTypes"
                 v-hasPermi="['finance:voucher:edit']"
               >
                 继续编辑
@@ -147,13 +143,13 @@
 
               <!-- 审核状态 -->
               <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_AUDITED"
-                @click="handlePosted" :loading="loading"
+                @click="handlePosted" :loading="loading" :disabled="isInDisabledTypes"
                 v-hasPermi="['finance:voucher:posted']"
               >
                 过账
               </el-button>
               <el-button type="warning" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_AUDITED"
-                @click="handleUnAudited" :loading="loading"
+                @click="handleUnAudited" :loading="loading" :disabled="isInDisabledTypes"
                 v-hasPermi="['finance:voucher:audited']"
               >
                 反审核
@@ -161,7 +157,7 @@
 
               <!-- 已过帐状态 -->
               <el-button type="success" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_POSTED"
-                @click="handleUnPosted" :loading="loading"
+                @click="handleUnPosted" :loading="loading" :disabled="isInDisabledTypes"
                 v-hasPermi="['finance:voucher:posted']"
               >
                 反过账
@@ -205,7 +201,7 @@
             <el-form-item label="凭证类型" prop="voucherType">
               <el-select v-model="form.voucherType" placeholder="凭证类型" clearable style="width: 100%">
                 <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label"
-                  :value="dict.value"></el-option>
+                  :value="dict.value" :disabled="isDisabledSelectType(dict.value)" ></el-option>
               </el-select>
             </el-form-item>
           </el-col>
@@ -410,7 +406,7 @@ import { listVoucher, getVoucher, delVoucher, addVoucher, updateVoucher, audited
 import useUserStore from "@/store/modules/user";
 import { listAccount } from "@/api/finance/account";
 import { ElMessage } from "element-plus";
-import { nextTick, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 import { listSupplier} from "@/api/order/supplier";
 import { listCustomer} from "@/api/order/customer";
 import { listUser } from "@/api/system/user";
@@ -455,6 +451,32 @@ const insertStatus = ref(false);
 // 初始化借贷方合计金额
 let totalDebitAmount = 0;
 let totalCreditAmount = 0;
+
+/** 凭证类型 */
+const VoucherTypeEnum = {
+  // 记账凭证
+  VOUCHER_TYPE_ACCOUNTING: '1',
+  // 收款凭证
+  VOUCHER_TYPE_RECEIVABLE: '2',
+  // 付款凭证
+  VOUCHER_TYPE_PAYABLE: '3',
+  // 转账
+  VOUCHER_TYPE_TRANSFER: '4',
+  // 存现
+  VOUCHER_TYPE_CASH: '5',
+  // 采购凭证
+  VOUCHER_TYPE_PURCHASE: '6'
+}
+
+// 禁止编辑的类型
+const disabledType = [VoucherTypeEnum.VOUCHER_TYPE_PURCHASE];
+// 禁止编辑的状态
+const isInDisabledTypes = computed(() => disabledType.includes(form.value.voucherType))
+
+/** 判断禁止选择的凭证类型 */
+const isDisabledSelectType = (value) => {
+  return disabledType.includes(value);
+}
 
 /** 凭证状态 */ 
 const VoucherStatusEnum = {
@@ -504,8 +526,8 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     voucherType: null,
-    periodYear: null,
-    periodMonth: null,
+    periodYear: new Date().getFullYear(),
+    periodMonth: (new Date().getMonth() + 1).toString().padStart(2, '0'),
     voucherNo: null,
     voucherStatus: null,
     operatorId: null,
@@ -528,8 +550,8 @@ function reset() {
   form.value = {
     voucherId: null,
     voucherType: null,
-    periodYear: 2024,
-    periodMonth: 12,
+    periodYear: new Date().getFullYear(),
+    periodMonth: (new Date().getMonth() + 1).toString().padStart(2, '0'),
     voucherDate: new Date(),
     voucherNo: null,
     totalAmount: null,
@@ -937,6 +959,7 @@ const handleUnPosted = () => {
 
 const handlePrintVoucher = () => {
   console.log('打印凭证--当前的form值:', form.value)
+  console.log("禁止编辑的状态 = ",isInDisabledTypes.value)
 }
 
 const handleExportVoucher = () => {

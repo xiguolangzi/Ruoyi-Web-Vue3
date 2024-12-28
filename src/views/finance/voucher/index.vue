@@ -256,7 +256,12 @@
               placeholder="借方金额" :max='99999999' :min='0' :precision='2' :step='0' :controls="false"
               @change="calculateTotalAmount" style="width: 100%;" @focus="handleFocus(scope.$index, 'debitAmount')"
               @click="handleFocus(scope.$index, 'debitAmount')"
-              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
+              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" 
+            >
+              <template #suffix>
+                <span>€</span>
+              </template>
+            </el-input-number>
           </template>
         </el-table-column>
         <el-table-column label="贷方金额" prop="creditAmount" align="center">
@@ -264,19 +269,24 @@
             <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'creditAmount')" v-model="scope.row.creditAmount"
               placeholder="贷方金额" :max='99999999' :min='0' :precision='2' :step='0' :controls="false"
               @change="calculateTotalAmount" style="width: 100%;" @focus="handleFocus(scope.$index, 'creditAmount')" @click="handleFocus(scope.$index, 'creditAmount')"
-              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
+              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" 
+            >
+              <template #suffix>
+                <span>€</span>
+              </template>
+            </el-input-number>
           </template>
         </el-table-column>
         
         <el-table-column label="辅助项" prop="assistType" align="center" min-width="50" show-overflow-tooltip>
           <template #default="scope">
-            <dict-tag :options="finance_assist_type" :value="scope.row.assistType" />
+            <dict-tag :options="finance_assist_type" :value="scope.row.assistType" :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
           </template>
         </el-table-column>
         <el-table-column label="辅助值" prop="assistName" align="center" min-width="50" show-overflow-tooltip>
           <template #default="scope">
-            <span class="link-type" @click="openSetAssistDialog(scope.row)">
-              {{ scope.row.assistName }}
+            <span class="link-type" @click="openSetAssistDialog(scope.row)" >
+              {{ getAssistNameById(scope.row) }}
             </span>
           </template>
         </el-table-column>
@@ -402,7 +412,7 @@
 </template>
 
 <script setup name="Voucher">
-import { listVoucher, getVoucher, delVoucher, addVoucher, updateVoucher, auditedVoucher, unAuditedVoucher, postedVoucher, unPostedVoucher, voidedVoucher } from "@/api/finance/voucher";
+import { listVoucher, getVoucher, delVoucher, addVoucher, updateVoucher, auditedVoucher, unAuditedVoucher, postedVoucher, unPostedVoucher, voidedVoucher , continueEditVoucher} from "@/api/finance/voucher";
 import useUserStore from "@/store/modules/user";
 import { listAccount } from "@/api/finance/account";
 import { ElMessage } from "element-plus";
@@ -410,6 +420,9 @@ import { computed, nextTick, ref } from "vue";
 import { listSupplier} from "@/api/order/supplier";
 import { listCustomer} from "@/api/order/customer";
 import { listUser } from "@/api/system/user";
+
+// 租户ID字段过滤使用
+const userStore = useUserStore();
 
 // ------------------------------------ 输入框聚焦选中 start ------------------------------------
 const inputRefs = ref({}); // 使用对象存储各列引用
@@ -430,9 +443,6 @@ const handleFocus = (rowIndex, column) => {
 };
 
 // ------------------------------------ 输入框聚焦选中 end ------------------------------------
-
-// 租户ID字段过滤使用
-const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
 const { finance_period_year, finance_period_month, finance_voucher_type, finance_voucher_status, finance_assist_type } = proxy.useDict('finance_period_year', 'finance_period_month', 'finance_voucher_type', 'finance_voucher_status', 'finance_assist_type');
@@ -661,6 +671,10 @@ const initRowData = (row) => {
 
 /** 编辑 回显辅助项 */
 const openSetAssistDialog = (row) => {
+  if(form.value.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT){
+    return ElMessage.warning("非草稿状态不允许修改!");
+  }
+
   currentRow.value = row; // 记录当前行
   console.log("回显的行数据：",row)
   const account3 = accountList.value.find(account => account.accountId == row.accountId)
@@ -675,13 +689,70 @@ const openSetAssistDialog = (row) => {
 
 }
 
-// ----------------- 3 设置 辅助项类型：供应商 客户 员工
-// 设置展示字段名
-const assistTypeLabel = ref("辅助项内容")
-// 辅助项类型
+// 辅助项数据列表
 const supplierList = ref([])  // 1 供应商
 const customerList = ref([])  // 2 客户
 const userList = ref([])      // 3 员工 
+// 辅助项数据映射
+const customerMap = ref({});
+const supplierMap = ref({});
+const userMap = ref({});
+// 通用的列表映射函数
+const generateMap = (list, key, name) => {
+  return list.reduce((map, item) => {
+    map[item[key]] = item[name];
+    return map;
+  }, {});
+};
+// 自动更新映射表的函数
+const updateMaps = () => {
+  customerMap.value = generateMap(customerList.value, 'customerId', 'customerName');
+  supplierMap.value = generateMap(supplierList.value, 'supplierId', 'supplierName');
+  userMap.value = generateMap(userList.value, 'userId', 'userName');
+};
+// 初始化列表和映射表
+const initLists = async () => {
+  try {
+    // 并行调用接口
+    const [customerResponse, supplierResponse, userResponse] = await Promise.all([
+      listCustomer(),
+      listSupplier(),
+      listUser()
+    ]);
+
+    // 更新列表
+    customerList.value = customerResponse.rows;
+    supplierList.value = supplierResponse.rows;
+    userList.value = userResponse.rows;
+
+    // 更新映射表
+    updateMaps();
+  } catch (error) {
+    console.error('初始化列表时发生错误:', error);
+  }
+};
+
+// 获取辅助名称的函数
+const getAssistNameById = (row) => {
+  if (row.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER) {
+    return customerMap.value[row.assistId] || '';
+  }
+  if (row.assistType == AssistTypeEnum.ASSIST_TYPE_SUPPLIER) {
+    return supplierMap.value[row.assistId] || '';
+  }
+  if (row.assistType == AssistTypeEnum.ASSIST_TYPE_EMPLOYEE) {
+    return userMap.value[row.assistId] || '';
+  }
+  return '';
+};
+
+// 组件加载时初始化
+initLists();
+
+// ----------------- 3 设置 辅助项类型：供应商 客户 员工
+// 设置展示字段名
+const assistTypeLabel = ref("辅助项内容")
+
 /** 获取当前辅助项类型对应内容的列表 */
 const getAssistValueList = () =>{
   // 切换辅助项类型 -> 重置 辅助项值
@@ -733,24 +804,17 @@ const getAssistValueList = () =>{
 
 // ----------------- 4 选择辅助项并赋值 : 供应商 客户 员工
 // 选中的辅助项内容 -> name 
-const selectedSupplierValue = ref(null)   // 1 供应商
-const selectedCustomerValue = ref(null)   // 2 客户
-const selectedUserValue = ref(null)       // 3 员工
 const setAssistForm = () => {
   if(assistForm.value.assistType === AssistTypeEnum.ASSIST_TYPE_SUPPLIER){
-    selectedSupplierValue.value = supplierList.value.find(item => item.supplierId == assistForm.value.assistId)
-    assistForm.value.assistName = selectedSupplierValue.value.supplierName
+    assistForm.value.assistName = supplierMap.value[assistForm.value.assistId] || '' ;
     console.log("选择的供应商：",assistForm.value)
   } else if (assistForm.value.assistType === AssistTypeEnum.ASSIST_TYPE_CUSTOMER){
-    selectedCustomerValue.value = customerList.value.find(item => item.customerId == assistForm.value.assistId)
-    assistForm.value.assistName = selectedCustomerValue.value.customerName
+    assistForm.value.assistName = customerMap.value[assistForm.value.assistId] || '' ; 
     console.log("选择的客户：",assistForm.value)
   } else if (assistForm.value.assistType === AssistTypeEnum.ASSIST_TYPE_EMPLOYEE){
-    selectedUserValue.value = userList.value.find(item => item.userId == assistForm.value.assistId)
-    assistForm.value.assistName = selectedUserValue.value.userName
+    assistForm.value.assistName = userMap.value[assistForm.value.assistId] || '' ;
     console.log("选择的员工：",assistForm.value)
   }
-  
 }
 
 
@@ -1148,7 +1212,7 @@ const submitApproval = async () => {
     }
     if(currentAction.value === VoucherOperateType.CONTINUE_EDIT){
       // 继续编辑
-      auditedVoucher(form.value)
+      continueEditVoucher(form.value)
         .then(response => {
           ElMessage.success("继续编辑凭证成功")
           parseJson();

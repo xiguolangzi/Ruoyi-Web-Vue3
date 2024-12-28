@@ -43,6 +43,15 @@ export function delVoucher(voucherId) {
   })
 }
 
+/** 继续编辑凭证 */
+export function continueEditVoucher(data) {
+  return request({
+    url: '/finance/voucher/continueEdit',
+    method: 'put',
+    data: data
+  })
+}
+
 /** 审核凭证 */
 export function auditedVoucher(data) {
   return request({

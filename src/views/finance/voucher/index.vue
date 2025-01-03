@@ -58,7 +58,7 @@
           <dict-tag :options="finance_period_month" :value="scope.row.periodMonth" />
         </template>
       </el-table-column>
-      <el-table-column label="凭证编号" align="center" prop="voucherNo" min-width="150">
+      <el-table-column label="凭证编号" align="center" prop="voucherNo" min-width="100">
         <template #default="scope">
           <span class="link-type" @click="handleUpdate(scope.row)">{{ scope.row.voucherNo }}</span>
         </template>
@@ -73,7 +73,7 @@
           <span>{{ parseTime(scope.row.voucherDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="总金额" align="center" prop="totalAmount">
+      <el-table-column label="总金额" align="center" prop="totalAmount" min-width="100">
         <template #default="scope">
           <span>{{ formatTwo(scope.row.totalAmount) }} € </span>
         </template>
@@ -83,6 +83,7 @@
           <dict-tag :options="finance_voucher_status" :value="scope.row.voucherStatus" />
         </template>
       </el-table-column>
+      <el-table-column label="凭证备注" align="center" prop="remark" min-width="150" show-overflow-tooltip />
       <el-table-column label="制单人" align="center" prop="createBy" show-overflow-tooltip />
       <el-table-column label="制单时间" align="center" prop="createTime" show-overflow-tooltip>
         <template #default="scope">
@@ -95,7 +96,7 @@
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="凭证备注" align="center" prop="remark" show-overflow-tooltip />
+      
     </el-table>
 
     <!-- 分页控件 -->
@@ -475,11 +476,17 @@ const VoucherTypeEnum = {
   // 存现
   VOUCHER_TYPE_CASH: '5',
   // 采购凭证
-  VOUCHER_TYPE_PURCHASE: '6'
+  VOUCHER_TYPE_PURCHASE: '6',
+  // 日记账凭证
+  VOUCHER_TYPE_FUND_FLOW: '7',
+  // 销售凭证
+  VOUCHER_TYPE_SALES: '8',
+  // 费用凭证
+  VOUCHER_TYPE_COST: '9',
 }
 
 // 禁止编辑的类型
-const disabledType = [VoucherTypeEnum.VOUCHER_TYPE_PURCHASE];
+const disabledType = [ VoucherTypeEnum.VOUCHER_TYPE_PURCHASE, VoucherTypeEnum.VOUCHER_TYPE_FUND_FLOW, VoucherTypeEnum.VOUCHER_TYPE_SALES, VoucherTypeEnum.VOUCHER_TYPE_COST];
 // 禁止编辑的状态
 const isInDisabledTypes = computed(() => disabledType.includes(form.value.voucherType))
 

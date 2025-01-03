@@ -296,10 +296,12 @@
         <el-form-item label="备注描述:" prop="remark" >
           <el-input v-model="form.remark" type="textarea" maxlength="50" show-word-limit :rows="1"  placeholder="请输入备注描述信息" />
         </el-form-item>
+        
         <el-divider content-position="left">
           <strong style="margin-right: 30px;"> 对方发生额明细 </strong>
         </el-divider>
-        <el-row :gutter="10" class="mb8">
+
+        <el-row :gutter="10" class="mb8" >
           <el-col :span="1.5">
             <el-button type="primary" icon="Plus" @click="handleAddFundFlowDetail">添加</el-button>
           </el-col>
@@ -307,6 +309,7 @@
             <el-button type="danger" icon="Delete" @click="handleDeleteFundFlowDetail">删除</el-button>
           </el-col>
         </el-row>
+
         <el-table :data="form.fundFlowDetailList" 
           :row-class-name="rowFundFlowDetailIndex" 
           @selection-change="handleFundFlowDetailSelectionChange" 
@@ -424,6 +427,7 @@
             </template>
           </el-table-column>
         </el-table>
+
       </el-form>
 
       <!-- 订单操作记录 -->
@@ -457,14 +461,13 @@
         <span v-if="actionRequiresNoRemark.includes(currentAction)"> 您确认要 {{ dialogTitle }} 吗？</span>
         <template #footer>
           <span class="dialog-footer">
-            <el-button @click="dialogVisible = false">取消</el-button>
+            <el-button @click="dialogVisible = false ">取消</el-button>
             <el-button type="primary" @click="submitApproval">
               确认
             </el-button>
           </span>
         </template>
       </el-dialog>
-
 
     </el-dialog>
   </div>
@@ -480,7 +483,7 @@ import { ElMessage } from "element-plus";
 import { listSupplier} from "@/api/order/supplier";
 import { listCustomer} from "@/api/order/customer";
 import { listUser } from "@/api/system/user";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 
 
 // 租户ID字段过滤使用
@@ -500,6 +503,17 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const insertStatus = ref(false);
+
+const FlowTypeEnum = {
+  // 收款
+  FLOW_TYPE_INCOME: '1',
+  // 付款
+  FLOW_TYPE_EXPENDITURE: '2',
+  // 内部转账
+  FLOW_TYPE_INTERNAL_TRANSFER: '3',
+  // 发票存现
+  FLOW_TYPE_INVOICE_CASH: '4',
+}
 
 // ------------------------------------------ 1 获取资金账户 start -----------------------------------
 const fundAccountList = ref([])
@@ -870,7 +884,7 @@ function reset() {
     operateLog: null,
     fundFlowDetailList: [],
   };
-  
+  orderOperateLog.value = [];
   proxy.resetForm("fundFlowRef");
 }
 
@@ -1014,6 +1028,11 @@ const handleSave = () => {
       proxy.$modal.msgError("请添加明细内容！")
       return;
     }
+    // 2.1 维护摘要信息
+    form.value.fundFlowDetailList.forEach(item => {
+      item.summary = item.summary ? item.summary : form.value.remark;
+    });
+
     // 3 检查试算平衡
     const totalDetailAmount = form.value.fundFlowDetailList.reduce((total, item) => total + item.detailAmount, 0);
     if(form.value.flowAmount !== totalDetailAmount){
@@ -1075,6 +1094,21 @@ const handleAudited = () => {
 
 const handleUnAudited = () => {
   openApprovalDialog('反审核日记账', FundFlowOperateType.UN_AUDITED)
+}
+
+const handleRemove = () => {
+  proxy.$modal.confirm('是否确认删除现金银行日记账的数据项?').then(function() {
+    return delFundFlow(form.value.flowId);
+  }).then(() => {
+    getList();
+    proxy.$modal.msgSuccess("删除成功");
+    // 关闭对话框和加载状态
+    open.value = false;
+    dialogVisible.value = false;
+    insertStatus.value = false;
+  }).catch(() => {
+  });
+
 }
 
 // ******************** 操作弹窗 *********
@@ -1210,6 +1244,7 @@ const submitApproval = async () => {
 
   // 4 业务处理
   try{
+    loading.value = true;
     if( currentAction.value === FundFlowOperateType.SAVE) {
       proxy.$refs["fundFlowRef"].validate(valid => {
         if (valid) {
@@ -1289,6 +1324,7 @@ const submitApproval = async () => {
     // 关闭对话框和加载状态
     dialogVisible.value = false;
     insertStatus.value = false;
+    loading.value = false;
   }
 }
 

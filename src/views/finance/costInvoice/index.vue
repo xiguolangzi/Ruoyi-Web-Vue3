@@ -1,8 +1,29 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="辅助类型" prop="assistType">
-        <el-select v-model="queryParams.assistType" placeholder="请选择客户类型" :disabled="form.invoiceType == InvoiceTypeEnum.INVOICE_TYPE_PURCHASE" @keyup.enter="handleQuery">
+      <el-form-item label="发票类型:" prop="invoiceType">
+        <el-select v-model="queryParams.invoiceType" placeholder="请选择发票类型" clearable>
+          <el-option
+            v-for="dict in erp_purchase_invoice_type"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="发票状态:" prop="invoiceStatus">
+        <el-select v-model="queryParams.invoiceStatus" placeholder="请选择发票状态" clearable>
+          <el-option
+            v-for="dict in erp_purchase_invoice_status"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      
+      <el-form-item label="辅助类型:" prop="assistType">
+        <el-select v-model="queryParams.assistType" placeholder="请选择客户类型"  @keyup.enter="handleQuery" @change="changeQueryParamsAssistType" clearable>
           <el-option
             v-for="dict in finance_assist_type"
             :key="dict.value"
@@ -53,57 +74,15 @@
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="发票号码" prop="invoiceNo">
+      <el-form-item label="发票/订单 号:" prop="invoiceNo">
         <el-input
-          v-model="queryParams.invoiceNo"
-          placeholder="请输入发票号码"
+          v-model.trim="queryParams.invoiceNo"
+          placeholder="请输入 发票/订单 号码"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="单据号码" prop="orderNo">
-        <el-input
-          v-model="queryParams.orderNo"
-          placeholder="请输入订单号码"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="发票状态" prop="invoiceStatus">
-        <el-select v-model="queryParams.invoiceStatus" placeholder="请选择发票状态" clearable>
-          <el-option
-            v-for="dict in erp_purchase_invoice_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="发票类型" prop="invoiceType">
-        <el-select v-model="queryParams.invoiceType" placeholder="请选择发票类型" clearable>
-          <el-option
-            v-for="dict in erp_purchase_invoice_type"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="发票时间区间" prop="invoiceType">
-        <el-select v-model="queryParams.invoiceType" placeholder="请选择发票类型" clearable>
-          <el-option
-            v-for="dict in erp_purchase_invoice_type"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item style="margin-left: 20px;">
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button type="warning" icon="Refresh" @click="resetQuery">重置</el-button>
-        <el-button type="danger" icon="Search" @click="resetQuery">搜索逾期未付</el-button>
-      </el-form-item>
+      
     </el-form>
 
     <el-row :gutter="10" class="mb8">
@@ -145,6 +124,18 @@
           v-hasPermi="['finance:costInvoice:export']"
         >导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button type="primary" icon="Search" @click="handleQuery" style="margin-left: 50px;">搜索</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="warning" icon="Refresh" @click="resetQuery">重置</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="danger" icon="Search" @click="resetQuery">搜索逾期未付</el-button>
+      </el-col>
+      
+        
+        
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -415,12 +406,12 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <el-form-item label="发票编号:" prop="invoiceNo">
-              <el-input v-model="form.invoiceNo" placeholder="请输入发票号码" />
+              <el-input v-model.trim="form.invoiceNo" placeholder="请输入发票号码" />
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="订单编号:" prop="orderNo">
-              <el-input v-model="form.orderNo" placeholder="请输入单据号码(没有发票的单据号)" />
+              <el-input v-model.trim="form.orderNo" placeholder="请输入订单号码" />
             </el-form-item>
           </el-col>
           <el-col :span="6">
@@ -539,7 +530,7 @@
           <el-table-column label="折扣率" prop="discountRate" align="center" min-width="95">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'discountRate')" v-model="scope.row.discountRate"
-                placeholder="发生额" :max='100' :min='0' :precision='0' :step='0' :controls="false"
+                placeholder="发生额" :max='100' :min='0' :precision='1' :step='0' :controls="false"
                 @change="calculateNetAmount(scope.row)" style="width: 100%;" 
                 @focus="handleFocus2(scope.$index, 'discountRate')"
                 @click="handleFocus2(scope.$index, 'discountRate')"
@@ -555,7 +546,7 @@
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'discountAmount')" v-model="scope.row.discountAmount"
                 placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false"
-                @change="calculateNetAmount(scope.row)" style="width: 100%;" 
+                @change="calculateDiscountAmount(scope.row)" style="width: 100%;" 
                 @focus="handleFocus2(scope.$index, 'discountAmount')"
                 @click="handleFocus2(scope.$index, 'discountAmount')"
                 :class="scope.row.discountAmount < 0 ? 'negative-input' : ''"
@@ -584,8 +575,7 @@
           <el-table-column label="税额" prop="taxAmount" align="center" min-width="130">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'taxAmount')" v-model="scope.row.taxAmount"
-                placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false"
-                @change="calculateNetAmount(scope.row)" style="width: 100%;" 
+                placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false" style="width: 100%;" disabled
                 @focus="handleFocus2(scope.$index, 'taxAmount')"
                 @click="handleFocus2(scope.$index, 'taxAmount')"
                 :class="scope.row.taxAmount < 0 ? 'negative-input' : ''"
@@ -599,12 +589,12 @@
           <el-table-column label="实际总金额" prop="netAmount" align="center" min-width="130">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'netAmount')" v-model="scope.row.netAmount"
-                placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false"
+                placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false" disabled
                 @change="calculateNetAmount(scope.row)" style="width: 100%;" 
                 @focus="handleFocus2(scope.$index, 'netAmount')"
                 @click="handleFocus2(scope.$index, 'netAmount')"
                 :class="scope.row.netAmount < 0 ? 'negative-input' : ''"
-                disabled
+                
               >
                 <template #suffix>
                   <span>€</span>
@@ -768,6 +758,12 @@ const getSummaryRow = (param) => {
   return sums
 }
 
+/** 更新查询条件 辅助项类型 */
+const changeQueryParamsAssistType = () => {
+  queryParams.value.assistId = null ;
+}
+
+
 /** 查看发票详情 */
 const handleView = (row) =>{
   reset();
@@ -836,6 +832,25 @@ const calculateNetAmount = (row) => {
 
   calculateTotalAmount()
 }
+
+/** 折扣额反推折扣率计算 */
+const calculateDiscountAmount = (row) => {
+  // 反推折扣率
+  if (row.discountAmount && row.baseAmount) {
+    row.discountRate = (row.discountAmount * 100) / row.baseAmount
+  }
+
+  // 计算税额
+  if (row.taxRate && (row.baseAmount - row.discountAmount)) {
+    row.taxAmount = parseFloat(((row.baseAmount - row.discountAmount) * row.taxRate / 100).toFixed(2))
+  }
+
+  // 计算净额
+  row.netAmount = parseFloat((row.baseAmount - row.discountAmount + row.taxAmount).toFixed(2))
+
+  calculateTotalAmount()
+}
+
 
 /** 计算发票总额 */
 const calculateTotalAmount = () => {

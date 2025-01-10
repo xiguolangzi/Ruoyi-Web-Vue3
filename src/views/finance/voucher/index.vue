@@ -83,7 +83,7 @@
           <dict-tag :options="finance_voucher_status" :value="scope.row.voucherStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="凭证备注" align="center" prop="remark" min-width="150" show-overflow-tooltip />
+      <el-table-column label="凭证备注" align="left" header-align="center" prop="remark" min-width="150" show-overflow-tooltip />
       <el-table-column label="制单人" align="center" prop="createBy" show-overflow-tooltip />
       <el-table-column label="制单时间" align="center" prop="createTime" show-overflow-tooltip>
         <template #default="scope">

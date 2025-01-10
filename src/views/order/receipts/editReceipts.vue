@@ -1454,10 +1454,6 @@ const removeTouchEventListeners = () => {
 
 /** 组件挂载后初始化设置 */ 
 onMounted(() => {
-  // 组件挂载后设置初始焦点
-  // if (tableData.value.length > 0) {
-  //   moveFocus(0, 'quantity')
-  // }
   // 监听触屏滚动事件
   addTouchEventListeners();
 })
@@ -2254,6 +2250,11 @@ const getInfoById = () => {
 
 onMounted(() => {
   getInfoById()
+  addItem()
+  // 组件挂载后设置初始焦点
+  // if (tableData.value.length > 0) {
+  //   moveFocus(0, 'productCode')
+  // }
 });
 
 // ************************** 审核记录 + 提示弹窗 end ******************

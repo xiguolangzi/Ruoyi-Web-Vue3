@@ -206,6 +206,20 @@ export const dynamicRoutes = [
       }
     ]
   },
+  {
+    path: '/finance/accountsPayable',
+    component: Layout,
+    hidden: true,
+    permissions: ['finance:payableWriteOff:edit'],
+    children: [
+      {
+        path: '/finance/accountsPayable/payableWriteOffOperation',
+        component: () => import('@/views/finance/payableWriteOff/payableWriteOffOperation'),
+        name: 'payableWriteOffOperation',
+        meta: { title: '应付核销操作' }
+      }
+    ]
+  },
 
 ]
 

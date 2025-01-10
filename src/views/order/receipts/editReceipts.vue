@@ -39,7 +39,7 @@
 
               <!-- 已入库状态 -->
               <el-button type="success" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED" @click="handleInvoiced"  v-hasPermi="['order:receipts:invoiced']" >
-                生成发票
+                同步发票
               </el-button>
               <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED" @click="handleUnReceived"  v-hasPermi="['order:receipts:received']" >
                 反入库
@@ -47,7 +47,7 @@
 
               <!-- 生成发票 -->
               <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.INVOICED" @click="handleUnInvoiced"  v-hasPermi="['order:receipts:invoiced']" >
-                反生成发票
+                反同步发票
               </el-button>
 
             </el-button-group>
@@ -412,7 +412,7 @@ import { listContainers } from "@/api/transportation/containers";
 import { listLogisticsCompanies} from "@/api/order/logisticsCompanies";
 import { listWarehouse} from "@/api/product/warehouse";
 import { listPurchaseOrderByStatus, getPurchaseOrder} from "@/api/order/purchaseOrder";
-import { listPurchaseInvoice } from "@/api/order/purchaseInvoice";
+import { listCostInvoice } from "@/api/finance/costInvoice";
 
 
 const router = useRouter();
@@ -683,16 +683,20 @@ const calculateAmount = () => {
 // ****************************** 发票号 数据获取 start *****************************
 const purchaseInvoiceList = ref([]);
 
-// 获取仓库列表
+// 获取发票列表
 const getPurchaseInvoiceList = async (supplierId) => {
   // 定义发票状态: 草稿 未审核 已审核
   const invoiceStatuses = ['1', '2', '3'];
+  const invoiceType = '1';  // 采购发票
+  const assistType = '2';   // 辅助类型：供应商
 
   try {
     // 并行发起请求
     const requests = invoiceStatuses.map(status => 
-      listPurchaseInvoice({
-        supplierId: supplierId || null,
+      listCostInvoice({
+        assistType: assistType,
+        assistId: supplierId || null,
+        invoiceType: invoiceType,
         invoiceStatus: status
       })
     );
@@ -712,7 +716,7 @@ const getPurchaseInvoiceList = async (supplierId) => {
   }
 };
 
-// ****************************** 仓库 数据获取 end ******************************
+// ****************************** 发票号 数据获取 end ******************************
 
 
 
@@ -2072,7 +2076,10 @@ const submitApproval = async () => {
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("新增 入库单 操作失败"));
+          .catch(() => {
+            handleError("新增 入库单 操作失败");
+            form.value.receiptsStatus = OrderStatusEnum.EDIT
+          } );
       } else {
         // 修改操作
         await updateReceipts(form.value)
@@ -2082,7 +2089,10 @@ const submitApproval = async () => {
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("修改 入库单 操作失败"));
+          .catch(() => {
+            handleError("修改 入库单 操作失败")
+            form.value.receiptsStatus = OrderStatusEnum.EDIT
+          });
       }
     } else if (currentAction.value === OrderOperateType.EDIT) {
       // 编辑操作
@@ -2093,9 +2103,12 @@ const submitApproval = async () => {
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("编辑 入库单 操作失败"));
+          .catch(() => {
+            handleError("编辑 入库单 操作失败")
+            form.value.receiptsStatus = OrderStatusEnum.SAVE
+          });
     }else if (currentAction.value === OrderOperateType.SUBMIT) {
-      // 提交待入库操作
+      // 提交入库申请
       await updateReceiptsStatus(form.value)
         // 修改状态更新操作日志
           .then( () => {
@@ -2103,9 +2116,12 @@ const submitApproval = async () => {
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("提交入库申请 操作失败"));
+          .catch(() => {
+            handleError("提交入库申请 操作失败");
+            form.value.receiptsStatus = OrderStatusEnum.SAVE
+          });
     }else if (currentAction.value === OrderOperateType.REJECT) {
-      // 提交待入库操作
+      // 驳回入库申请
       await updateReceiptsStatus(form.value)
         // 修改状态更新操作日志
           .then( () => {
@@ -2113,7 +2129,10 @@ const submitApproval = async () => {
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("驳回入库申请 操作失败"));
+          .catch(() => {
+            handleError("驳回入库申请 操作失败");
+            form.value.receiptsStatus = OrderStatusEnum.SAVE
+          });
     }else if (currentAction.value === OrderOperateType.RECEIVED) {
       // 入库操作
       await received(form.value)
@@ -2126,7 +2145,10 @@ const submitApproval = async () => {
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("入库 操作失败"));
+          .catch(() => {
+            handleError("入库 操作失败");
+            form.value.receiptsStatus = OrderStatusEnum.WAIT_FOR_RECEIVED
+          });
     } else if (currentAction.value === OrderOperateType.UN_RECEIVED) {
       // 反入库操作
       await unReceived(form.value)
@@ -2136,7 +2158,10 @@ const submitApproval = async () => {
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("反入库 操作失败"));
+          .catch(() => {
+            handleError("反入库 操作失败");
+            form.value.receiptsStatus = OrderStatusEnum.RECEIVED
+          });
     }else if (currentAction.value === OrderOperateType.INVOICED) {
       // 生成发票操作
       await invoiced(form.value)
@@ -2146,7 +2171,10 @@ const submitApproval = async () => {
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("生成发票 操作失败"));
+          .catch(() => {
+            handleError("生成发票 操作失败");
+            form.value.receiptsStatus = OrderStatusEnum.WAIT_FOR_INVOICED
+          });
     } else if (currentAction.value === OrderOperateType.UN_INVOICED) {
       // 反生成发票操作
       await unInvoiced(form.value)
@@ -2156,7 +2184,10 @@ const submitApproval = async () => {
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
           })
-          .catch(() => handleError("反生成发票 操作失败"));
+          .catch(() => {
+            handleError("反生成发票 操作失败");
+            form.value.receiptsStatus = OrderStatusEnum.INVOICED
+          });
     }
   } catch (error) {
     console.log("API 调用异常: ", error);
@@ -2179,7 +2210,7 @@ const goBack = () => {
   // 关闭当前 tab
   proxy.$tab.closePage(view).then(() => {
     // 跳转页面
-    router.push({path: "/purchaseManage/purchaseOrder",});
+    router.push({path: "/purchaseManage/receipts",});
   })
   
 };

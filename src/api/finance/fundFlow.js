@@ -69,3 +69,12 @@ export function unAuditedFundFlow(data) {
     data: data
   })
 }
+
+/** 提交审核 */
+export function submitAuditFundFlow(data) {
+  return request({
+    url: '/finance/fundFlow/submitAudit',
+    method: 'put',
+    data: data
+  })
+}

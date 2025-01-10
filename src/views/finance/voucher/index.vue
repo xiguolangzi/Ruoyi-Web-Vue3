@@ -866,8 +866,6 @@ const resetInnerDialog = () => {
   }
   currentRow.value = null
   currentAssistTypesDict.value = null
-
-  selectedSupplierValue.value = null
 }
 
 // ------------------------------------- 获取科目列表 end   -------------------------------------

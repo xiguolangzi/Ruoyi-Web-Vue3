@@ -118,7 +118,7 @@
         <el-form-item label="会计科目:" prop="financeAccountId">
            <el-tree-select 
               v-model="form.financeAccountId" :data="accountTree" :props="treeProps" value-key="accountId"
-              placeholder="请选择会计科目" style="width: 100%;"  filterable
+              placeholder="请选择会计科目" style="width: 100%;"  filterable @change="changeFinanceAccountId(form.financeAccountId)"
             >
             </el-tree-select>
         </el-form-item>
@@ -220,6 +220,12 @@ const getAccountCodeName = (accountId) => {
   return account ? account.accountCode + ' - ' + account.accountName : '--'
 }
 
+/** 根据科目ID 查询科目编码 */
+const changeFinanceAccountId = (accountId) => {
+  const account = accountList.value.find(item => item.accountId === accountId)
+  form.value.financeAccountCode = account ? account.accountCode : ''
+}
+
 // --------------------------------  2 获取科目列表数据  end  --------------------------------
 
 /** 查询会计项目列表 */
@@ -258,6 +264,7 @@ function reset() {
     parentName: null,
     ancestors: null,
     financeAccountId: null,
+    financeAccountCode: null,
     projectStatus: '1',
     createBy: null,
     createTime: null,

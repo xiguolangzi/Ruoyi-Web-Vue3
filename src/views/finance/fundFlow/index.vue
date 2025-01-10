@@ -170,6 +170,12 @@
               >
                 保存
               </el-button>
+              <el-button type="primary" v-if="form.flowStatus === FlowStatusEnum.FLOW_STATUS_DRAFT && insertStatus == false"
+                @click="handleSubmitAudited" :loading="loading" 
+                v-hasPermi="['finance:fundFlow:edit']"
+              >
+                提交审核
+              </el-button>
               <el-button type="danger" v-if="form.flowStatus === FlowStatusEnum.FLOW_STATUS_DRAFT && insertStatus == false"
                 @click="handleRemove" :loading="loading" 
                 v-hasPermi="['finance:fundFlow:remove']"
@@ -352,7 +358,7 @@
           <el-table-column label="辅助值" min-width="100" prop="assistId">
             <template #default="scope">
               <!-- 客户 -->
-              <el-select v-model="scope.row.assistId" placeholder="客户" clearable style="width: 100%;" v-if="scope.row.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER">
+              <el-select v-model="scope.row.assistId" placeholder="客户" clearable style="width: 100%;" filterable v-if="scope.row.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER">
                 <el-option
                   v-for="customer in customerList"
                   :key="customer.customerId"
@@ -364,7 +370,7 @@
                 </el-option>
               </el-select>
               <!-- 供应商 -->
-              <el-select v-model="scope.row.assistId" placeholder="供应商" clearable style="width: 100%;" v-if="scope.row.assistType == AssistTypeEnum.ASSIST_TYPE_SUPPLIER">
+              <el-select v-model="scope.row.assistId" placeholder="供应商" clearable style="width: 100%;" filterable v-if="scope.row.assistType == AssistTypeEnum.ASSIST_TYPE_SUPPLIER">
                 <el-option
                   v-for="supplier in supplierList"
                   :key="supplier.supplierId"
@@ -376,7 +382,7 @@
                 </el-option>
               </el-select>
               <!-- 员工 -->
-              <el-select v-model="scope.row.assistId" placeholder="员工" clearable style="width: 100%;" v-if="scope.row.assistType == AssistTypeEnum.ASSIST_TYPE_EMPLOYEE">
+              <el-select v-model="scope.row.assistId" placeholder="员工" clearable style="width: 100%;" filterable v-if="scope.row.assistType == AssistTypeEnum.ASSIST_TYPE_EMPLOYEE">
                 <el-option
                   v-for="user in userList"
                   :key="user.userId"
@@ -474,7 +480,7 @@
 </template>
 
 <script setup name="FundFlow">
-import { listFundFlow, getFundFlow, delFundFlow, addFundFlow, updateFundFlow, continueEditFundFlow, auditedFundFlow, unAuditedFundFlow } from "@/api/finance/fundFlow";
+import { listFundFlow, getFundFlow, delFundFlow, addFundFlow, updateFundFlow, continueEditFundFlow, auditedFundFlow, unAuditedFundFlow, submitAuditFundFlow } from "@/api/finance/fundFlow";
 import { listFundAccount} from "@/api/finance/fundAccount";
 import { listAccount } from "@/api/finance/account";
 import { listFinanceProject } from "@/api/finance/financeProject";
@@ -692,9 +698,6 @@ listUser()
   .catch(
     error => {ElMessage.error("获取客户列表时出错:",error)}
   )
-
-
-
 
 // ------------------------------------ 4 获取辅助项  end  --------------------------------
 
@@ -1012,6 +1015,8 @@ const FundFlowOperateType = {
   SAVE: 'save',
   // 继续编辑
   CONTINUE_EDIT: 'continueEdit',
+  // 提交审核
+  SUBMIT_AUDIT: 'submitAudit',
   // 审核
   AUDITED: 'audited',
   // 反审核
@@ -1088,6 +1093,72 @@ const handleContinueEdit = () => {
   openApprovalDialog('继续编辑日记账', FundFlowOperateType.CONTINUE_EDIT)
 }
 
+const handleSubmitAudited = () => {
+   // 0 表单预校验提交校验 
+  proxy.$refs["fundFlowRef"].validate().then(() => {
+    // 1 过滤空数据
+    form.value.fundFlowDetailList = form.value.fundFlowDetailList.filter(item => item.oppositeAccountId !== null) ;
+    // 2 检查存在分录
+    if(form.value.fundFlowDetailList.length <= 0){
+      proxy.$modal.msgError("请添加明细内容！")
+      return;
+    }
+    // 2.1 维护摘要信息
+    form.value.fundFlowDetailList.forEach(item => {
+      item.summary = item.summary ? item.summary : form.value.remark;
+    });
+
+    // 3 检查试算平衡
+    const totalDetailAmount = form.value.fundFlowDetailList.reduce((total, item) => total + item.detailAmount, 0);
+    if(form.value.flowAmount !== totalDetailAmount){
+      proxy.$modal.msgError("交易金额 与 发生额合计 不一致，请检查！")
+      return;
+    }
+
+    // 4 辅助项检查
+    if(form.value.fundFlowDetailList.some(item => item.assistType && !item.assistId)){
+      proxy.$modal.msgError("请选择辅助项！")
+      return;
+    }
+
+    // 5 收款类型检查，收款 交易金额大于0、付款 交易金额小于0
+    if(form.value.flowType === '1' && form.value.flowAmount <= 0){
+      proxy.$modal.msgError("收款类型 交易金额必须大于0 ,请检查!")
+      return;
+    }
+    if(form.value.flowType === '2' && form.value.flowAmount >= 0){
+      proxy.$modal.msgError("付款类型 交易金额必须小于0 ,请检查!")
+      return;
+    }
+
+    // 6 交易额 及 所有明细 正负值保持一致，交易额是正或者负，对应的所有明细也必须是正或者负
+    if(form.value.flowAmount < 0){
+      // 所有明细都必须是小于0的数值
+      if(form.value.fundFlowDetailList.some(item => item.detailAmount > 0 )){
+        proxy.$modal.msgError("明细正负数需要保持一致, 应都为负数, 请检查!")
+        return;
+      }
+    }
+    if(form.value.flowAmount > 0){
+      // 所有明细都必须是大于0的数值
+      if(form.value.fundFlowDetailList.some(item => item.detailAmount < 0 )){
+        proxy.$modal.msgError("正负数需要保持一致, 应都为正数, 请检查!")
+        return;
+      }
+    }
+
+    // 7 明细不可以有0值的存在
+    if(form.value.fundFlowDetailList.some(item => item.detailAmount == 0)){
+      proxy.$modal.msgError("明细金额不能为 0 ,请检查!")
+      return;
+    }
+
+    // 8 提交审核操作
+    openApprovalDialog('提交审核', FundFlowOperateType.SUBMIT_AUDIT)
+
+  })  
+}
+
 const handleAudited = () => {
   openApprovalDialog('审核日记账', FundFlowOperateType.AUDITED)
 }
@@ -1125,6 +1196,7 @@ const approvalForm = ref({
 function getRemarkMessage(action) {
   const messages = {
     [FundFlowOperateType.SAVE]: '保存原因',
+    [FundFlowOperateType.SUBMIT_AUDIT]: '提交审核原因',
     [FundFlowOperateType.CONTINUE_EDIT]: '继续编辑原因',
     [FundFlowOperateType.AUDITED]: '审核通过原因',
     [FundFlowOperateType.UN_AUDITED]: '反审核原因',
@@ -1172,7 +1244,8 @@ const getTimelineItemType = (actionValue) => {
   const typeMap = {
     save: 'info',
     continueEdit: 'warning',
-    audited: 'primary',
+    submitAudit: 'primary',
+    audited: 'success',
     unAudited: 'danger',
     posted: 'success',
     unPosted: 'danger',
@@ -1203,7 +1276,7 @@ const handleError = (message = "操作失败") => {
 // 强制输入描述信息: 反审核 
 const actionRequiresRemark = [FundFlowOperateType.UN_AUDITED];
 // 不需要输入描述信息: 保存 审核 继续编辑
-const actionRequiresNoRemark = [FundFlowOperateType.SAVE, FundFlowOperateType.AUDITED, FundFlowOperateType.CONTINUE_EDIT];
+const actionRequiresNoRemark = [FundFlowOperateType.SAVE, FundFlowOperateType.AUDITED, FundFlowOperateType.CONTINUE_EDIT, FundFlowOperateType.SUBMIT_AUDIT];
 
 const submitApproval = async () => {
   // 1 强制输入描述信息 检查
@@ -1215,9 +1288,14 @@ const submitApproval = async () => {
   // 2 定义动作及相应状态
   const actions = {
     [FundFlowOperateType.SAVE]: {
-      status: FlowStatusEnum.FLOW_STATUS_WAIT_AUDITED,
+      status: FlowStatusEnum.FLOW_STATUS_DRAFT,
       message: '保存成功',
       actionValue: FundFlowOperateType.SAVE
+    },
+    [FundFlowOperateType.SUBMIT_AUDIT]: {
+      status: FlowStatusEnum.FLOW_STATUS_WAIT_AUDITED,
+      message: '提交审核成功',
+      actionValue: FundFlowOperateType.SUBMIT_AUDIT
     },
     [FundFlowOperateType.CONTINUE_EDIT]: {
       status: FlowStatusEnum.FLOW_STATUS_DRAFT,
@@ -1316,6 +1394,18 @@ const submitApproval = async () => {
           form.value.flowStatus = FlowStatusEnum.FLOW_STATUS_AUDITED;
           handleError(error.message);
         });
+    }
+    if(currentAction.value === FundFlowOperateType.SUBMIT_AUDIT){
+      // 提交审核
+      submitAuditFundFlow(form.value)
+        .then(response => {
+          ElMessage.success("提交审核成功")
+          parseJson();
+          getList();
+        })
+        .catch(error => {
+          form.value.flowStatus = FlowStatusEnum.FLOW_STATUS_DRAFT;
+        })
     }
   } catch (error) {
     console.log("API 调用异常:", error);

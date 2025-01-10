@@ -140,19 +140,19 @@
           <span>{{ parseTime(scope.row.invoiceDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="发票金额" align="right" header-align="center" prop="invoiceAmount" min-width="100" show-overflow-tooltip>
+      <el-table-column label="发票金额" align="right" header-align="center" prop="invoiceTotalBaseAmount" min-width="100" show-overflow-tooltip>
         <template v-slot="scope">
-          <span> {{ formatTwo(scope.row.invoiceAmount) }} €</span>
+          <span> {{ formatTwo(scope.row.invoiceTotalBaseAmount) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="发票税额" align="right" header-align="center" prop="invoiceTaxAmount" min-width="100" show-overflow-tooltip>
+      <el-table-column label="发票税额" align="right" header-align="center" prop="invoiceTotalTaxAmount" min-width="100" show-overflow-tooltip>
         <template v-slot="scope">
-          <span> {{ formatTwo(scope.row.invoiceTaxAmount) }} €</span>
+          <span> {{ formatTwo(scope.row.invoiceTotalTaxAmount) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="发票总额" align="right" header-align="center" prop="invoiceTotalAmount" min-width="100" show-overflow-tooltip>
+      <el-table-column label="发票总额" align="right" header-align="center" prop="invoiceTotalNetAmount" min-width="100" show-overflow-tooltip>
         <template v-slot="scope">
-          <span> {{ formatTwo(scope.row.invoiceTotalAmount) }} €</span>
+          <span> {{ formatTwo(scope.row.invoiceTotalNetAmount) }} €</span>
         </template>
       </el-table-column>
       <el-table-column label="发票状态" align="center" prop="invoiceStatus">
@@ -311,22 +311,22 @@
           </el-form-item>
         </el-row>
         <el-row>
-          <el-form-item label="发票金额" prop="invoiceAmount" >
-            <el-input-number v-model="form.invoiceAmount" placeholder="请输入发票金额" :controls="false" :precision="2" @change="calculateTotalAmount" :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT">
+          <el-form-item label="发票金额" prop="invoiceTotalBaseAmount" >
+            <el-input-number v-model="form.invoiceTotalBaseAmount" placeholder="请输入发票金额" :controls="false" :precision="2" @change="calculateTotalAmount" :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT">
               <template #suffix >
                 <span> €</span>
               </template>
             </el-input-number>
           </el-form-item>
-          <el-form-item label="发票税额" prop="invoiceTaxAmount">
-            <el-input-number v-model="form.invoiceTaxAmount" placeholder="请输入发票税额" :controls="false" :precision="2" @change="calculateTotalAmount" :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT">
+          <el-form-item label="发票税额" prop="invoiceTotalTaxAmount">
+            <el-input-number v-model="form.invoiceTotalTaxAmount" placeholder="请输入发票税额" :controls="false" :precision="2" @change="calculateTotalAmount" :disabled="form.invoiceStatus !== InvoiceStatusEnum.INVOICE_STATUS_DRAFT">
               <template #suffix >
                 <span> €</span>
               </template>
             </el-input-number>
           </el-form-item>
-          <el-form-item label="发票总额" prop="invoiceTotalAmount">
-            <el-input-number v-model="form.invoiceTotalAmount" placeholder="请输入发票总额" disabled :controls="false" :precision="2" >
+          <el-form-item label="发票总额" prop="invoiceTotalNetAmount">
+            <el-input-number v-model="form.invoiceTotalNetAmount" placeholder="请输入发票总额" disabled :controls="false" :precision="2" >
               <template #suffix >
                 <span> €</span>
               </template>
@@ -406,7 +406,7 @@ const data = reactive({
     invoiceDate: [
       { required: true, message: "开票日期不能为空", trigger: "blur" }
     ],
-    invoiceAmount: [
+    invoiceTotalBaseAmount: [
       { required: true, message: "发票金额不能为空", trigger: "blur" }
     ],
     paymentDueDate: [
@@ -492,9 +492,9 @@ function reset() {
     supplierId: null,
     invoiceNo: null,
     invoiceDate: null,
-    invoiceAmount: null,
-    invoiceTaxAmount: null,
-    invoiceTotalAmount: null,
+    invoiceTotalBaseAmount: null,
+    invoiceTotalTaxAmount: null,
+    invoiceTotalNetAmount: null,
     invoiceStatus: '1',
     accountsPayable: null,
     paymentDueDate: null,
@@ -512,7 +512,7 @@ function reset() {
 
 /** 金额计算 */
 const calculateTotalAmount = () => {
-  form.value.invoiceTotalAmount = form.value.invoiceAmount + form.value.invoiceTaxAmount;
+  form.value.invoiceTotalNetAmount = form.value.invoiceTotalBaseAmount + form.value.invoiceTotalTaxAmount;
 }
 
 /** 搜索按钮操作 */

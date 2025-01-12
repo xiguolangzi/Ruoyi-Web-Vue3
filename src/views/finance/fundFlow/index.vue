@@ -12,7 +12,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="资金账户:" prop="fundAccountId">
-        <el-select v-model="queryParams.fundAccountId"  filterable>
+        <el-select v-model="queryParams.fundAccountId"  filterable clearable>
           <el-option v-for="item in fundAccountList" :key="item.fundAccountId" :label="item.fundAccountName"
             :value="item.fundAccountId">
             <span>{{ '账户名称：' + item.fundAccountName + ' ---- ' + '账户号:' + item.fundAccountNo }}</span>
@@ -29,6 +29,15 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="流水编号" prop="flowNo" >
+        <el-input
+          v-model="queryParams.flowNo"
+          placeholder="请输入流水编号"
+          clearable
+          style="width: 100%;"
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
       <el-form-item label="交易时间" prop="flowDate" style="width: 350px;">
         <el-date-picker
           v-model="dateRange"
@@ -43,10 +52,7 @@
           @change="handleRangeChange"
           style="width: 100%;"
         />
-      </el-form-item>
-      <el-form-item style="margin-left: 20px;">
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+        
       </el-form-item>
     </el-form>
 
@@ -89,12 +95,35 @@
           v-hasPermi="['finance:fundFlow:export']"
         >导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button type="primary" icon="Search" @click="handleQuery" style="margin-left: 50px;">搜索</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="fundFlowList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column type="index" label="序号" width="50" align="center" />
+
+      <el-table-column label="流水号码" align="left" header-align="center" prop="flowNo" min-width="150" show-overflow-tooltip >
+        <template #default="scope">
+          <div style="display: flex; align-items: center;">
+            <el-link :underline="false" type="primary" @click="handleUpdate(scope.row)">{{ scope.row.flowNo }}</el-link>
+            <el-tooltip content="点击复制" placement="top">
+              <el-icon
+                style="margin-left: 5px; cursor: pointer; color: #409EFF;"
+                @click="copyText(scope.row.flowNo)"
+              >
+                <CopyDocument />
+              </el-icon>
+            </el-tooltip>
+            
+          </div>
+        </template>
+      </el-table-column>
+
       <el-table-column label="记账类型" align="center" prop="flowType" min-width="80">
         <template #default="scope">
           <dict-tag :options="finance_fund_flow_type" :value="scope.row.flowType"/>
@@ -135,13 +164,7 @@
           <dict-tag :options="finance_fund_flow_status" :value="scope.row.flowStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="left" header-align="center" prop="remark" show-overflow-tooltip/>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="120">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['finance:fundFlow:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['finance:fundFlow:remove']">删除</el-button>
-        </template>
-      </el-table-column>
+      <el-table-column label="备注" align="left" header-align="center" prop="remark" min-width="150" show-overflow-tooltip />
     </el-table>
     
     <pagination
@@ -170,13 +193,13 @@
               >
                 保存
               </el-button>
-              <el-button type="primary" v-if="form.flowStatus === FlowStatusEnum.FLOW_STATUS_DRAFT && insertStatus == false"
+              <el-button type="success" v-if="form.flowStatus === FlowStatusEnum.FLOW_STATUS_DRAFT && insertStatus === false"
                 @click="handleSubmitAudited" :loading="loading" 
                 v-hasPermi="['finance:fundFlow:edit']"
               >
                 提交审核
               </el-button>
-              <el-button type="danger" v-if="form.flowStatus === FlowStatusEnum.FLOW_STATUS_DRAFT && insertStatus == false"
+              <el-button type="danger" v-if="form.flowStatus === FlowStatusEnum.FLOW_STATUS_DRAFT && insertStatus === false"
                 @click="handleRemove" :loading="loading" 
                 v-hasPermi="['finance:fundFlow:remove']"
               >
@@ -251,7 +274,7 @@
             <el-form-item label="会计科目:" prop="financeAccountId">
               <el-tree-select 
                 v-model="form.financeAccountId" :data="accountTree" :props="treeProps" value-key="accountId"
-                placeholder="请选择会计科目" style="width: 100%;"  filterable disabled="false"
+                placeholder="请选择会计科目" style="width: 100%;"  filterable :disabled="false"
               >
               </el-tree-select>
             </el-form-item>
@@ -326,9 +349,8 @@
           <el-table-column label="对方会计项目" prop="oppositeProjectId" width="130" align="center">
             <template #default="scope">
               <el-tree-select 
-                v-model="scope.row.oppositeProjectId" :data="projectTree" :props="treeProps2" value-key="projectId"
-                placeholder="会计项目" style="width: 100%;"  filterable
-                @change="handleOppositeProjectId(scope.row)"
+                v-model="scope.row.oppositeProjectId" :data="projectTree" :props="projectTreeProps" value-key="projectId"
+                placeholder="会计项目" style="width: 100%;"  filterable @change="handleOppositeProjectId(scope.row)"
               >
               </el-tree-select>
             </template>
@@ -398,8 +420,7 @@
           <el-table-column label="发生额" prop="detailAmount" width="150" align="center">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'detailAmount')" v-model="scope.row.detailAmount"
-              placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false"
-              @change="calculateTotalAmount" style="width: 100%;" 
+              placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false" style="width: 100%;" 
               @focus="handleFocus2(scope.$index, 'detailAmount')"
               @click="handleFocus2(scope.$index, 'detailAmount')"
               :class="scope.row.detailAmount < 0 ? 'negative-input' : ''"
@@ -521,6 +542,16 @@ const FlowTypeEnum = {
   FLOW_TYPE_INVOICE_CASH: '4',
 }
 
+// 复制功能
+const copyText = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    ElMessage.success('复制成功！')
+  } catch (err) {
+    ElMessage.error('复制失败，请手动复制')
+  }
+}
+
 // ------------------------------------------ 1 获取资金账户 start -----------------------------------
 const fundAccountList = ref([])
 /** 资金账户 - 获取列表 */
@@ -619,18 +650,12 @@ const getProjectList = async () => {
 
 
 /** el-tree-select 配置 */ 
-const treeProps2 = {
+const projectTreeProps = {
   value: "projectId",
   label: (node) => ` ${node.projectName}`, // 自定义显示内容
   children: "children",
   disabled: (node) => node.projectStatus == '1'
 };
-
-/** 根据科目ID 查询科目编码 + 科目名称 */
-const getProjectName = (projectId) => {
-  const project = projectList.value.find(item => item.projectId === projectId)
-  return project ? project.projectName  : '--'
-}
 
 /** 切换项目 确定明细会计科目Id */
 const assistTypes = ref([])
@@ -804,6 +829,7 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
+    flowNo: null,
     flowType: null,
     flowStatus: null,
     fundAccountId: null,
@@ -855,7 +881,6 @@ function getList() {
   loading.value = true;
   // 请求参数增加租户ID
   queryParams.value.tenantId = userStore.tenantId;
-  console.log("请求的参数是：",queryParams.value);
   listFundFlow(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
     fundFlowList.value = response.rows;
     total.value = response.total;
@@ -1084,13 +1109,13 @@ const handleSave = () => {
     }
 
     // 8 保存操作
-    openApprovalDialog('保存日记账', FundFlowOperateType.SAVE)
+    openApprovalDialog('保存', FundFlowOperateType.SAVE)
 
   })  
 }
 
 const handleContinueEdit = () => {
-  openApprovalDialog('继续编辑日记账', FundFlowOperateType.CONTINUE_EDIT)
+  openApprovalDialog('继续编辑', FundFlowOperateType.CONTINUE_EDIT)
 }
 
 const handleSubmitAudited = () => {
@@ -1160,11 +1185,11 @@ const handleSubmitAudited = () => {
 }
 
 const handleAudited = () => {
-  openApprovalDialog('审核日记账', FundFlowOperateType.AUDITED)
+  openApprovalDialog('审核通过', FundFlowOperateType.AUDITED)
 }
 
 const handleUnAudited = () => {
-  openApprovalDialog('反审核日记账', FundFlowOperateType.UN_AUDITED)
+  openApprovalDialog('反审核', FundFlowOperateType.UN_AUDITED)
 }
 
 const handleRemove = () => {
@@ -1447,5 +1472,10 @@ const submitApproval = async () => {
 }
 :deep(.negative-input) input {
   color: red; /* 负数字体颜色 */
+}
+
+/* 可自定义图标 hover 效果 */
+.el-icon:hover {
+  color: #67C23A !important;
 }
 </style>

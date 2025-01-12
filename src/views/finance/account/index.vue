@@ -54,6 +54,11 @@
           <dict-tag :options="erp_finance_account_style" :value="scope.row.accountType" />
         </template>
       </el-table-column>
+      <el-table-column label="借贷方向" align="center" prop="accountDirection">
+        <template #default="scope">
+          <dict-tag :options="finance_account_direction" :value="scope.row.accountDirection" />
+        </template>
+      </el-table-column>
       <el-table-column label="上级科目" align="center" prop="parentCode" show-overflow-tooltip>
         <template #default="scope">
           <span> {{ scope.row.parentCode ? scope.row.parentCode : '--' }}</span>
@@ -85,7 +90,7 @@
         </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="150">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="160">
         <template #default="scope">
           <el-button link type="primary" icon="Plus" @click="handleAdd(scope.row)"
             v-hasPermi="['finance:account:add']">新增</el-button>
@@ -115,8 +120,14 @@
           <el-input v-model="form.accountName" placeholder="请输入科目名称" style="width: 90%;" />
         </el-form-item>
         <el-form-item label="科目类型" prop="accountType">
-          <el-select v-model="form.accountType" placeholder="请选择科目类型" :disabled="form.accountId">
+          <el-select v-model="form.accountType" placeholder="请选择科目类型" disabled>
             <el-option v-for="dict in erp_finance_account_style" :key="dict.value" :label="dict.label"
+              :value="dict.value"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="借贷方向:" prop="accountDirection">
+          <el-select v-model="form.accountDirection" placeholder="系统自动生成" disabled>
+            <el-option v-for="dict in finance_account_direction" :key="dict.value" :label="dict.label"
               :value="dict.value"></el-option>
           </el-select>
         </el-form-item>
@@ -156,7 +167,7 @@ import { ref } from "vue";
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
-const { erp_finance_account_style, project_general_status, finance_assist_type } = proxy.useDict('erp_finance_account_style', 'project_general_status', 'finance_assist_type');
+const { erp_finance_account_style, project_general_status, finance_assist_type, finance_account_direction } = proxy.useDict('erp_finance_account_style', 'project_general_status', 'finance_assist_type', 'finance_account_direction');
 
 const accountList = ref([]);
 const accountOptions = ref([]);
@@ -305,6 +316,7 @@ function reset() {
     accountCode: null,
     accountName: null,
     accountType: queryParams.value.accountType,
+    accountDirection: null,
     parentId: null,
     accountLevel: null,
     ancestors: null,
@@ -321,6 +333,7 @@ function reset() {
   };
   proxy.resetForm("accountRef");
 }
+
 
 /** 搜索按钮操作 */
 function handleQuery() {

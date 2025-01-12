@@ -88,6 +88,11 @@
       <el-table-column type="index" label="序号" width="50" align="center" />
       <el-table-column label="账户名称" align="center" prop="fundAccountName" min-width="150" show-overflow-tooltip/>
       <el-table-column label="账户账号" align="center" prop="fundAccountNo" min-width="150" show-overflow-tooltip/>
+      <el-table-column label="会计科目" align="center" prop="financeAccountId" min-width="150" show-overflow-tooltip >
+        <template #default="scope">
+          <span>{{ getAccountCodeName(scope.row.financeAccountId) || '--' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="期初余额" align="center" prop="fundInitialBalance" min-width="120" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ formatTwo(scope.row.fundInitialBalance) }} € </span>
@@ -130,7 +135,6 @@
         </template>
       </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip />
-      <el-table-column label="会计科目" align="center" prop="financeAccountId" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['finance:fundAccount:edit']">修改</el-button>
@@ -148,71 +152,105 @@
     />
 
     <!-- 添加或修改资金账户对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="650px" append-to-body>
       <el-form ref="fundAccountRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="账户名称" prop="fundAccountName">
-          <el-input v-model="form.fundAccountName" placeholder="请输入账户名称" />
-        </el-form-item>
-        <el-form-item label="账户编号" prop="fundAccountNo">
-          <el-input v-model="form.fundAccountNo" placeholder="请输入账户编号" />
-        </el-form-item>
-        <el-form-item label="会计科目:" prop="financeAccountId">
+        <el-row >
+          <el-form-item label="账户名称:" prop="fundAccountName">
+            <el-input v-model="form.fundAccountName" placeholder="请输入账户名称" />
+          </el-form-item>
+          <el-form-item label="账户账号:" prop="fundAccountNo">
+            <el-input v-model="form.fundAccountNo" placeholder="请输入银行账号" />
+          </el-form-item>
+        </el-row>
+        <el-form-item label="会计科目:" prop="financeAccountId" >
           <el-tree-select 
             v-model="form.financeAccountId" :data="accountTree" :props="treeProps" value-key="accountId"
-            placeholder="请选择会计科目" style="width: 100%;"  filterable
+            placeholder="请选择会计科目"  filterable 
           >
           </el-tree-select>
         </el-form-item>
-        <el-form-item label="swiftCode" prop="bankSwiftCode">
-          <el-input v-model="form.bankSwiftCode" placeholder="请输入swiftCode" />
+        <el-row >
+          <el-form-item label="银行名称:" prop="bankName">
+            <el-input v-model="form.bankName" type="textarea"  maxlength="50" show-word-limit :rows="1" placeholder="请输入银行名称" />
+          </el-form-item>
+          <el-form-item label="swiftCode:" prop="bankSwiftCode">
+            <el-input v-model="form.bankSwiftCode" type="textarea"  maxlength="20" show-word-limit :rows="1"  placeholder="请输入swiftCode" />
+          </el-form-item>
+        </el-row>
+        <el-form-item label="开户支行:" prop="bankBranch">
+          <el-input v-model="form.bankBranch" type="textarea"  maxlength="100" show-word-limit :rows="1" placeholder="请输入开户支行" />
         </el-form-item>
-        <el-form-item label="银行名称" prop="bankName">
-          <el-input v-model="form.bankName" placeholder="请输入银行名称" />
-        </el-form-item>
-        <el-form-item label="开户支行" prop="bankBranch">
-          <el-input v-model="form.bankBranch" placeholder="请输入开户支行" />
-        </el-form-item>
-        <el-form-item label="公司名称" prop="bankCompanyName">
-          <el-input v-model="form.bankCompanyName" placeholder="请输入公司名称" />
-        </el-form-item>
-        <el-form-item label="公司税号" prop="bankTaxNo">
-          <el-input v-model="form.bankTaxNo" placeholder="请输入公司税号" />
-        </el-form-item>
-        <el-form-item label="公司电话" prop="bankPhoneNo">
-          <el-input v-model="form.bankPhoneNo" placeholder="请输入公司电话" />
-        </el-form-item>
-        <el-form-item label="公司邮箱" prop="bankEmail">
-          <el-input v-model="form.bankEmail" placeholder="请输入公司邮箱" />
-        </el-form-item>
-        <el-form-item label="公司地址" prop="bankAddress">
+        <el-row >
+          <el-form-item label="公司名称:" prop="bankCompanyName">
+            <el-input v-model="form.bankCompanyName" placeholder="请输入公司名称" />
+          </el-form-item>
+          <el-form-item label="公司税号:" prop="bankTaxNo">
+            <el-input v-model="form.bankTaxNo" placeholder="请输入公司税号" />
+          </el-form-item>
+        </el-row>
+        <el-row >
+          <el-form-item label="公司电话:" prop="bankPhoneNo">
+            <el-input v-model="form.bankPhoneNo" placeholder="请输入公司电话" />
+          </el-form-item>
+          <el-form-item label="公司邮箱:" prop="bankEmail">
+            <el-input v-model="form.bankEmail" placeholder="请输入公司邮箱" />
+          </el-form-item>
+        </el-row>
+
+        <el-form-item label="公司地址:" prop="bankAddress" >
           <el-input v-model="form.bankAddress" placeholder="请输入公司地址" />
         </el-form-item>
-        <el-form-item label="期初余额:" prop="fundInitialBalance">
-          <el-input-number v-model="form.fundInitialBalance" placeholder="请输入期初余额" style="width: 70%;" />
-        </el-form-item>
-        <el-form-item label="当前余额:" prop="fundCurrentBalance">
-          <el-input-number v-model="form.fundCurrentBalance" placeholder="请输入当前余额"  style="width: 70%;" disabled/>
-        </el-form-item>
-        <el-form-item label="账户状态:" prop="fundAccountStatus">
-          <el-radio-group v-model="form.fundAccountStatus">
-            <el-radio
-              v-for="dict in project_general_status"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="是否默认:" prop="fundIsDefault">
-          <el-radio-group v-model="form.fundIsDefault">
-            <el-radio
-              v-for="dict in sys_yes_or_no"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
+
+        <el-row >
+          <el-form-item label="期初余额:" prop="fundInitialBalance">
+            <el-input-number v-model="form.fundInitialBalance" placeholder="请输入期初余额" 
+              :max='99999999' 
+              :min='-99999999' 
+              :precision='2' :step='0' :controls="false"  ref="inputNumber" @focus="handleFocus" 
+              :class="form.fundInitialBalance < 0 ? 'negative-input' : ''" 
+            >
+              <template #suffix>
+                <span>€</span>
+              </template>
+            </el-input-number>
+          </el-form-item>
+          <el-form-item label="当前余额:" prop="fundCurrentBalance">
+            <el-input-number v-model="form.fundCurrentBalance" placeholder="系统自动生成"  disabled 
+              :max='99999999' 
+              :min='-99999999' 
+              :precision='2' :step='0' :controls="false"
+            >
+              <template #suffix>
+                <span>€</span>
+              </template>
+            </el-input-number>
+          </el-form-item>
+        </el-row>
+
+        <el-row >
+          <el-form-item label="账户状态:" prop="fundAccountStatus" style="margin-right: 30px;">
+            <el-radio-group v-model="form.fundAccountStatus">
+              <el-radio
+                v-for="dict in project_general_status"
+                :key="dict.value"
+                :label="dict.value"
+              >{{dict.label}}</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="是否默认:" prop="fundIsDefault" >
+            <el-radio-group v-model="form.fundIsDefault">
+              <el-radio
+                v-for="dict in sys_yes_or_no"
+                :key="dict.value"
+                :label="dict.value"
+              >{{dict.label}}</el-radio>
+            </el-radio-group>
+          </el-form-item>
+        </el-row>
+        
+        
         <el-form-item label="备注描述:" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+          <el-input v-model="form.remark" type="textarea"  maxlength="100" show-word-limit :rows="2"  placeholder="请输入备注描述信息" />
         </el-form-item>
         
       </el-form>
@@ -247,6 +285,18 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 
+// ********************************* 4 表单 输入框聚焦选中 start ********************************
+const inputNumber  = ref({}); // 使用对象存储各列引用
+// 聚焦时选中内容
+const handleFocus = () => {
+  const input = inputNumber.value?.$el.querySelector("input");
+  if (input) {
+    input.select(); // 选中输入框内的所有文本
+  }
+};
+
+// ********************************* 4 表单 输入框聚焦选中 end ********************************
+
 const data = reactive({
   form: {},
   queryParams: {
@@ -264,16 +314,7 @@ const data = reactive({
       { required: true, message: "账户名称不能为空", trigger: "blur" }
     ],
     fundAccountNo: [
-      { required: true, message: "账户编号不能为空", trigger: "blur" }
-    ],
-    bankSwiftCode: [
-      { required: true, message: "swiftCode不能为空", trigger: "blur" }
-    ],
-    bankName: [
-      { required: true, message: "银行名称不能为空", trigger: "blur" }
-    ],
-    bankBranch: [
-      { required: true, message: "开户支行不能为空", trigger: "blur" }
+      { required: true, message: "账户账号不能为空", trigger: "blur" }
     ],
     bankCompanyName: [
       { required: true, message: "公司名称不能为空", trigger: "blur" }
@@ -306,8 +347,9 @@ const accountTree = ref([])
 const getAccountList = async () => {
   listAccount()
     .then(response => {
-      accountTree.value = proxy.handleTree(response.data, "accountId", "parentId") || [];
+      //accountTree.value = proxy.handleTree(response.data, "accountId", "parentId") || [];
       accountList.value = response.data || [];
+      accountTree.value = filterAccountTree(accountList.value, '100') || [];
     })
     .catch(error => {
       ElMessage.error("获取会计科目列表时出错:",error)
@@ -323,7 +365,54 @@ const treeProps = {
   disabled: (node) => node.status == '1'
 };
 
+/** 根据科目ID 查询科目编码 + 科目名称 */
+const getAccountCodeName = (accountId) => {
+  const account = accountList.value.find(item => item.accountId === accountId)
+  return account ? account.accountCode + ' - ' + account.accountName : '--'
+}
+
+getAccountList()
+
+/** 4 获取指定的会计科目树形列表 */
+const filterAccountTree = (data,AccountCodeStartNumber) => {
+  if (!data || !AccountCodeStartNumber) {
+    return data
+  }
+  // 用于记录应该保留的节点的ID
+  const keepIds = new Set()
+  // 第一次遍历：找出所有符合条件的节点及其所有父节点
+  const findValidNodes = (node) => {
+    if (node.accountCode && node.accountCode.startsWith(AccountCodeStartNumber)) { // 现金1001 银行1002 100开头
+      // 找到符合条件的节点，记录这个节点和它所有的父节点
+      let current = node
+      while (current) {
+        keepIds.add(current.accountId)
+        // 通过parentId找父节点
+        current = data.find(item => item.accountId === current.parentId)
+      }
+    }
+
+  }
+
+  // 对原始数据进行遍历
+  data.forEach(findValidNodes)
+
+  // 第二次遍历：过滤并重构树
+  const filterNode = (nodes) => {
+    return nodes
+      .filter(node => keepIds.has(node.accountId))
+      .map(node => ({
+        ...node,
+        children: node.children ? filterNode(node.children) : []
+      }))
+  }
+
+  return filterNode(proxy.handleTree(data, "accountId", "parentId"))
+}
+
 // --------------------------------  获取科目列表数据  end  --------------------------------
+
+
 
 /** 查询资金账户列表 */
 function getList() {
@@ -370,7 +459,6 @@ function reset() {
     financeAccountId: null
   };
   proxy.resetForm("fundAccountRef");
-  getAccountList()
 }
 
 /** 搜索按钮操作 */
@@ -451,3 +539,17 @@ function handleExport() {
 
 getList();
 </script>
+
+<style scoped lang="scss">
+.el-select {
+  width: 200px ;
+}
+
+:deep(.el-input-number) {
+  color: black; /* 默认字体颜色 */
+}
+:deep(.negative-input) input {
+  color: red; /* 负数字体颜色 */
+}
+
+</style>

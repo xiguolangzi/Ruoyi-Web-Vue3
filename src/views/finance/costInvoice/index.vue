@@ -131,7 +131,7 @@
         <el-button type="warning" icon="Refresh" @click="resetQuery">重置</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="danger" icon="Search" @click="resetQuery">搜索逾期未付</el-button>
+        <el-button type="danger" icon="Search" @click="queryOverdue">搜索逾期未付</el-button>
       </el-col>
       
         
@@ -902,7 +902,7 @@ const calculateTotalAmount = () => {
 const projectList = ref([])
 const projectTree = ref([])
 
-/** 4 获取指定的会计科目树形列表 */
+/** 4 获取指定的会计项目树形列表 */
 const filterAccountTree = (data,financeAccountCodeStartNumber) => {
   if (!data || !financeAccountCodeStartNumber) {
     return data
@@ -1249,6 +1249,11 @@ function handleQuery() {
 function resetQuery() {
   proxy.resetForm("queryRef");
   handleQuery();
+}
+
+/** 搜索逾期未付 */
+const queryOverdue = () => {
+  ElMessage.warning("功能暂未实现")
 }
 
 // 多选框选中数据

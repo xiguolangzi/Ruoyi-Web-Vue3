@@ -119,7 +119,6 @@
                 <CopyDocument />
               </el-icon>
             </el-tooltip>
-            
           </div>
         </template>
       </el-table-column>

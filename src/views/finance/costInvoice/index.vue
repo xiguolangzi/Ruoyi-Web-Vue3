@@ -74,10 +74,10 @@
           </el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="发票/订单 号:" prop="invoiceNo">
+      <el-form-item label="流水号/发票号/订单号:" prop="invoiceNo" class="query-invoiceNo">
         <el-input
           v-model.trim="queryParams.invoiceNo"
-          placeholder="请输入 发票/订单 号码"
+          placeholder="请输入流水号/发票号/订单号"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -139,8 +139,23 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="costInvoiceList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="costInvoiceList" @selection-change="handleSelectionChange" >
       <el-table-column type="selection" width="55" align="center" />
+      <el-table-column label="流水号码" align="left" header-align="center" prop="invoiceFlowNo" min-width="160" show-overflow-tooltip >
+        <template #default="scope">
+          <div style="display: flex; align-items: center; width: 100%;">
+            <el-link :underline="false" type="primary" @click="handleUpdate(scope.row)">{{ scope.row.invoiceFlowNo }}</el-link>
+            <el-tooltip content="点击复制" placement="top">
+              <el-icon
+                style="margin-left: 5px; cursor: pointer; color: #409EFF;"
+                @click="copyText(scope.row.invoiceFlowNo)"
+              >
+                <CopyDocument />
+              </el-icon>
+            </el-tooltip>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="发票类型" align="center" prop="invoiceType">
         <template #default="scope">
           <dict-tag :options="erp_purchase_invoice_type" :value="scope.row.invoiceType"/>
@@ -158,12 +173,12 @@
       </el-table-column>
       <el-table-column label="发票号码" align="left" header-align="center" prop="invoiceNo"  min-width="150" show-overflow-tooltip >
         <template #default="scope">
-          <el-link :underline="false" type="primary" @click="handleView(scope.row)">{{ scope.row.invoiceNo }}</el-link>
+          <el-link :underline="false" type="primary" @click="handleUpdate(scope.row)">{{ scope.row.invoiceNo }}</el-link>
         </template>
       </el-table-column>
       <el-table-column label="订单号码" align="left" header-align="center" prop="orderNo"  min-width="150" show-overflow-tooltip >
         <template #default="scope">
-          <el-link :underline="false" type="danger" @click="handleView(scope.row)">{{ scope.row.orderNo }}</el-link>
+          <el-link :underline="false" type="danger" @click="handleUpdate(scope.row)">{{ scope.row.orderNo }}</el-link>
         </template>
       </el-table-column>
       <el-table-column label="发票状态" align="center" prop="invoiceStatus">
@@ -233,12 +248,6 @@
       <el-table-column label="更新时间" align="center" prop="updateTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="130">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['finance:costInvoice:edit']">修改</el-button>
-          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['finance:costInvoice:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -681,6 +690,17 @@ const insertStatus = ref(false);
 
 
 // --------------------------------  1 数据渲染  start  --------------------------------
+
+// 复制功能
+const copyText = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    ElMessage.success('复制成功！')
+  } catch (err) {
+    ElMessage.error('复制失败，请手动复制')
+  }
+}
+
 /** 发票类型 */
 const InvoiceTypeEnum = {
   // 采购发票
@@ -761,24 +781,6 @@ const getSummaryRow = (param) => {
 /** 更新查询条件 辅助项类型 */
 const changeQueryParamsAssistType = () => {
   queryParams.value.assistId = null ;
-}
-
-
-/** 查看发票详情 */
-const handleView = (row) =>{
-  reset();
-  const _invoiceId = row.invoiceId || ids.value
-  getCostInvoice(_invoiceId).then(response => {
-    form.value = response.data;
-    // 还原数据
-    if (form.value.operateLog) {
-      orderOperateLog.value = JSON.parse(form.value.operateLog);
-      form.value.operateLog = JSON.parse(form.value.operateLog);
-    }
-    open.value = true;
-    title.value = "查看发票详情";
-    updateAccountTree() // 更新会计项目要展示的内容
-  });
 }
 
 /** 获取文件名称 */ 
@@ -1765,6 +1767,14 @@ getList();
 </script>
 
 <style lang="scss" scoped>
+
+.query-invoiceNo {
+  :deep(.el-form-item__label) {
+ 	font-weight: 700;
+ 	width: 160px !important;
+ }
+}
+
 /* 头部样式 */
 .header-content {
   display: flex;

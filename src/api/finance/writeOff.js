@@ -42,3 +42,22 @@ export function delWriteOff(writeOffId) {
     method: 'delete'
   })
 }
+
+// 获取待核销应付单
+export function getCostInvoiceListByAssist(query) {
+  return request({
+    url: '/finance/writeOff/costInvoiceListByAssist',
+    method: 'get',
+    params: query
+  })
+}
+
+
+// 获取待核销付款单
+export function getFundFlowDetailListByAssist(query) {
+  return request({
+    url: '/finance/writeOff/fundFlowDetailListByAssist',
+    method: 'get',
+    params: query
+  })
+}

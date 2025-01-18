@@ -110,8 +110,8 @@ const queryForm = ref({
 
 // 供应商选项
 const supplierOptions = ref([
-  { value: '1', label: '供应商1' },
-  { value: '2', label: '供应商2' }
+  { value: '1', label: '供应商11' },
+  { value: '2', label: '供应商22' }
 ])
 
 // 应付单列表

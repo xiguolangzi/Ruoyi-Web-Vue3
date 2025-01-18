@@ -52,7 +52,6 @@
           @change="handleRangeChange"
           style="width: 100%;"
         />
-        
       </el-form-item>
     </el-form>
 
@@ -96,11 +95,12 @@
         >导出</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="primary" icon="Search" @click="handleQuery" style="margin-left: 50px;">搜索</el-button>
+        <el-button-group>
+          <el-button type="primary" icon="Search" @click="handleQuery" style="margin-left: 50px;">搜索</el-button>
+          <el-button type="info" icon="Refresh" @click="resetQuery">重置</el-button>
+        </el-button-group>
       </el-col>
-      <el-col :span="1.5">
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-      </el-col>
+
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -672,9 +672,7 @@ const handleOppositeProjectId = (row) => {
 /** 根据科目ID 查询辅助项类型 */
 const getAssistTypeByAccountId = (accountId) => {
   const account = accountList.value.find(item => item.accountId === accountId)
-  console.log("辅助项是什么：",account)
   assistTypes.value = account.assistTypes
-  console.log("辅助项是什么：assistTypes",assistTypes.value)
   return assistTypes ? assistTypes.value[0] : ''
 }
 
@@ -725,7 +723,7 @@ listUser()
 
 // ------------------------------------ 4 获取辅助项  end  --------------------------------
 
-// ------------------------------------------ 数据表格 start -----------------------------------
+// ------------------------------------------ 5 请求参数 - 日期区间 start -----------------------------------
 const currentMonthStart = new Date(new Date().setDate(1));
 const currentMonthEnd = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
 /** 格式化日期为 YYYY-MM-DD */
@@ -763,7 +761,7 @@ const handleRangeChange = (dates) => {
   }
 };
 
-// ------------------------------------------ 数据表格 end ----------------------------------------
+// ------------------------------------------ 5 请求参数 - 日期区间 end ----------------------------------------
 
 // ------------------------------------ 表单 输入框聚焦选中 start ------------------------------------
 const inputNumber  = ref({}); // 使用对象存储各列引用

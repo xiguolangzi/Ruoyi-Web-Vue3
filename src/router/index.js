@@ -214,7 +214,7 @@ export const dynamicRoutes = [
     children: [
       {
         path: '/finance/accountsPayable/payableWriteOffOperation',
-        component: () => import('@/views/finance/payableWriteOff/payableWriteOffOperation'),
+        component: () => import('@/views/finance/writeOff/payableWriteOffOperation'),
         name: 'payableWriteOffOperation',
         meta: { title: '应付核销操作' }
       }

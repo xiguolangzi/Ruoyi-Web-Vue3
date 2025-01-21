@@ -111,11 +111,10 @@
         <template #default="scope">
           <div style="display: flex; align-items: center;">
             <el-link :underline="false" type="primary" @click="handleUpdate(scope.row)">{{ scope.row.flowNo }}</el-link>
-            <el-tooltip content="点击复制" placement="top">
+            <el-tooltip content="点击复制" placement="top" v-if="scope.row.flowNo">
               <el-icon
                 style="margin-left: 5px; cursor: pointer; color: #409EFF;"
                 @click="copyText(scope.row.flowNo)"
-                v-if="scope.row.flowNo"
               >
                 <CopyDocument />
               </el-icon>

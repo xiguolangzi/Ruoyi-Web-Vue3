@@ -42,7 +42,7 @@
             :value="customer.customerId"
             :disabled="customer.customerStatus !== '0'"
           >
-            <span>{{ '客户名称：' + customer.customerName + ' ---- ' + '客户编码：' + customer.customerCode }}</span>
+            <span>{{ `客户名称：${customer.customerName} ---- 客户编码：${customer.customerCode}` }}</span>
           </el-option>
         </el-select>
       </el-form-item>
@@ -56,7 +56,7 @@
             :value="supplier.supplierId"
             :disabled="supplier.supplierStatus !== '0'"
           >
-            <span>{{ '供应商名称：' + supplier.supplierName + ' ---- ' + '供应商编码：' + supplier.supplierCode }}</span>
+            <span>{{ `供应商名称：${supplier.supplierName} ---- 供应商编码：${supplier.supplierCode}` }}</span>
           </el-option>
         </el-select>
       </el-form-item>
@@ -70,7 +70,7 @@
             :value="user.userId"
             :disabled="user.status !== '0'"
           >
-            <span>{{ '员工名称：' + user.userName + ' ---- ' + '员工昵称：' + user.nickName }}</span>
+            <span>{{ `员工名称：${user.userName} ---- 员工昵称：${ user.nickName}` }}</span>
           </el-option>
         </el-select>
       </el-form-item>
@@ -145,10 +145,10 @@
         <template #default="scope">
           <div style="display: flex; align-items: center; width: 100%;">
             <el-link :underline="false" type="primary" @click="handleUpdate(scope.row)">{{ scope.row.invoiceFlowNo }}</el-link>
-            <el-tooltip content="点击复制" placement="top">
+            <el-tooltip content="点击复制" placement="top" v-if="scope.row.invoiceFlowNo">
               <el-icon
                 style="margin-left: 5px; cursor: pointer; color: #409EFF;"
-                @click="copyText(scope.row.invoiceFlowNo)" v-if="scope.row.invoiceFlowNo"
+                @click="copyText(scope.row.invoiceFlowNo)" 
               >
                 <CopyDocument />
               </el-icon>
@@ -624,7 +624,8 @@
         </template>
         <el-timeline>
           <el-timeline-item v-for="(activity, index) in orderOperateLog" :key="index"
-            :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top">
+            :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top"
+          >
             {{ activity.operator }} - {{ activity.action }}
             <span v-if="activity.remark"> - - 描述 : </span>
             <span class="remark">{{ activity.remark }}</span>
@@ -637,7 +638,8 @@
         <!-- 强制填写备注 -->
         <el-form :model="approvalForm" label-width="80px">
           <el-form-item :label="getRemarkMessage(currentAction) + ':'"
-            v-if="actionRequiresRemark.includes(currentAction)">
+            v-if="actionRequiresRemark.includes(currentAction)"
+          >
             <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20"
               :placeholder="'请输入' + getRemarkMessage(currentAction)" />
           </el-form-item>
@@ -666,9 +668,8 @@ import { listFinanceProject } from "@/api/finance/financeProject";
 import { listSupplier} from "@/api/order/supplier";
 import { listCustomer} from "@/api/order/customer";
 import { listUser } from "@/api/system/user";
-import { ref } from "vue";
+import { onBeforeMount, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { da } from "element-plus/es/locales.mjs";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -1055,32 +1056,37 @@ const  AssistTypeEnum = {
 const supplierList = ref([])
 const customerList = ref([])
 const userList = ref([])
-listSupplier()
-  .then(
-    response => { supplierList.value = response.rows }
-  )
-  .catch(
-    error => {ElMessage.error("获取供应商列表时出错:",error)}
-  )
-listCustomer()
-  .then(
-    response => {
-      customerList.value = response.rows
-      console.log("获取客户列表customerList:",customerList.value)
-    
-    }
-    
-  )
-  .catch(
-    error => {ElMessage.error("获取客户列表时出错:",error)}
-  )
-listUser()
-  .then(
-    response => {userList.value = response.rows }
-  )
-  .catch(
-    error => {ElMessage.error("获取客户列表时出错:",error)}
-  )
+
+const getAssistList = () => {
+  listSupplier()
+    .then(
+      response => { supplierList.value = response.rows }
+    )
+    .catch(
+      error => {ElMessage.error("获取供应商列表时出错:",error)}
+    )
+  listCustomer()
+    .then(
+      response => {
+        customerList.value = response.rows
+        console.log("获取客户列表customerList:",customerList.value)
+      
+      }
+      
+    )
+    .catch(
+      error => {ElMessage.error("获取客户列表时出错:",error)}
+    )
+  listUser()
+    .then(
+      response => {userList.value = response.rows }
+    )
+    .catch(
+      error => {ElMessage.error("获取客户列表时出错:",error)}
+    )
+
+}
+
 
 /** 发票表头会计科目限制 */
 const  MainAccountId = {
@@ -1193,7 +1199,7 @@ function getList() {
   // 请求参数增加租户ID
   queryParams.value.tenantId = userStore.tenantId;
   listCostInvoice(queryParams.value).then(response => {
-    costInvoiceList.value = response.rows;
+    costInvoiceList.value = response.rows || [];
     total.value = response.total;
     loading.value = false;
   });
@@ -1762,7 +1768,13 @@ const submitApproval = async () => {
 
 // ******************************* 12 提交操作 end ****************************
 
-getList();
+onBeforeMount(
+  ()=>{
+    getList();
+    getAssistList();
+  }
+) 
+
 
 </script>
 

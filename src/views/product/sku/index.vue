@@ -176,7 +176,7 @@
         </el-form-item>
         <el-form-item label="sku状态" prop="skuStatus">
           <el-radio-group v-model="form.skuStatus">
-            <el-radio v-for="dict in product_status" :key="dict.value" :label="dict.value">{{dict.label}}</el-radio>
+            <el-radio v-for="dict in product_status" :key="dict.value" :value="dict.value">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>

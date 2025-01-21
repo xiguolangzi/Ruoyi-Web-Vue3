@@ -148,7 +148,7 @@
             <el-tooltip content="点击复制" placement="top">
               <el-icon
                 style="margin-left: 5px; cursor: pointer; color: #409EFF;"
-                @click="copyText(scope.row.invoiceFlowNo)"
+                @click="copyText(scope.row.invoiceFlowNo)" v-if="scope.row.invoiceFlowNo"
               >
                 <CopyDocument />
               </el-icon>

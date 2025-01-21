@@ -155,7 +155,7 @@
         </el-row>
         <el-form-item label="订单状态" prop="orderStatus">
           <el-radio-group v-model="form.orderStatus">
-            <el-radio-button v-for="item in orderStatusOptions" :key="item.value" :label="item.value" >{{ item.label }}</el-radio-button>
+            <el-radio-button v-for="item in orderStatusOptions" :key="item.value" :value="item.value"  >{{ item.label }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
         

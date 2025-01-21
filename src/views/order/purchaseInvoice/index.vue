@@ -126,9 +126,8 @@
       </el-table-column>
       <el-table-column label="订单号码" align="left" header-align="center" prop="orderNo"  min-width="150" show-overflow-tooltip >
         <template #default="scope">
-          <el-link :underline="false" type="danger
-          " @click="handleView(scope.row)">{{ scope.row.orderNo }}</el-link>
-        </template>
+          <el-link :underline="false" type="danger"  @click="handleView(scope.row)">{{ scope.row.orderNo }}</el-link>
+         </template>
       </el-table-column>
       <el-table-column label="供应商" align="left" header-align="center" prop="supplierId" min-width="150" show-overflow-tooltip>
         <template #default="scope">

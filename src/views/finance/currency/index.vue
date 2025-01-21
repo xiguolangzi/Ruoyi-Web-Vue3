@@ -161,19 +161,13 @@
           </template>
           <el-radio-group v-model="form.isBase" >
             <el-radio
-              v-for="dict in sys_yes_or_no"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
+              v-for="dict in sys_yes_or_no" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio
-              v-for="dict in project_general_status"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
+              v-for="dict in project_general_status" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="币种描述" prop="remark">

@@ -241,15 +241,15 @@
             <el-table-column label="价格" header-align="center" align="left" width="140px">
               <template #default="scope">
                 <div class="price">
-                  <Strong> 价格1: </Strong>
+                  <strong> 价格1: </strong>
                   <span> {{ formatTwo(scope.row.skuPrice1) }} €</span>
                 </div>
                 <div class="price">
-                  <Strong> 价格2: </Strong>
+                  <strong> 价格2: </strong>
                   <span> {{ formatTwo(scope.row.skuPrice2) }} €</span>
                 </div>
                 <div class="price">
-                  <Strong> 价格3: </Strong>
+                  <strong> 价格3: </strong>
                   <span> {{ formatTwo(scope.row.skuPrice3) }} €</span>
                 </div>
               </template>

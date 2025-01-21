@@ -230,20 +230,12 @@
         <el-row >
           <el-form-item label="账户状态:" prop="fundAccountStatus" style="margin-right: 30px;">
             <el-radio-group v-model="form.fundAccountStatus">
-              <el-radio
-                v-for="dict in project_general_status"
-                :key="dict.value"
-                :label="dict.value"
-              >{{dict.label}}</el-radio>
+              <el-radio v-for="dict in project_general_status" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="是否默认:" prop="fundIsDefault" >
             <el-radio-group v-model="form.fundIsDefault">
-              <el-radio
-                v-for="dict in sys_yes_or_no"
-                :key="dict.value"
-                :label="dict.value"
-              >{{dict.label}}</el-radio>
+              <el-radio v-for="dict in sys_yes_or_no" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
             </el-radio-group>
           </el-form-item>
         </el-row>

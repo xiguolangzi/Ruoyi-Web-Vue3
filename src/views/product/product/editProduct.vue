@@ -10,8 +10,8 @@
             <template #header>
               <span>必要信息</span>
             </template>
-            <el-row gutter="20">
-              <el-col span="8">
+            <el-row :gutter="20">
+              <el-col :span="8">
                 <el-form-item label="商品分类:" prop="categoryId">
                   <el-tree-select 
                   v-model="form.categoryId" 
@@ -27,12 +27,12 @@
                   clearable />
                 </el-form-item>
               </el-col>
-              <el-col span="8">
+              <el-col :span="8">
                 <el-form-item label="商品名称:" prop="productName">
                   <el-input v-model="form.productName" placeholder="请输入商品名称" @change="handleProductChanged" />
                 </el-form-item>
               </el-col>
-              <el-col span="8">
+              <el-col :span="8">
                 <el-form-item label="商品品牌:" prop="brandId">
                   <el-select v-model="form.brandId" placeholder="请选择商品品牌" style="width: 195px">
                     <el-option v-for="items in brandList" :key="items.brandId" :label="items.brandName"
@@ -42,18 +42,18 @@
               </el-col>
             </el-row>
 
-            <el-row gutter="20">
-              <el-col span="8">
+            <el-row :gutter="20">
+              <el-col :span="8">
                 <el-form-item label="商品条码:" prop="productCode">
                   <el-input v-model="form.productCode" placeholder="请输入商品条码" @change="handleProductChanged"/>
                 </el-form-item>
               </el-col>
-              <el-col span="8">
+              <el-col :span="8">
                 <el-form-item label="商品价格:" prop="productPrice">
                   <el-input v-model="form.productPrice" placeholder="请输入商品价格" type="number" />
                 </el-form-item>
               </el-col>
-              <el-col span="8">
+              <el-col :span="8">
                 <el-form-item label="计量单位:" prop="unitId">
                   <el-select v-model="form.unitId" placeholder="请选择计量单位" @change="handleProductChanged">
                     <el-option v-for="items in unitList" :key="items.unitId" :label="items.unitCode"
@@ -62,16 +62,16 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-row gutter="80">
-              <el-col span="12">
+            <el-row :gutter="80">
+              <el-col :span="12">
                 <el-form-item label="商品状态:" prop="productStatus" >
                   <el-radio-group v-model="form.productStatus" @change="handleProductChanged">
-                    <el-radio v-for="dict in product_status" :key="dict.value" :label="dict.value">{{ dict.label
+                    <el-radio v-for="dict in product_status" :key="dict.value"  :value="dict.value">{{ dict.label
                       }}</el-radio>
                   </el-radio-group>
                 </el-form-item>
               </el-col>
-              <el-col span="12">
+              <el-col :span="12">
                 <el-form-item label="成本计算:" prop="costMethod">
                   <el-select v-model="form.costMethod" placeholder="请选择成本计算" style="width: 200px">
                     <el-option v-for="dict in product_cost_method" :key="dict.value" :label="dict.label"
@@ -92,27 +92,27 @@
               <span>包装信息</span>
             </template>
             <el-row>
-              <el-col span="4">
+              <el-col :span="4">
                 <el-form-item label="长(cm):" prop="length" style="margin-right: 20px">
                   <el-input v-model="form.length" placeholder="请输入长(cm)" type="number" style="width: 125px"  @change="calculateVolume"/>
                 </el-form-item>
               </el-col>
-              <el-col span="4">
+              <el-col :span="4">
                 <el-form-item label="宽(cm):" prop="width" style="margin-right: 20px">
                   <el-input v-model="form.width" placeholder="请输入宽(cm)" type="number" style="width: 125px" @change="calculateVolume"/>
                 </el-form-item>
               </el-col>
-              <el-col span="4">
+              <el-col :span="4">
                 <el-form-item label="高(cm):" prop="height" style="margin-right: 20px">
                   <el-input v-model="form.height" placeholder="请输入高(cm)" type="number" style="width: 125px" @change="calculateVolume"/>
                 </el-form-item>
               </el-col>
-              <el-col span="6">
+              <el-col :span="6">
                 <el-form-item label="体积(m3):" prop="volume" style="margin-right: 20px">
                   <el-input v-model="form.volume" placeholder="请输入体积(m3)" type="number" style="width: 150px" />
                 </el-form-item>
               </el-col>
-              <el-col span="6">
+              <el-col :span="6">
                 <el-form-item label="重量(kg):" prop="weight" style="margin-right: 20px">
                   <el-input v-model="form.weight" placeholder="请输入重量(kg)" type="number" style="width: 150px" />
                 </el-form-item>

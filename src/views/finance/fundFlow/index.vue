@@ -115,6 +115,7 @@
               <el-icon
                 style="margin-left: 5px; cursor: pointer; color: #409EFF;"
                 @click="copyText(scope.row.flowNo)"
+                v-if="scope.row.flowNo"
               >
                 <CopyDocument />
               </el-icon>

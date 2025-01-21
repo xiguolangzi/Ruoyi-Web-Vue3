@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-row gutter="20">
+      <el-row :gutter="20">
         <el-form-item label="入库单号:" prop="receiptsNo">
           <el-input
             v-model="queryParams.receiptsNo"

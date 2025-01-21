@@ -113,11 +113,7 @@
         </el-form-item>
         <el-form-item label="分类状态" prop="categoryStatus">
           <el-radio-group v-model="form.categoryStatus">
-            <el-radio
-              v-for="dict in sys_tenant_status"
-              :key="dict.value"
-              :label="dict.value"
-            >{{dict.label}}</el-radio>
+            <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="排列顺序:" prop="orderNumber">

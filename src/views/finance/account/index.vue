@@ -30,11 +30,7 @@
           <el-form-item label="科目类型:" prop="accountType">
             <el-radio-group v-model="queryParams.accountType">
               <el-radio-button 
-                v-for="dict in erp_finance_account_style" 
-                :key="dict.value" 
-                :label="dict.label"
-                :value="dict.value" 
-                @change="handleQuery" 
+                v-for="dict in erp_finance_account_style" :key="dict.value" :label="dict.label" :value="dict.value" @change="handleQuery" 
               />
             </el-radio-group>
           </el-form-item>
@@ -66,9 +62,9 @@
       </el-table-column>
       <el-table-column label="辅助项" align="center" prop="assistTypes" show-overflow-tooltip>
         <template #default="scope">
-          <el-tag v-for="item in scope.row.assistTypes" :key="item" size="mini">
-            <dict-tag :options="finance_assist_type" :value="item" />
-          </el-tag>
+          <div style="display: flex;">
+            <dict-tag :options="finance_assist_type" v-for="item in scope.row.assistTypes" :key="item" :value="item" />
+          </div>
           <span v-if="scope.row.assistTypes.length == 0">--</span>
         </template>
       </el-table-column>
@@ -108,13 +104,13 @@
         <el-form-item label="上级科目" prop="parentId">
           <el-tree-select ref="accountTreeSelectRef" v-model="form.parentId" :data="accountOptions"
             :props="{ value: 'accountId', label: 'accountCode', children: 'children' }" value-key="accountId"
-            placeholder="请选择上级科目ID" check-strictly @change="updateParentCode" :disabled="form.accountId" />
+            placeholder="请选择上级科目ID" check-strictly @change="updateParentCode" :disabled="isAccountDisabled" />
           <el-text type="danger" style="margin-left: 10px;"> 科目级长 4-2-2-2 </el-text>
         </el-form-item>
 
         <el-form-item label="科目编码" prop="accountCode">
           <el-input v-model="form.accountCode" placeholder="请输入科目编码" style="width: 90%;" @change="updateAccountCode"
-            :disabled="form.accountId" />
+            :disabled="isAccountDisabled" />
         </el-form-item>
         <el-form-item label="科目名称" prop="accountName">
           <el-input v-model="form.accountName" placeholder="请输入科目名称" style="width: 90%;" />
@@ -139,8 +135,7 @@
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio v-for="dict in project_general_status" :key="dict.value"
-              :label="dict.value">{{dict.label}}</el-radio>
+            <el-radio v-for="dict in project_general_status" :key="dict.value" :value="dict.value">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
@@ -181,6 +176,8 @@ const refreshTable = ref(true);
 const accountTreeSelectRef = ref(null);
 // 添加 ref，用于操作表格实例
 const accountTable = ref(null);
+// 计算属性，确保 disabled 属性为布尔值
+const isAccountDisabled = computed(() => !!form.value.accountId);
 
 /** 控制单行展开折叠 */
 const handleCellClick = (row) => {

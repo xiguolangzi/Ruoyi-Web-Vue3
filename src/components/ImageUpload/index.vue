@@ -48,6 +48,7 @@
 
 <script setup>
 import { getToken } from "@/utils/auth";
+import { isExternal } from "@/utils/validate";
 
 const props = defineProps({
   modelValue: [String, Object, Array],
@@ -98,31 +99,26 @@ const showTip = computed(
 // 控制组件的大小
 const imgSize = computed(() => props.isImgSize || 100);
 
-watch(
-  () => props.modelValue,
-  (val) => {
-    if (val) {
-      // 首先将值转为数组
-      const list = Array.isArray(val) ? val : props.modelValue.split(",");
-      // 然后将数组转为对象数组
-      fileList.value = list.map((item) => {
-        if (typeof item === "string") {
-          // 如果图片路径包含 baseUrl 或者 http开头，则直接使用，否则加上baseUrl
-          if (item.indexOf(baseUrl) === -1 && item.indexOf("http") === -1) {
-            item = { name: baseUrl + item, url: baseUrl + item };
-          } else {
-            item = { name: item, url: item };
-          }
+watch(() => props.modelValue, val => {
+  if (val) {
+    // 首先将值转为数组
+    const list = Array.isArray(val) ? val : props.modelValue.split(",");
+    // 然后将数组转为对象数组
+    fileList.value = list.map(item => {
+      if (typeof item === "string") {
+        if (item.indexOf(baseUrl) === -1 && !isExternal(item)) {
+          item = { name: baseUrl + item, url: baseUrl + item };
+        } else {
+          item = { name: item, url: item };
         }
-        return item;
-      });
-    } else {
-      fileList.value = [];
-      return [];
-    }
-  },
-  { deep: true, immediate: true }
-);
+      }
+      return item;
+    });
+  } else {
+    fileList.value = [];
+    return [];
+  }
+},{ deep: true, immediate: true });
 
 // 上传前loading加载
 function handleBeforeUpload(file) {
@@ -141,9 +137,11 @@ function handleBeforeUpload(file) {
     isImg = file.type.indexOf("image") > -1;
   }
   if (!isImg) {
-    proxy.$modal.msgError(
-      `文件格式不正确, 请上传${props.fileType.join("/")}图片格式文件!`
-    );
+    proxy.$modal.msgError(`文件格式不正确，请上传${props.fileType.join("/")}图片格式文件!`);
+    return false;
+  }
+  if (file.name.includes(',')) {
+    proxy.$modal.msgError('文件名不正确，不能包含英文逗号!');
     return false;
   }
   if (props.fileSize) {

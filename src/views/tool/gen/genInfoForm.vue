@@ -91,12 +91,13 @@
               <el-icon><question-filled /></el-icon>
             </el-tooltip>
           </template>
-          <tree-select
-            style="width: 200px;"
-            v-model:value="info.parentMenuId"
-            :options="menuOptions"
-            :objMap="{ value: 'menuId', label: 'menuName', children: 'children' }"
+          <el-tree-select
+            v-model="info.parentMenuId"
+            :data="menuOptions"
+            :props="{ value: 'menuId', label: 'menuName', children: 'children' }"
+            value-key="menuId"
             placeholder="请选择系统菜单"
+            check-strictly
           />
         </el-form-item>
       </el-col>
@@ -288,6 +289,10 @@ function getMenuTreeselect() {
   });
 }
 
+onMounted(() => {
+  getMenuTreeselect();
+})
+
 watch(() => props.info.subTableName, val => {
   setSubTableColumns(val);
 });
@@ -298,5 +303,4 @@ watch(() => props.info.tplWebType, val => {
   }
 });
 
-getMenuTreeselect();
 </script>

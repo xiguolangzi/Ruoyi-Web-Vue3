@@ -1,5 +1,6 @@
 import { login, logout, getInfo } from '@/api/login'
 import { getToken, setToken, removeToken } from '@/utils/auth'
+import { isHttp, isEmpty } from "@/utils/validate"
 import defAva from '@/assets/images/profile.jpg'
 import { useLanguageStore } from '@/store/modules/language';
 import { changeLanguage } from '@/api/login';
@@ -59,11 +60,11 @@ const useUserStore = defineStore(
           // 调用 @/api/login 中的 getInfo 方法
           getInfo().then(res => {
             const user = res.user
-            // 获取头像 = "默认路径" 或者 "/dev-api + 头像地址"
-            const avatar = (user.avatar == "" || user.avatar == null) ? defAva : import.meta.env.VITE_APP_BASE_API + user.avatar;
-            // 00 系统用户 01 租户管理员 02 普通用户
-            this.userType = user.userType || "02";
-            if (res.roles && res.roles.length > 0) {
+            let avatar = user.avatar || ""
+            if (!isHttp(avatar)) {
+              avatar = (isEmpty(avatar)) ? defAva : import.meta.env.VITE_APP_BASE_API + avatar
+            }
+            if (res.roles && res.roles.length > 0) { // 验证返回的roles是否是一个非空数组
               this.roles = res.roles
               this.permissions = res.permissions
             } else {

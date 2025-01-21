@@ -9,13 +9,10 @@ import useUserStore from '@/store/modules/user'
 import useSettingsStore from '@/store/modules/settings'
 import usePermissionStore from '@/store/modules/permission'
 
-//  这是一个页面加载进度条库，用于显示页面切换时的进度条
-NProgress.configure({ showSpinner: false });
-// 全局路由守卫的白名单
-const whiteList = ['/login', '/register', '/goodsShow'];
 NProgress.configure({ showSpinner: false })
 
-// 路由前置守卫
+const whiteList = ['/login', '/register']
+
 const isWhiteList = (path) => {
   return whiteList.some(pattern => isPathMatch(pattern, path))
 }

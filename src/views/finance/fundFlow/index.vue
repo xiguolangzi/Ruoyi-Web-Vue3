@@ -510,7 +510,7 @@ import { ElMessage } from "element-plus";
 import { listSupplier} from "@/api/order/supplier";
 import { listCustomer} from "@/api/order/customer";
 import { listUser } from "@/api/system/user";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
 
 // 租户ID字段过滤使用
@@ -697,7 +697,7 @@ const customerList = ref([])
 const userList = ref([])
 listSupplier()
   .then(
-    response => { supplierList.value = response.rows }
+    response => { supplierList.value = response.rows || []}
   )
   .catch(
     error => {ElMessage.error("获取供应商列表时出错:",error)}
@@ -705,7 +705,7 @@ listSupplier()
 listCustomer()
   .then(
     response => {
-      customerList.value = response.rows
+      customerList.value = response.rows || [];
       console.log("获取客户列表customerList:",customerList.value)
     
     }
@@ -716,7 +716,7 @@ listCustomer()
   )
 listUser()
   .then(
-    response => {userList.value = response.rows }
+    response => {userList.value = response.rows || []}
   )
   .catch(
     error => {ElMessage.error("获取客户列表时出错:",error)}
@@ -880,8 +880,10 @@ function getList() {
   // 请求参数增加租户ID
   queryParams.value.tenantId = userStore.tenantId;
   listFundFlow(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
-    fundFlowList.value = response.rows;
+    fundFlowList.value = response.rows || [];
     total.value = response.total;
+    loading.value = false;
+  }).catch(() => {
     loading.value = false;
   });
 }
@@ -1029,7 +1031,10 @@ const handleExportFlow = () => {
   console.log('导出流水明细');
 }
 
-getList();
+
+
+  
+
 
 // *************************************** 操作 start ******************************
 // 订单操作类型
@@ -1442,6 +1447,7 @@ const submitApproval = async () => {
 }
 
 
+getList();
 
 </script>
 

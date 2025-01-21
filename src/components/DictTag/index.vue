@@ -13,18 +13,20 @@
           :disable-transitions="true"
           :key="item.value + ''"
           :index="index"
-          :type="item.elTagType === 'primary' ? '' : item.elTagType"
+          :type="item.elTagType === 'primary' ? 'info' : item.elTagType"
           :class="item.elTagClass"
         >{{ item.label + " " }}</el-tag>
       </template>
     </template>
     <template v-if="unmatch && showValue">
-      {{ unmatchArray | handleArray }}
+      {{ formattedUnmatchArray }}
     </template>
   </div>
 </template>
 
 <script setup>
+import { ref, computed } from 'vue';
+
 // 记录未匹配的项
 const unmatchArray = ref([]);
 
@@ -55,24 +57,22 @@ const values = computed(() => {
 const unmatch = computed(() => {
   unmatchArray.value = [];
   // 没有value不显示
-  if (props.value === null || typeof props.value === 'undefined' || props.value === '' || props.options.length === 0) return false
+  if (props.value === null || typeof props.value === 'undefined' || props.value === '' || props.options.length === 0) return false;
   // 传入值为数组
-  let unmatch = false // 添加一个标志来判断是否有未匹配项
+  let hasUnmatch = false; // 添加一个标志来判断是否有未匹配项
   values.value.forEach(item => {
     if (!props.options.some(v => v.value === item)) {
-      unmatchArray.value.push(item)
-      unmatch = true // 如果有未匹配项，将标志设置为true
+      unmatchArray.value.push(item);
+      hasUnmatch = true; // 如果有未匹配项，将标志设置为true
     }
-  })
-  return unmatch // 返回标志的值
+  });
+  return hasUnmatch; // 返回标志的值
 });
 
-function handleArray(array) {
-  if (array.length === 0) return "";
-  return array.reduce((pre, cur) => {
-    return pre + " " + cur;
-  });
-}
+const formattedUnmatchArray = computed(() => {
+  if (unmatchArray.value.length === 0) return "";
+  return unmatchArray.value.join(" ");
+});
 </script>
 
 <style scoped>

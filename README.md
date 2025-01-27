@@ -33,7 +33,7 @@ npm run dev
 
 # 构建测试环境 yarn build:stage  -> /dev-api/
 # 构建生产环境 yarn build:prod   -> /prod-api/
-# 前端访问地址 http://localhost:80  
+# 前端访问地址 http://localhost:8888
 
 # 构建环境注意修改后端服务的访问地址！！
 ```

@@ -20,7 +20,7 @@
 
 ```bash
 # 克隆项目
-git clone [https://github.com/yangzongzhuan/RuoYi-Vue3.git](https://github.com/xiguolangzi/Ruoyi-Web-Vue3.git)
+git clone https://github.com/xiguolangzi/Ruoyi-Web-Vue3.git
 
 # 进入项目目录
 cd RuoYi-Vue3

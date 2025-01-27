@@ -20,20 +20,22 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/yangzongzhuan/RuoYi-Vue3.git
+git clone [https://github.com/yangzongzhuan/RuoYi-Vue3.git](https://github.com/xiguolangzi/Ruoyi-Web-Vue3.git)
 
 # 进入项目目录
 cd RuoYi-Vue3
 
 # 安装依赖
-yarn --registry=https://registry.npmmirror.com
+npm install
 
 # 启动服务
-yarn dev
+npm run dev
 
-# 构建测试环境 yarn build:stage
-# 构建生产环境 yarn build:prod
-# 前端访问地址 http://localhost:80
+# 构建测试环境 yarn build:stage  -> /dev-api/
+# 构建生产环境 yarn build:prod   -> /prod-api/
+# 前端访问地址 http://localhost:80  
+
+# 构建环境注意修改后端服务的访问地址！！
 ```
 
 ## 内置功能
@@ -56,14 +58,15 @@ yarn dev
 16. 缓存监控：对系统的缓存信息查询，命令统计等。
 17. 在线构建器：拖动表单元素生成相应的HTML代码。
 18. 连接池监视：监视当前系统数据库连接池状态，可进行分析SQL找出系统性能瓶颈。
+19. 多租户： 多租户管理、数据隔离；
+20. pwa优化用户体验
 
 ## 在线体验
 
 - admin/admin123  
 - 陆陆续续收到一些打赏，为了更好的体验已用于演示服务器升级。谢谢各位小伙伴。
 
-演示地址：http://vue.ruoyi.vip  
-文档地址：http://doc.ruoyi.vip
+演示地址：http://84.78.122.67:8888  
 
 ## 演示图
 

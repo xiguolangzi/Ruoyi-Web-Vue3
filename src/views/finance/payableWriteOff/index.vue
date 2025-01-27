@@ -55,7 +55,7 @@
           plain
           icon="Plus"
           @click="handleAdd"
-          v-hasPermi="['finance:payableWriteOff:add']"
+          v-hasPermi="['finance:writeOff:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -65,7 +65,7 @@
           icon="Edit"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['finance:payableWriteOff:edit']"
+          v-hasPermi="['finance:writeOff:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -75,7 +75,7 @@
           icon="Delete"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['finance:payableWriteOff:remove']"
+          v-hasPermi="['finance:writeOff:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -84,7 +84,7 @@
           plain
           icon="Download"
           @click="handleExport"
-          v-hasPermi="['finance:payableWriteOff:export']"
+          v-hasPermi="['finance:writeOff:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
@@ -110,8 +110,8 @@
       <el-table-column label="租户ID" align="center" prop="tenantId" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['finance:payableWriteOff:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['finance:payableWriteOff:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['finance:writeOff:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['finance:writeOff:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -172,7 +172,7 @@
 </template>
 
 <script setup name="PayableWriteOff">
-import { listPayableWriteOff, getPayableWriteOff, delPayableWriteOff, addPayableWriteOff, updatePayableWriteOff } from "@/api/finance/payableWriteOff";
+import { listWriteOff, getWriteOff, delWriteOff, addWriteOff, updateWriteOff } from "@/api/finance/writeOff";
 import useUserStore from "@/store/modules/user";
 
 // 租户ID字段过滤使用
@@ -237,7 +237,7 @@ function getList() {
   loading.value = true;
   // 请求参数增加租户ID
   queryParams.value.tenantId = userStore.tenantId;
-  listPayableWriteOff(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
+  listWriteOff(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
     payableWriteOffList.value = response.rows;
     total.value = response.total;
     loading.value = false;
@@ -339,7 +339,7 @@ function handleAdd() {
 function handleUpdate(row) {
   reset();
   const _writeOffId = row.writeOffId || ids.value
-  getPayableWriteOff(_writeOffId).then(response => {
+  getWriteOff(_writeOffId).then(response => {
     form.value = response.data;
     open.value = true;
     title.value = "修改应付核销";
@@ -351,13 +351,13 @@ function submitForm() {
   proxy.$refs["payableWriteOffRef"].validate(valid => {
     if (valid) {
       if (form.value.writeOffId != null) {
-        updatePayableWriteOff(form.value).then(response => {
+        updateWriteOff(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addPayableWriteOff(form.value).then(response => {
+        addWriteOff(form.value).then(response => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getList();
@@ -371,7 +371,7 @@ function submitForm() {
 function handleDelete(row) {
   const _writeOffIds = row.writeOffId || ids.value;
   proxy.$modal.confirm('是否确认删除应付核销编号为"' + _writeOffIds + '"的数据项？').then(function() {
-    return delPayableWriteOff(_writeOffIds);
+    return delWriteOff(_writeOffIds);
   }).then(() => {
     getList();
     proxy.$modal.msgSuccess("删除成功");
@@ -380,7 +380,7 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
-  proxy.download('finance/payableWriteOff/export', {
+  proxy.download('finance/writeOff/export', {
     ...queryParams.value
   }, `payableWriteOff_${new Date().getTime()}.xlsx`)
 }

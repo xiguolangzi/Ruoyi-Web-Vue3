@@ -210,7 +210,7 @@ export const dynamicRoutes = [
     path: '/finance/accountsPayable',
     component: Layout,
     hidden: true,
-    permissions: ['finance:payableWriteOff:edit'],
+    permissions: ['finance:writeOff:edit'],
     children: [
       {
         path: '/finance/accountsPayable/payableWriteOffOperation',

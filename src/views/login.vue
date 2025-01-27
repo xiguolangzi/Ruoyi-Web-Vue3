@@ -117,6 +117,43 @@ const captchaEnabled = ref(true);
 const register = ref(false);
 const redirect = ref(undefined);
 
+// ------------------------- PWA 通知权限 start ---------------------
+/** pwa - 浏览器通知 - 状态检查 */
+function checkNotificationSupport() {
+  if (!('Notification' in window)) {
+    alert('您的浏览器不支持通知功能');
+    return false;
+  }
+  return true;
+}
+// 请求通知权限
+function requestNotificationPermission() {
+  if (checkNotificationSupport()) {
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          console.log('通知权限已授予');
+          new Notification('温馨提示：', {
+            body: '您已经启用了Ok云的通知权限！',
+          });
+        } else if (permission === 'denied') {
+          console.log('用户拒绝了通知权限');
+        }
+      });
+    } else if (Notification.permission === 'denied') {
+      alert(
+        '通知权限已被永久拒绝，请手动在浏览器设置中启用：\n' +
+        '1. 点击地址栏左侧的 锁图标、调音图标、或 叹号图标。\n' +
+        '2. 找到“通知”选项，将其设置为“允许”。\n' +
+        '3. 刷新页面。'
+      );
+    } else {
+      console.log('通知权限已被授予，无需重复请求');
+    }
+  }
+}
+// ------------------------- PWA 通知权限 end ---------------------
+
 // ------ 税号输入处理 -- start
 // 1 建议列表
 const taxRecentList = ref([]);
@@ -164,6 +201,8 @@ watch(route, (newRoute) => {
 }, { immediate: true });
 
 function handleLogin() {
+  // 通知权限提示：
+  requestNotificationPermission()
   // 表单预校验 -> 校验表单元素是否符合规则
   proxy.$refs.loginRef.validate(valid => {
     // 预校验通过

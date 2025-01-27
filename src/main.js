@@ -76,18 +76,6 @@ app.component('svg-icon', SvgIcon)
 // 国际化挂载
 app.use(i18n)
 
-/** 需要网页加载完成后，注册 service worker */
-window.addEventListener('load', () => {
-  // 能力检测是否有 navigator -> 注册serviceWorker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js').then(registration => {
-      console.log('Service Worker 注册成功', registration);
-    }).catch(error => {
-      console.log('Service Worker 注册失败', error);
-    });
-  }
-})
-
 
 directive(app)
 

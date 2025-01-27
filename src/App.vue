@@ -20,6 +20,7 @@ let lang = computed(() => languageStore.language)
 const {locale} = useI18n()
 locale.value = lang.value
 
+
 onMounted(() => {
   nextTick(() => {
     // 初始化主题样式

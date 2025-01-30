@@ -1,0 +1,62 @@
+[33m255bba5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{0}: reset: moving to 255bba5
+[33m953f229[m[33m ([m[1;31mgithub/main[m[33m)[m HEAD@{1}: commit: 确定PWA方案
+[33ma87a1e4[m HEAD@{2}: commit: "pwa手动添加配置"
+[33meb4fc64[m HEAD@{3}: commit: pwa测试代码
+[33mc13efdc[m HEAD@{4}: commit: 修改前端BUG
+[33ma63d16e[m HEAD@{5}: commit: 更新1
+[33md0ddad2[m HEAD@{6}: commit (merge): Merge remote-tracking branch 'origin/master'
+[33mc6859d9[m HEAD@{7}: Branch: renamed refs/heads/main to refs/heads/main
+[33mc6859d9[m HEAD@{9}: Branch: renamed refs/heads/master to refs/heads/main
+[33mc6859d9[m HEAD@{11}: reset: moving to HEAD
+[33mc6859d9[m HEAD@{12}: commit: 前端优化
+[33md33f79e[m HEAD@{13}: commit: 客户供应商 分类管理业务
+[33me2b66c9[m HEAD@{14}: commit: 应付核销业务
+[33m319592c[m HEAD@{15}: commit: 费用等级 添加流水编号
+[33ma9d37d4[m HEAD@{16}: commit: 现金银行日记账 银行流水优化
+[33mb4664c1[m HEAD@{17}: commit: 前端优化
+[33m51e1c80[m HEAD@{18}: commit: 费用登记 业务
+[33m4401043[m HEAD@{19}: commit: 序号生成服务 优化
+[33mdc75e92[m HEAD@{20}: commit: 现金银行日记账 - 内部转账 业务实现
+[33m2ef746c[m HEAD@{21}: commit: 现金银行日记账 + 前后余额更新 + 凭证绑定
+[33mc76ce84[m HEAD@{22}: commit: 采购发票审核生成绑定凭证
+[33m255bba5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m HEAD@{23}: commit: 序号生成服务 + 批量获取
+[33mb3192bb[m HEAD@{24}: commit: 增加 lombok + 购物车维护
+[33md27d735[m HEAD@{25}: commit: redisson分布式锁+凭证编号修改成月连续
+[33mf632852[m HEAD@{26}: commit: 采购发票状态 采购发票审核
+[33m28bc215[m HEAD@{27}: commit: 修改BUG 采购入库单引入 业务修改
+[33me60f13b[m HEAD@{28}: commit: 凭证审核 + 商品首饰展示 + 输入框聚焦选中 + 最后一张图片为首选
+[33m251c7b7[m HEAD@{29}: commit: 订单号回滚 + 时间类型换回date + 凭证新增修改
+[33ma036b1b[m HEAD@{30}: commit: 凭证 前端业务
+[33md86b176[m HEAD@{31}: commit: 科目余额表 + 币种 + 会计期间 + 时间格式优化
+[33m3b1d6a0[m HEAD@{32}: commit: 树形结构 判断是否有子级业务处理
+[33maf09d39[m HEAD@{33}: commit: 采购入库单 生成发票 + 优化处理
+[33m3a251f3[m HEAD@{34}: commit: 采购入库单 入库/反入库操作 + 状态校验
+[33me183126[m HEAD@{35}: commit: 采购入库单入库 + 重构库存管理 + 采购订单操作状态校验
+[33m716d9c1[m HEAD@{36}: commit: 采购入库2次提交
+[33m0c76244[m HEAD@{37}: commit: 采购入库1次提交
+[33md96f0a6[m HEAD@{38}: commit: 采购订单 - 虚拟表格处理
+[33m8e299ae[m HEAD@{39}: commit: 采购订单 - 虚拟表格处理
+[33m1beff21[m HEAD@{40}: commit: 订单管理 - 订单号序列化生成
+[33ma4337a0[m HEAD@{41}: commit: 订单管理 - 供应商 + 客户 + 乐观锁
+[33ma12495b[m HEAD@{42}: commit: 商品管理 - sku查询界面美化
+[33m871801e[m HEAD@{43}: commit: erp-商品管理 - 商品信息 sku增删改查优化+sku查询界面
+[33mbba27d5[m HEAD@{44}: commit: erp-商品管理 - 商品信息前端样式完善
+[33m83c2a7f[m HEAD@{45}: commit: erp-商品管理 - 部分功能完成
+[33m385a96e[m HEAD@{46}: commit: 多租户 - 维护租户状态管理，租户用户的操作需要先检查租户管理员的状态是不是正常
+[33m21df2b0[m HEAD@{47}: commit: 多租户 - 修改BUG - 初始化租户管理员(删除其下所有角色的状态) - 控制菜单获取、控制菜单权限
+[33m76be416[m HEAD@{48}: commit: 多租户 - 修改BUG - 租户登录界面访问无权限，错误返回403导致的！！
+[33mf6b57ed[m HEAD@{49}: commit: 多租户 - 超级管理员 通过租户过滤数据信息(前后端修改)
+[33m9a2a345[m HEAD@{50}: commit: 多租户 - 超级管理员 通过租户过滤数据信息(前后端修改)
+[33m5846030[m HEAD@{51}: commit: 多租户 - 维护租户管理界面(新增部门 新增管理员)，修改操作日志bug
+[33m477510d[m HEAD@{52}: commit: 多租户 - 租户ID过滤 + 日志数增加据范围权限
+[33mf4aba67[m HEAD@{53}: commit: 多租户 - 前端登录界面优化 - 税号可输入可选择
+[33mc50b0b5[m HEAD@{54}: commit: 多租户 - 登录校验租户状态
+[33mda32b59[m HEAD@{55}: commit: 多租户 - 通过切面类实现 sql查询条件 "租户ID" sql拼接
+[33m3fb2f60[m HEAD@{56}: commit: 新增多租户登录 - security认证维护
+[33m88aabdd[m HEAD@{57}: commit: 角色 - 数据范围 控制禁止设置 1 和 2 的数据范围
+[33mf449c07[m HEAD@{58}: commit: 国际化 前后端处理
+[33mf04418d[m HEAD@{59}: commit: 单点登录功能添加
+[33mf8bbd25[m HEAD@{60}: commit: 登录流程代码优化 + 单带你登陆维护
+[33mfcbcbaa[m HEAD@{61}: commit: 图片加载路径修改 + Ip地址读取优化成国际化
+[33md5f8093[m HEAD@{62}: commit: 更新 vue3 客户端
+[33mbbb45eb[m HEAD@{63}: clone: from https://github.com/yangzongzhuan/RuoYi-Vue3.git

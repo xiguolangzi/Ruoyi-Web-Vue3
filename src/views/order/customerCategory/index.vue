@@ -2,42 +2,22 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="分类名称" prop="categoryName">
-        <el-input
-          v-model="queryParams.categoryName"
-          placeholder="请输入分类名称"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.categoryName" placeholder="请输入分类名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="分类状态" prop="categoryStatus">
         <el-select v-model="queryParams.categoryStatus" placeholder="请选择分类状态" clearable>
-          <el-option
-            v-for="dict in sys_tenant_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+          <el-option v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
     </el-form>
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['order:customerCategory:add']"
-        >新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd"
+          v-hasPermi="['order:customerCategory:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="info"
-          plain
-          icon="Sort"
-          @click="toggleExpandAll"
-        >展开/折叠</el-button>
+        <el-button type="info" plain icon="Sort" @click="toggleExpandAll">展开/折叠</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button-group style="margin-left: 50px;">
@@ -49,31 +29,20 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table
-      v-if="refreshTable"
-      v-loading="loading"
-      :data="customerCategoryList"
-      row-key="categoryId"
-      :default-expand-all="isExpandAll"
-      :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-    >
+    <el-table v-if="refreshTable" v-loading="loading" :data="customerCategoryList" row-key="categoryId"
+      :default-expand-all="isExpandAll" :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
       <el-table-column label="分类名称" align="center" prop="categoryName" />
+      <el-table-column label="备注描述" align="center" prop="remark" />
       <el-table-column label="分类状态" align="center" prop="categoryStatus" width="80">
         <template #default="scope">
-            <el-switch
-              v-model="scope.row.categoryStatus"
-              :active-value="sys_tenant_status[0].value"
-              :inactive-value="sys_tenant_status[1].value"
-              inline-prompt
-              active-text="启用"
-              inactive-text="禁用"
-              style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
-              @change="handleChangeStatus(scope.row)"
-            ></el-switch>
+          <el-switch v-model="scope.row.categoryStatus" :active-value="sys_tenant_status[0].value"
+            :inactive-value="sys_tenant_status[1].value" inline-prompt active-text="启用" inactive-text="禁用"
+            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
+            @change="handleChangeStatus(scope.row)"></el-switch>
         </template>
       </el-table-column>
       <el-table-column label="排列顺序" align="center" prop="orderNumber" />
-      <el-table-column label="备注描述" align="center" prop="remark" />
+
       <el-table-column label="创建人" align="center" prop="createBy" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
         <template #default="scope">
@@ -88,9 +57,12 @@
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="120">
         <template #default="scope">
-          <el-button link type="primary" icon="Plus" @click="handleAdd(scope.row)" v-hasPermi="['order:customerCategory:add']">新增</el-button>
-          <el-button link type="success" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['order:customerCategory:edit']">修改</el-button>
-          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['order:customerCategory:remove']">删除</el-button>
+          <el-button link type="primary" icon="Plus" @click="handleAdd(scope.row)"
+            v-hasPermi="['order:customerCategory:add']">新增</el-button>
+          <el-button link type="success" icon="Edit" @click="handleUpdate(scope.row)"
+            v-hasPermi="['order:customerCategory:edit']">修改</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
+            v-hasPermi="['order:customerCategory:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -99,28 +71,25 @@
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="customerCategoryRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="父级ID" prop="parentId">
-          <el-tree-select
-            v-model="form.parentId"
-            :data="customerCategoryOptions"
-            :props="{ value: 'categoryId', label: 'categoryName', children: 'children' }"
-            value-key="categoryId"
-            placeholder="请选择父级ID"
-            check-strictly
-          />
+          <el-tree-select v-model="form.parentId" :data="customerCategoryOptions"
+            :props="{ value: 'categoryId', label: 'categoryName', children: 'children' }" value-key="categoryId"
+            placeholder="请选择父级ID" check-strictly />
         </el-form-item>
         <el-form-item label="分类名称" prop="categoryName">
-          <el-input v-model="form.categoryName" placeholder="请输入分类名称" type="textarea" maxlength="30" show-word-limit :rows="1"/>
+          <el-input v-model="form.categoryName" placeholder="请输入分类名称" type="textarea" maxlength="30" show-word-limit
+            :rows="1" />
         </el-form-item>
         <el-form-item label="分类状态" prop="categoryStatus">
           <el-radio-group v-model="form.categoryStatus">
-            <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
+            <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :value="dict.value">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="排列顺序:" prop="orderNumber">
-          <el-input-number v-model="form.orderNumber" placeholder="顺序" :max="999" :min="0"/>
+          <el-input-number v-model="form.orderNumber" placeholder="顺序" :max="999" :min="0" />
         </el-form-item>
         <el-form-item label="备注描述" prop="remark">
-          <el-input v-model="form.remark" placeholder="请输入备注描述" type="textarea" maxlength="50" show-word-limit :rows="2"/>
+          <el-input v-model="form.remark" placeholder="请输入备注描述" type="textarea" maxlength="50" show-word-limit
+            :rows="2" />
         </el-form-item>
       </el-form>
       <template #footer>

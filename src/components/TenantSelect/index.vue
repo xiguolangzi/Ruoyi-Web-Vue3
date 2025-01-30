@@ -59,6 +59,7 @@ watch(tenantList, (newVal) => {
 });
 
 // 展示才获取租户列表，否则不会显示下拉框
+console.log("userStore.userType----", userStore.userType);
 if (userStore.userType === "00") {
     show.value = true;
     fetchTenantList()

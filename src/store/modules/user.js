@@ -72,6 +72,8 @@ const useUserStore = defineStore(
             }
             this.id = user.userId
             this.name = user.userName
+            this.userType = user.userType
+            this.tenantId = user.tenantId
             this.avatar = avatar
             resolve(res)
           }).catch(error => {

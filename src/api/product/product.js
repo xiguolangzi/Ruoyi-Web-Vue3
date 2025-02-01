@@ -5,7 +5,7 @@ export function listProduct(query) {
   return request({
     url: '/product/product/list',
     method: 'get',
-    params: query
+    params: { pageSize: 5000, ...query }
   })
 }
 

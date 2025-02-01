@@ -6,15 +6,34 @@ export function listUser(query) {
   return request({
     url: '/system/user/list',
     method: 'get',
-    params: query
+    params: { pageSize: 1000, ...query }
   })
 }
 
 // 查询采购员列表
-export function listBuyer() {
+export function listBuyer(query) {
   return request({
     url: '/system/user/buyerList',
     method: 'get',
+    params: { pageSize: 1000, ...query }
+  })
+}
+
+// 查询业务员列表
+export function listSalesman(query) {
+  return request({
+    url: '/system/user/salesmanList',
+    method: 'get',
+    params: { pageSize: 1000, ...query }
+  })
+}
+
+// 查询收银员列表
+export function listCashier(query) {
+  return request({
+    url: '/system/user/cashierList',
+    method: 'get',
+    params: { pageSize: 1000, ...query }
   })
 }
 

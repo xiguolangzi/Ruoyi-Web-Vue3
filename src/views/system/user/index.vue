@@ -174,6 +174,15 @@
         </el-row>
         <el-row>
           <el-col :span="24">
+            <el-form-item label="业务职能">
+              <el-checkbox-group v-model="form.businessTypeIds">
+                <el-checkbox v-for="dict in sys_user_business_type" :key="dict.value" :value="dict.value">{{ dict.label }}</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
             <el-form-item label="备注">
               <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"></el-input>
             </el-form-item>
@@ -479,7 +488,8 @@ function reset() {
     status: "0",
     remark: undefined,
     postIds: [],
-    roleIds: []
+    roleIds: [],
+    businessTypeIds: []
   };
   proxy.resetForm("userRef");
 };
@@ -512,6 +522,7 @@ function handleUpdate(row) {
     roleOptions.value = response.roles;
     form.value.postIds = response.postIds;
     form.value.roleIds = response.roleIds;
+    form.value.businessTypeIds = response.businessTypeIds;
     open.value = true;
     title.value = "修改用户";
     form.password = "";

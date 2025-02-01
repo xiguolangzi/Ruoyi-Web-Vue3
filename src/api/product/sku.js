@@ -1,10 +1,11 @@
 import request from '@/utils/request'
 
 /** 订单查询商品 SKU */
-export function listSkuByAddOrder() {
+export function listSkuByAddOrder(query) {
   return request({
     url: '/product/sku/listSkuByAddOrder',
     method: 'get',
+    params: { pageSize: 5000, ...query }
   })
 }
 
@@ -37,7 +38,7 @@ export function listSku(query) {
   return request({
     url: '/product/sku/list',
     method: 'get',
-    params: query
+    params: { pageSize: 5000, ...query }
   })
 }
 

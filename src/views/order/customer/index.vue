@@ -150,7 +150,7 @@
               <span>{{ getCustomerLevelName(scope.row.levelId) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="状态" align="center" prop="customerStatus" min-width="80" >
+          <el-table-column label="客户状态" align="center" prop="customerStatus" min-width="80" >
             <template #default="scope">
               <dict-tag :options="project_general_status" :value="scope.row.customerStatus"/>
             </template>

@@ -145,17 +145,17 @@
       </el-table-column>
       <el-table-column label="交易前余额" align="center" prop="balanceBefore" min-width="100" >
         <template #default="scope">
-          <span :style="{ color: scope.row.balanceBefore < 0 ? 'red' : 'black' }" >{{ formatTwo(scope.row.balanceBefore) }} € </span>
+          <span :style="{ color: scope.row.balanceBefore < 0 ? 'red' : '' }" >{{ formatTwo(scope.row.balanceBefore) }} € </span>
         </template>
       </el-table-column>
       <el-table-column label="交易金额" align="center" prop="flowAmount" min-width="100" >
         <template #default="scope">
-          <span :style="{ color: scope.row.flowAmount < 0 ? 'red' : 'black' }" >{{ formatTwo(scope.row.flowAmount) }} € </span>
+          <span :style="{ color: scope.row.flowAmount < 0 ? 'red' : '' }" >{{ formatTwo(scope.row.flowAmount) }} € </span>
         </template>
       </el-table-column>
       <el-table-column label="交易后余额" align="center" prop="balanceAfter" min-width="100" >
         <template #default="scope">
-          <span :style="{ color: scope.row.balanceAfter < 0 ? 'red' : 'black' }" >{{ formatTwo(scope.row.balanceAfter) }} € </span>
+          <span :style="{ color: scope.row.balanceAfter < 0 ? 'red' : '' }" >{{ formatTwo(scope.row.balanceAfter) }} € </span>
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="flowStatus" min-width="80">
@@ -1470,9 +1470,9 @@ getList();
   }
 }
 
-:deep(.el-input-number) {
-  color: black; /* 默认字体颜色 */
-}
+// :deep(.el-input-number) {
+//   color: black; /* 默认字体颜色 */
+// }
 :deep(.negative-input) input {
   color: red; /* 负数字体颜色 */
 }

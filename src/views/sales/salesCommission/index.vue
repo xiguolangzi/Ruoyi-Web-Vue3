@@ -135,7 +135,7 @@
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="salesCommissionRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="佣金名称" prop="commissionName">
-          <el-input v-model="form.commissionName" type="textarea" placeholder="请输入内容" maxlength="50" show-word-limit rows="1"/>
+          <el-input v-model="form.commissionName" type="textarea" placeholder="请输入内容" :maxlength="50" show-word-limit :rows="1"/>
         </el-form-item>
         <el-form-item label="业务员ID" prop="salesmanId">
           <el-select
@@ -188,7 +188,7 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注说明" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" maxlength="70" show-word-limit rows="2"/>
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" :maxlength="70" show-word-limit :rows="2"/>
         </el-form-item>
       </el-form>
       <template #footer>

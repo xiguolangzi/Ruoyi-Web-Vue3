@@ -84,17 +84,17 @@
               <el-table-column prop="invoiceFlowNo" label="费用登记流水编码" min-width="130" show-overflow-tooltip />
               <el-table-column prop="invoiceTotalNetAmount" label="应付金额" align="right" header-align="center" >
                 <template #default="scope">
-                  <span :style="{ color: scope.row.invoiceTotalNetAmount < 0 ? 'red' : 'black' }" >{{ formatTwo(scope.row.invoiceTotalNetAmount) }} € </span>
+                  <span :style="{ color: scope.row.invoiceTotalNetAmount < 0 ? 'red' : '' }" >{{ formatTwo(scope.row.invoiceTotalNetAmount) }} € </span>
                 </template>
               </el-table-column>
               <el-table-column prop="verifiedAmount" label="已核销金额"  align="right" header-align="center">
                 <template #default="scope">
-                  <span :style="{ color: scope.row.verifiedAmount < 0 ? 'red' : 'black' }" >{{ formatTwo(scope.row.verifiedAmount) }} € </span>
+                  <span :style="{ color: scope.row.verifiedAmount < 0 ? 'red' : '' }" >{{ formatTwo(scope.row.verifiedAmount) }} € </span>
                 </template>
               </el-table-column>
               <el-table-column prop="remainAmount" label="未核销金额" align="right" header-align="center">
                 <template #default="scope">
-                  <span :style="{ color: scope.row.remainAmount < 0 ? 'red' : 'black' }" >{{ formatTwo(scope.row.remainAmount) }} € </span>
+                  <span :style="{ color: scope.row.remainAmount < 0 ? 'red' : '' }" >{{ formatTwo(scope.row.remainAmount) }} € </span>
                 </template>
               </el-table-column>
               <el-table-column prop="paymentDueDate" label="应付日期" align="right" header-align="center" show-overflow-tooltip/>
@@ -136,17 +136,17 @@
               <el-table-column prop="flowNo" label="日记账流水号" min-width="130" show-overflow-tooltip/>
               <el-table-column prop="detailAmount" label="收/付金额" align="right" header-align="center">
                 <template #default="scope">
-                  <span :style="{ color: scope.row.detailAmount < 0 ? 'red' : 'black' }" >{{ formatTwo(scope.row.detailAmount) }} € </span>
+                  <span :style="{ color: scope.row.detailAmount < 0 ? 'red' : '' }" >{{ formatTwo(scope.row.detailAmount) }} € </span>
                 </template>
               </el-table-column>
               <el-table-column prop="verifiedAmount" label="核销金额" align="right" header-align="center">
                 <template #default="scope">
-                 <span :style="{ color: scope.row.verifiedAmount < 0 ? 'red' : 'black' }" >{{ formatTwo(scope.row.verifiedAmount) }} € </span>
+                 <span :style="{ color: scope.row.verifiedAmount < 0 ? 'red' : '' }" >{{ formatTwo(scope.row.verifiedAmount) }} € </span>
                 </template>
               </el-table-column>
               <el-table-column prop="remainAmount" label="未核销金额" align="right" header-align="center">
                 <template #default="scope">
-                  <span :style="{ color: scope.row.remainAmount < 0 ? 'red' : 'black' }" >{{ formatTwo(scope.row.remainAmount) }} € </span>
+                  <span :style="{ color: scope.row.remainAmount < 0 ? 'red' : '' }" >{{ formatTwo(scope.row.remainAmount) }} € </span>
                 </template>
               </el-table-column>
               <el-table-column prop="flowTime" label="交易日期" align="right" header-align="center"/>
@@ -588,9 +588,9 @@ const cancelEdit = () => {
     }
   }
 
-:deep(.el-input-number) {
-  color: black; /* 默认字体颜色 */
-}
+// :deep(.el-input-number) {
+//   color: black; /* 默认字体颜色 */
+// }
 :deep(.negative-input) input {
   color: red; /* 负数字体颜色 */
 }

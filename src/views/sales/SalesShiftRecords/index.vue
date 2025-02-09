@@ -292,11 +292,6 @@
               <el-input v-model="scope.row.totalAmount" placeholder="请输入现金盘点总金额" />
             </template>
           </el-table-column>
-          <el-table-column label="租户ID" prop="tenantId" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.tenantId" placeholder="请输入租户ID" />
-            </template>
-          </el-table-column>
         </el-table>
       </el-form>
       <template #footer>

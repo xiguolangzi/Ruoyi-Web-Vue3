@@ -13,18 +13,11 @@
             <el-row :gutter="20">
               <el-col :span="8">
                 <el-form-item label="商品分类:" prop="categoryId">
-                  <el-tree-select 
-                  v-model="form.categoryId" 
-                  :data="categoryList" 
-                  :props="{
+                  <el-tree-select v-model="form.categoryId" :data="categoryList" :props="{
                       value: 'categoryId',
                       label: 'categoryName',
                       children: 'children',
-                    }" 
-                  value-key="categoryId" 
-                  placeholder="请选择商品分类" 
-                  style="width: 195px" 
-                  clearable />
+                    }" value-key="categoryId" placeholder="请选择商品分类" style="width: 195px" clearable />
                 </el-form-item>
               </el-col>
               <el-col :span="8">
@@ -45,7 +38,7 @@
             <el-row :gutter="20">
               <el-col :span="8">
                 <el-form-item label="商品条码:" prop="productCode">
-                  <el-input v-model="form.productCode" placeholder="请输入商品条码" @change="handleProductChanged"/>
+                  <el-input v-model="form.productCode" placeholder="请输入商品条码" @change="handleProductChanged" />
                 </el-form-item>
               </el-col>
               <el-col :span="8">
@@ -64,9 +57,9 @@
             </el-row>
             <el-row :gutter="80">
               <el-col :span="12">
-                <el-form-item label="商品状态:" prop="productStatus" >
+                <el-form-item label="商品状态:" prop="productStatus">
                   <el-radio-group v-model="form.productStatus" @change="handleProductChanged">
-                    <el-radio v-for="dict in product_status" :key="dict.value"  :value="dict.value">{{ dict.label
+                    <el-radio v-for="dict in product_status" :key="dict.value" :value="dict.value">{{ dict.label
                       }}</el-radio>
                   </el-radio-group>
                 </el-form-item>
@@ -94,17 +87,20 @@
             <el-row>
               <el-col :span="4">
                 <el-form-item label="长(cm):" prop="length" style="margin-right: 20px">
-                  <el-input v-model="form.length" placeholder="请输入长(cm)" type="number" style="width: 125px"  @change="calculateVolume"/>
+                  <el-input v-model="form.length" placeholder="请输入长(cm)" type="number" style="width: 125px"
+                    @change="calculateVolume" />
                 </el-form-item>
               </el-col>
               <el-col :span="4">
                 <el-form-item label="宽(cm):" prop="width" style="margin-right: 20px">
-                  <el-input v-model="form.width" placeholder="请输入宽(cm)" type="number" style="width: 125px" @change="calculateVolume"/>
+                  <el-input v-model="form.width" placeholder="请输入宽(cm)" type="number" style="width: 125px"
+                    @change="calculateVolume" />
                 </el-form-item>
               </el-col>
               <el-col :span="4">
                 <el-form-item label="高(cm):" prop="height" style="margin-right: 20px">
-                  <el-input v-model="form.height" placeholder="请输入高(cm)" type="number" style="width: 125px" @change="calculateVolume"/>
+                  <el-input v-model="form.height" placeholder="请输入高(cm)" type="number" style="width: 125px"
+                    @change="calculateVolume" />
                 </el-form-item>
               </el-col>
               <el-col :span="6">
@@ -121,12 +117,13 @@
           </el-card>
         </el-form>
         <div class="footer" style="margin: 20px; padding: 20px">
-          <el-button type="primary" @click="goToSecond">下一步</el-button>
-          <el-button type="info" @click="goBack">取 消</el-button>
+          <!-- <el-button type="primary" @click="goToSecond">下一步</el-button> -->
+          <el-button type="primary" @click="submitHandler"> 提 交 </el-button>
+          <el-button type="info" @click="goBack"> 取消 </el-button>
         </div>
       </el-tab-pane>
       <!--------------------------------------------   SKU 部分  ---------------------------------------------->
-      <el-tab-pane label="规格设置" name="second">
+      <el-tab-pane label="添加规格信息" name="second">
         <div class="product-spec-editor">
           <!---------------- 配置规格部分 ------------>
           <el-card>
@@ -240,7 +237,7 @@
           </el-card>
         </div>
         <div class="footer" style="margin: 20px; padding: 20px">
-          <el-button type="success" @click="goToFirst"> 返回上一步 </el-button>
+          <!-- <el-button type="success" @click="goToFirst"> 返回上一步 </el-button> -->
           <el-button type="primary" @click="submitHandler"> 提 交 </el-button>
           <el-button type="info" @click="goBack"> 取消 </el-button>
         </div>

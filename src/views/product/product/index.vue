@@ -26,6 +26,11 @@
           <el-option v-for="items in brandList" :key="items.brandId" :label="items.brandName" :value="items.brandId" />
         </el-select>
       </el-form-item>
+      <el-form-item label="税率" prop="rateId">
+        <el-select v-model="queryParams.rateId" placeholder="请选择税率" clearable>
+          <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue" :value="items.rateId" />
+        </el-select>
+      </el-form-item>
       <el-form-item label="成本计算:" prop="costMethod">
         <el-select v-model="queryParams.costMethod" placeholder="请选择成本计算" clearable>
           <el-option v-for="dict in product_cost_method" :key="dict.value" :label="dict.label" :value="dict.value" />
@@ -97,6 +102,11 @@
       <el-table-column label="商品价格" header-align="center" align="right" prop="productPrice" width="80">
         <template #default="scope">
           <span>{{ formatTwo(scope.row.productPrice) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="税率" align="center" prop="productRateVo.rateValue" width="80">
+        <template #default="scope">
+          <span>{{ scope.row.productRateVo?.rateValue || '--' }} %</span>
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="productStatus" width="80">
@@ -176,6 +186,9 @@
             </el-descriptions-item>
             <el-descriptions-item label="价格" align="center">
               {{ formatTwo(productDetail.productPrice) }} €
+            </el-descriptions-item>
+            <el-descriptions-item label="税率" align="center">
+              {{productDetail.productRateVo?.rateValue || '--'}} %
             </el-descriptions-item>
             <el-descriptions-item label="计量单位" align="center">
               {{productDetail.unitVo?.unitCode || '--'}}
@@ -287,6 +300,7 @@ import {
 import { listCategory } from "@/api/product/category";
 import { listUnit } from "@/api/product/unit";
 import { listBrand } from "@/api/product/brand";
+import { listProductRate } from "@/api/product/productRate";
 import useUserStore from "@/store/modules/user";
 import { useRouter, useRoute } from "vue-router";
 // 租户ID字段过滤使用
@@ -313,6 +327,7 @@ const categoryList = ref([]);
 const categoryNameList = ref([]);
 const unitList = ref([]);
 const brandList = ref([]);
+const rateList = ref([]);
 const baseUnit = "0";
 
 // *************************************************************** 表格展示数据转换 ***************************************************************
@@ -517,6 +532,15 @@ function getBrandList() {
     });
 }
 
+/** 获取税率下拉数据 */
+function getRateList(){
+  listProductRate().then(response => {
+    rateList.value = response.rows;
+  }).catch(error => {
+    console.error("获取税率列表失败：", error);
+  })
+}
+
 /** 监听路由，路由跳转后更新界面数据 */
 watch(
   () => route.fullPath,
@@ -529,6 +553,7 @@ watch(
 getCategoryList(); // 获取商品分类数据
 getUnitList(); // 获取计量单位数据
 getBrandList(); // 获取品牌数据
+getRateList();  // 获取税率数据
 getList(); // 获取商品列表
 </script>
 

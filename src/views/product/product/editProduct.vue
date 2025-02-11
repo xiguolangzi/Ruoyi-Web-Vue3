@@ -17,6 +17,7 @@
                       value: 'categoryId',
                       label: 'categoryName',
                       children: 'children',
+                      disabled: (data) => data.status != '0'
                     }" value-key="categoryId" placeholder="请选择商品分类" style="width: 195px" clearable />
                 </el-form-item>
               </el-col>
@@ -50,13 +51,13 @@
                 <el-form-item label="计量单位:" prop="unitId">
                   <el-select v-model="form.unitId" placeholder="请选择计量单位" @change="handleProductChanged">
                     <el-option v-for="items in unitList" :key="items.unitId" :label="items.unitCode"
-                      :value="items.unitId" />
+                      :value="items.unitId" :disabled="items.unitStatus != '0'"/>
                   </el-select>
                 </el-form-item>
               </el-col>
             </el-row>
             <el-row :gutter="80">
-              <el-col :span="12">
+              <el-col :span="8">
                 <el-form-item label="商品状态:" prop="productStatus">
                   <el-radio-group v-model="form.productStatus" @change="handleProductChanged">
                     <el-radio v-for="dict in product_status" :key="dict.value" :value="dict.value">{{ dict.label
@@ -64,7 +65,15 @@
                   </el-radio-group>
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :span="8">
+                <el-form-item label="税率:" prop="rateId">
+                  <el-select v-model="form.rateId" placeholder="请选择税率" @change="handleProductChanged">
+                    <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue"
+                      :value="items.rateId" :disabled="items.rateStatus != '0'"/>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
                 <el-form-item label="成本计算:" prop="costMethod">
                   <el-select v-model="form.costMethod" placeholder="请选择成本计算" style="width: 200px">
                     <el-option v-for="dict in product_cost_method" :key="dict.value" :label="dict.label"
@@ -152,7 +161,7 @@
                   <template #default="scope">
                     <div class="spec-values">
                       <el-input v-for="(value, index) in scope.row.values" :key="index"
-                        v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)">
+                        v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)" style="width: auto;">
                         <!----scope.$index 当前行数； index 在scope.row.values中的索引 可以用过 v-if="!exist(scope.row,index)" 控制删除初始化的规格值 -->
                         <template #append v-if="!exist(scope.row, index)">
                           <el-button @click="removeSpecValue(scope.$index, index)" icon="Minus"></el-button>
@@ -252,6 +261,7 @@ import { getProduct, addProduct, updateProduct } from "@/api/product/product";
 import { listCategory } from "@/api/product/category";
 import { listUnit } from "@/api/product/unit";
 import { listBrand } from "@/api/product/brand";
+import { listProductRate } from "@/api/product/productRate";
 import { listSkuName } from "@/api/product/skuName";
 import { useRouter, useRoute } from "vue-router";
 import useTagsViewStore from '@/store/modules/tagsView';
@@ -264,12 +274,13 @@ const tagsViewStore = useTagsViewStore();
 const categoryList = ref([]);
 const unitList = ref([]);
 const brandList = ref([]);
+const rateList = ref([]);
 const skuNameList = ref([]);
 // 默认选择计量单位
 const baseUnit = "0";
 // 标签菜单默认首页
 const activeName = ref("first");
-// sku状态改变
+
 
 /** 包装信息计算 */
 const calculateVolume = () => {
@@ -282,10 +293,7 @@ const calculateVolume = () => {
 
 // ************************************************  基础资料部门 ******************************************************
 const { proxy } = getCurrentInstance();
-const { product_cost_method, product_status } = proxy.useDict(
-  "product_cost_method",
-  "product_status"
-);
+const { product_cost_method, product_status } = proxy.useDict("product_cost_method", "product_status" );
 
 // 表单重置
 const form = ref({
@@ -308,6 +316,7 @@ const form = ref({
   productSort: null,
   remark: null,
   skuSelected: null,
+  rateId: null,
 });
 
 const rules = ref({
@@ -343,6 +352,13 @@ const rules = ref({
     {
       required: true,
       message: "商品单位不能为空",
+      trigger: ["blur", "change"],
+    },
+  ],
+  rateId: [
+    {
+      required: true,
+      message: "商品税率不能为空",
       trigger: ["blur", "change"],
     },
   ],
@@ -404,16 +420,17 @@ const generateCombinations = () => {
       combine({ ...current, [first.name]: value }, rest)
     );
   };
-  // spects 变化 生成新的 productSkuList
+  // specs 变化 生成新的 productSkuList
   newProductSkuList.value = combine({}, selected).map((skuValue) => ({
     skuValue,
     skuCode: "",
     skuImage: "",
-    skuPrice1: "",
-    skuPrice2: "",
-    skuPrice3: "",
-    skuStatus: "0",
+    skuPrice1: form.value.productPrice,
+    skuPrice2: form.value.productPrice,
+    skuPrice3: form.value.productPrice,
+    skuStatus: form.value.productStatus,
     unitId: form.value.unitId,
+    rateId: form.value.rateId,
     productId: form.value.productId,
     productCode: form.value.productCode,
     productName: form.value.productName,
@@ -480,6 +497,7 @@ const handleProductChanged = () => {
     item.productCode = form.value.productCode;
     item.productName = form.value.productName;
     item.skuStatus = form.value.productStatus;
+    item.rateId = form.value.rateId;
   });
 }
 
@@ -594,12 +612,13 @@ const initData = async () => {
       {
         skuId: null,
         unitId: form.value.unitId,
+        rateId: form.value.rateId,
         skuValue: { skuName: "skuValue" },
         skuCode: form.value.productCode,
         skuImage: form.value.productImage,
         skuPrice1: form.value.productPrice,
-        skuPrice2: null,
-        skuPrice3: null,
+        skuPrice2: form.value.productPrice,
+        skuPrice3: form.value.productPrice,
         skuStatus: form.value.productStatus,
         productId: form.value.productId,
         productCode: form.value.productCode,
@@ -753,9 +772,19 @@ function getSkuNameList() {
     });
 }
 
+/** 获取税率下拉数据 */
+function getRateList(){
+  listProductRate().then(response => {
+    rateList.value = response.rows;
+  }).catch(error => {
+    console.error("获取税率列表失败：", error);
+  })
+}
+
 getCategoryList();
 getUnitList();
 getBrandList();
+getRateList();
 getSkuNameList();
 getInfoById(); // 获取修改传递的ID 然后继续进行初始化数据
 // 控制标题

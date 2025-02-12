@@ -1,15 +1,20 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="套餐编码" prop="comboCode">
+      <el-form-item label="套餐编码:" prop="comboCode">
         <el-input v-model="queryParams.comboCode" placeholder="请输入套餐编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="套餐名称1" prop="name1">
-        <el-input v-model="queryParams.name1" placeholder="请输入套餐名称1" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="套餐名称:" prop="comboName">
+        <el-input v-model="queryParams.comboName" placeholder="请输入套餐名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="套餐状态" prop="comboStatus">
+      <el-form-item label="套餐状态:" prop="comboStatus">
         <el-select v-model="queryParams.comboStatus" placeholder="请选择套餐状态" clearable>
           <el-option v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="套餐税率:" prop="rateId">
+        <el-select v-model="queryParams.rateId" placeholder="请选择税率" clearable>
+          <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'" :value="items.rateId" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -42,11 +47,18 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" width="50" />
       <el-table-column label="套餐编码" align="center" prop="comboCode" />
-      <el-table-column label="套餐名称1" align="center" prop="name1" show-overflow-tooltip />
-      <el-table-column label="套餐名称2" align="center" prop="name2" show-overflow-tooltip />
-      <el-table-column label="套餐名称3" align="center" prop="name3" show-overflow-tooltip />
-      <el-table-column label="套餐价格" align="center" prop="comboPrice" />
-      <el-table-column label="套餐折扣" align="center" prop="comboDiscountRate" />
+      <el-table-column label="套餐名称" align="center" prop="comboName" show-overflow-tooltip />
+      <el-table-column label="辅助名称" align="center" prop="comboAssistName" show-overflow-tooltip />
+      <el-table-column label="套餐价格" align="center" prop="comboPrice" >
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.comboPrice) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="税率" align="center" prop="productRateVo.rateValue" width="80">
+        <template #default="scope">
+          <span>{{ scope.row.productRateVo?.rateValue || '--' }} %</span>
+        </template>
+      </el-table-column>
       <el-table-column label="套餐状态" align="center" prop="comboStatus">
         <template #default="scope">
           <dict-tag :options="sys_tenant_status" :value="scope.row.comboStatus" />
@@ -79,7 +91,7 @@
       @pagination="getList" />
 
     <!-- 添加或修改商品套餐对话框 -->
-    <el-dialog :title="title" v-model="open" width="900px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="900px" append-to-body :close-on-click-modal="false">
       <el-tabs v-model="activeTab">
         <!-- 基础信息 -->
         <el-tab-pane label="基础信息" name="basic">
@@ -87,51 +99,33 @@
             <el-form-item label="套餐编码:" prop="comboCode">
               <el-input v-model="form.comboCode" placeholder="请输入套餐编码" />
             </el-form-item>
-            <el-form-item label="套餐名称1:" prop="name1">
-              <el-input v-model="form.name1" placeholder="请输入套餐名称1" type="textarea" maxlength="50" show-word-limit
-                :rows="1" />
-            </el-form-item>
-            <el-row>
+            <el-row :gutter="20">
               <el-col :span="12">
-                <el-form-item label="套餐名称2:" prop="name2">
-                  <el-input v-model="form.name2" placeholder="请输入套餐名称2" type="textarea" maxlength="50" show-word-limit
+                <el-form-item label="套餐名称:" prop="comboName">
+                  <el-input v-model="form.comboName" placeholder="请输入套餐名称" type="textarea" maxlength="50" show-word-limit
                     :rows="1" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="套餐名称3:" prop="name3">
-                  <el-input v-model="form.name3" placeholder="请输入套餐名称3" type="textarea" maxlength="50" show-word-limit
+                <el-form-item label="辅助名称:" prop="comboAssistName">
+                  <el-input v-model="form.comboAssistName" placeholder="请输入辅助名称" type="textarea" maxlength="50" show-word-limit
                     :rows="1" />
                 </el-form-item>
               </el-col>
-
-
             </el-row>
-
             <el-row>
-              <el-form-item label="套餐价格1:" prop="comboPrice1">
-                <el-input-number v-model="form.comboPrice1" placeholder="套餐价格" :max='99999' :min='0' :precision='2'
+              <el-form-item label="套餐单价:" prop="comboPrice">
+                <el-input-number v-model="form.comboPrice" placeholder="套餐单价" :max='99999' :min='0' :precision='2'
                   :controls="false" ref="inputNumber1" @focus="handleFocus1">
                   <template #suffix>
                     <span>€</span>
                   </template>
                 </el-input-number>
               </el-form-item>
-              <el-form-item label="套餐价格2:" prop="comboPrice2">
-                <el-input-number v-model="form.comboPrice2" placeholder="套餐价格" :max='99999' :min='0' :precision='2'
-                  :controls="false" ref="inputNumber2" @focus="handleFocus2">
-                  <template #suffix>
-                    <span>€</span>
-                  </template>
-                </el-input-number>
-              </el-form-item>
-              <el-form-item label="套餐价格3:" prop="comboPrice3">
-                <el-input-number v-model="form.comboPrice3" placeholder="套餐价格" :max='99999' :min='0' :precision='2'
-                  :controls="false" ref="inputNumber3" @focus="handleFocus3">
-                  <template #suffix>
-                    <span>€</span>
-                  </template>
-                </el-input-number>
+              <el-form-item label="套餐税率" prop="rateId">
+                <el-select v-model="form.rateId" placeholder="请选择套餐税率" clearable>
+                  <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'" :value="items.rateId" />
+                </el-select>
               </el-form-item>
             </el-row>
             <el-form-item label="套餐状态:" prop="comboStatus">
@@ -149,39 +143,28 @@
         </el-tab-pane>
 
         <!-- 套餐项 -->
-        <el-tab-pane label="套餐项" name="items">
-          <el-card v-for="(item, index) in form.comboItem" :key="index" class="mb-4">
-            <el-row>
-              <el-form-item label="名称1:">
-                <el-input v-model="item.name1" placeholder="请输入名称1" />
-              </el-form-item>
-              <el-form-item label="名称2:" style="margin-left: 10px;">
-                <el-input v-model="item.name2" placeholder="请输入名称2" />
-              </el-form-item>
-              <el-form-item label="名称3:" style="margin-left: 10px;">
-                <el-input v-model="item.name3" placeholder="请输入名称3" />
-              </el-form-item>
-            </el-row>
-
-            <el-row>
+        <el-tab-pane label="添加套餐项" name="items">
+          <el-card v-for="(item, index) in form.productComboItemList" :key="index" class="mb-4" shadow="always" style="margin-bottom: 10px;">
+            <el-form-item label="套餐项名称:">
+              <el-input v-model="item.itemName" placeholder="请输入套餐项名称" type="textarea" :maxlength="50" show-word-limit :rows="1"/>
+            </el-form-item>
+            <el-row >
               <el-form-item label="是否可选项:" style="margin-right: 20px;">
                 <el-radio-group v-model="item.isOptional" disabled>
                   <el-radio v-for="dict in erp_product_combo_optional" :key="dict.value" :label="dict.value"
                     :value="dict.value">{{ dict.label }}</el-radio>
                 </el-radio-group>
               </el-form-item>
-              <el-form-item label="可选数量:" style="margin-right: 20px;" v-if="item.isOptional != '1'">
+              <el-form-item label="可选数量:" style="margin-right: 20px;" v-if="item.isOptional && item.isOptional != '1'">
                 <el-input-number v-model="item.isOptionalQuantity" :min="0" />
               </el-form-item>
             </el-row>
-
-
 
             <!-- SKU 详情 -->
             <el-divider content-position="left">
               <span>SKU 详情</span>
             </el-divider>
-            <el-table :data="item.itemDetail" border style="width: 100%" ref="itemDetail"
+            <el-table :data="item.productComboItemDetailList" border style="width: 100%" ref="productComboItemDetailList"
               :summary-method="getSummaryRow" show-summary>
               <el-table-column label="SKU 条码" prop="skuId" align="center" min-width="120px">
                 <template #default="scope">
@@ -190,10 +173,14 @@
                     :fit-input-width="false" />
                 </template>
               </el-table-column>
-              <el-table-column label="SKU 名称" prop="productName" align="center" show-overflow-tooltip />
-              <el-table-column label="SKU 规格" align="center" prop="skuValue" show-overflow-tooltip>
+              <el-table-column label="SKU 名称" align="center" show-overflow-tooltip >
                 <template #default="scope">
-                  <div v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
+                  <span>{{ scope.row.productSkuVo?.productName }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column label="SKU 规格" align="center" show-overflow-tooltip>
+                <template #default="scope">
+                  <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
                     <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
                       {{ item[0] }}:
                     </strong>
@@ -204,16 +191,20 @@
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column label="单价" prop="skuPrice1" align="center" min-width="50px">
+              <el-table-column label="单价" prop="detailPrice" align="center" min-width="50px">
                 <template #default="scope">
-                  <span>{{ formatTwo(scope.row.skuPrice1) }} € </span>
+                  <span>{{ formatTwo(scope.row.detailPrice) }} € </span>
                 </template>
               </el-table-column>
-              <el-table-column label="数量" prop="quantity" align="center" min-width="50px">
+              <el-table-column label="数量" prop="quantity" align="center" >
                 <template #default="scope">
-                  <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'quantity')" v-model="scope.row.quantity"
-                    placeholder="发生额" :max='99999999' :min='0' :controls="false" style="width: 100%;"
-                    @focus="handleFocus(scope.$index, 'quantity')" @click="handleFocus(scope.$index, 'quantity')"
+                  <el-input-number :ref="(el) => setInputRef(el, index, scope.$index, 'quantity')" 
+                    v-model="scope.row.quantity"
+                    placeholder="发生额" 
+                    :max='99999999' :min='0' :controls="false" 
+                    style="width: 100%;"
+                    @focus="handleFocus(index, scope.$index, 'quantity')" 
+                    @click="handleFocus(index, scope.$index, 'quantity')"
                     @change="calculateDetailAmount(scope.row)" />
 
                 </template>
@@ -223,19 +214,19 @@
                   <span>{{ formatTwo(scope.row.detailAmount) }} € </span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="100">
+              <el-table-column label="操作" width="100" align="center">
                 <template #default="scope">
                   <el-button type="danger" size="small" @click="removeSkuDetail(index, scope.$index)">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
 
-            <el-button type="primary" @click="addSkuDetail(index)" v-if="item.itemDetail.length < 10">添加 SKU</el-button>
-            <el-button type="danger" @click="removeComboItem(index)">删除套餐项</el-button>
+            <el-button type="primary" @click="addSkuDetail(index)" v-if="item.productComboItemDetailList && item.productComboItemDetailList.length < 10">添加 SKU</el-button>
+            <el-button type="danger" @click="removeComboItem(index)" v-if="item.isOptional && item.isOptional != '1'">删除套餐项</el-button>
           </el-card>
 
-          <el-button type="primary" @click="addComboItem" style="margin-top: 10px;"
-            v-if="form.comboItem.length < 5">新增套餐项</el-button>
+          <el-button type="primary" @click="addComboItem" style=" width: 50%; margin-top: 20px;"
+            v-if="form.productComboItemList && form.productComboItemList.length < 5">新增可选套餐项</el-button>
         </el-tab-pane>
       </el-tabs>
 
@@ -253,9 +244,9 @@
 <script setup name="ProductCombo">
 import { listProductCombo, getProductCombo, delProductCombo, addProductCombo, updateProductCombo } from "@/api/product/productCombo";
 import useUserStore from "@/store/modules/user";
-import AddItem from '@/components/AddItem';
 import { computed } from "vue";
 import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
+import { listProductRate } from "@/api/product/productRate";
 
 const { proxy } = getCurrentInstance();
 const { sys_tenant_status, erp_product_combo_optional } = proxy.useDict('sys_tenant_status', 'erp_product_combo_optional');
@@ -273,22 +264,26 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 const activeTab = ref('basic'); // 当前激活的标签页
+const rateList = ref([]);
 
 const data = reactive({
   form: {
-    comboItem: []
+    productComboItemList: []
   },
   queryParams: {
     pageNum: 1,
     pageSize: 10,
     comboCode: null,
-    name1: null,
+    comboName: null,
     comboStatus: null,
+    rateId: null,
     tenantId: null,
   },
   rules: {
     comboCode: [{ required: true, message: '套餐编码不能为空', trigger: 'blur' }],
-    name1: [{ required: true, message: '套餐名称1不能为空', trigger: 'blur' }],
+    comboName: [{ required: true, message: '套餐名称不能为空', trigger: 'blur' }],
+    rateId: [{ required: true, message: '税率不能为空', trigger: 'blur' }],
+    comboStatus: [{ required: true, message: '套餐状态不能为空', trigger: 'blur' }],
   }
 });
 
@@ -308,24 +303,11 @@ function getList() {
 
 // --------------------- 1 表单 输入框聚焦选中 start ---------------
 const inputNumber1 = ref({}); // 使用对象存储各列引用
-const inputNumber2 = ref({});
-const inputNumber3 = ref({});
+
 // 聚焦时选中内容
+
 const handleFocus1 = () => {
   const input = inputNumber1.value?.$el.querySelector("input");
-  if (input) {
-    input.select(); // 选中输入框内的所有文本
-  }
-};
-const handleFocus2 = () => {
-  const input = inputNumber2.value?.$el.querySelector("input");
-  if (input) {
-    input.select(); // 选中输入框内的所有文本
-  }
-};
-
-const handleFocus3 = () => {
-  const input = inputNumber3.value?.$el.querySelector("input");
   if (input) {
     input.select(); // 选中输入框内的所有文本
   }
@@ -335,48 +317,40 @@ const handleFocus3 = () => {
 
 // ********************** 2 基础数据 start **************************
 const addComboItem = () => {
-  form.value.comboItem.push({
+  form.value.productComboItemList.push({
     itemId: null,
     comboId: null,
-    name1: null,
-    name2: null,
-    name3: null,
+    itemName: null,
     isOptional: '2',
     isOptionalQuantity: 1,
-    itemDetail: [{
+    productComboItemDetailList: [{
       detailId: null,
       itemId: null,
       skuId: null,
-      skuCode: null,
-      productName: null,
-      skuValue: null,
-      skuPrice1: 0.00,
+      detailPrice: 0.00,
       quantity: 0,
-      detailAmount: 0.00
+      detailAmount: 0.00,
     },]
   });
 };
 
 const removeComboItem = (index) => {
-  form.value.comboItem.splice(index, 1);
+  form.value.productComboItemList.splice(index, 1);
 };
 
 const addSkuDetail = (itemIndex) => {
-  form.value.comboItem[itemIndex].itemDetail.push({
+  form.value.productComboItemList[itemIndex].productComboItemDetailList.push({
     detailId: null,
     itemId: null,
     skuId: null,
-    skuCode: null,
-    productName: null,
-    skuValue: null,
-    skuPrice1: 0.00,
+    detailPrice: 0.00,
     quantity: 0,
-    detailAmount: 0.00
+    detailAmount: 0.00,
   });
 };
 
 const removeSkuDetail = (itemIndex, detailIndex) => {
-  form.value.comboItem[itemIndex].itemDetail.splice(detailIndex, 1);
+  form.value.productComboItemList[itemIndex].productComboItemDetailList.splice(detailIndex, 1);
 };
 
 
@@ -412,7 +386,7 @@ const getSummaryRow = (param) => {
       sums[index] = `${detailAmount.toFixed(2) }` + ' € '
     } else {
       // 其他列显示"合计"或留空
-      sums[index] = column.property === 'skuPrice1' ? '合计 :' : ''
+      sums[index] = column.property === 'skuPrice' ? '合计 :' : ''
     }
   })
 
@@ -422,16 +396,19 @@ const getSummaryRow = (param) => {
 // -----3.1表格 输入框聚焦选中 start -------
 const inputRefs = ref({}); // 使用对象存储各列引用
 // 动态管理每列引用
-const setInputRef = (el, rowIndex, column) => {
-  if (!inputRefs.value[column]) {
-    inputRefs.value[column] = [];
+const setInputRef = (el, cardIndex, rowIndex, column) => {
+  if (!inputRefs.value[cardIndex]) {
+    inputRefs.value[cardIndex] = {};
   }
-  inputRefs.value[column][rowIndex] = el;
+  if (!inputRefs.value[cardIndex][rowIndex]) {
+    inputRefs.value[cardIndex][rowIndex] = {};
+  }
+  inputRefs.value[cardIndex][rowIndex][column] = el;
 };
 
 // 聚焦时选中内容
-const handleFocus = (rowIndex, column) => {
-  const inputEl = inputRefs.value[column]?.[rowIndex]?.$el.querySelector('input');
+const handleFocus = (cardIndex, rowIndex, column) => {
+  const inputEl = inputRefs.value[cardIndex]?.[rowIndex]?.[column]?.$el.querySelector('input');
   if (inputEl) {
     inputEl.select(); // 选中输入框内容
   }
@@ -442,7 +419,7 @@ const handleFocus = (rowIndex, column) => {
 
 // ********************* 4 弹窗 计算合计金额 start ***************************
 const calculateDetailAmount = (row) => {
-  row.detailAmount = row.quantity * row.skuPrice1;
+  row.detailAmount = row.quantity * row.detailPrice;
 };
 
 
@@ -463,6 +440,17 @@ const getSkuList = () => {
 
 getSkuList()
 
+/** 获取税率下拉数据 */
+function getRateList(){
+  listProductRate().then(response => {
+    rateList.value = response.rows;
+  }).catch(error => {
+    console.error("获取税率列表失败：", error);
+  })
+}
+
+getRateList()
+
 // 格式化 SKU 列表，用于 el-select-v2 的 options
 const formattedSkuList = computed(() => {
   return skuList.value.map((sku) => ({
@@ -475,9 +463,13 @@ const formattedSkuList = computed(() => {
 const handleSkuChange = (row) => {
   const selectedSku = skuList.value.find((sku) => sku.skuId === row.skuId);
   if (selectedSku) {
-    row.skuPrice1 = selectedSku.skuPrice1; // 自动填充 SKU 价格
-    row.productName = selectedSku.productName;
-    row.skuValue = selectedSku.skuValue;
+    // 确保 row.productSkuVo 已初始化
+    if (!row.productSkuVo) {
+      row.productSkuVo = {};
+    }
+    row.detailPrice = selectedSku.skuPrice1; // 自动填充 SKU 价格
+    row.productSkuVo.productName = selectedSku.productName;
+    row.productSkuVo.skuValue = selectedSku.skuValue;
     row.quantity = 0;
     row.detailAmount = 0;
   }
@@ -496,13 +488,11 @@ function cancel() {
 function reset() {
   form.value = {
     comboId: null,
+    rateId: null,
     comboCode: null,
-    name1: null,
-    name2: null,
-    name3: null,
-    comboPrice1: 0.00,
-    comboPrice2: 0.00,
-    comboPrice3: 0.00,
+    comboName: null,
+    comboAssistName: null,
+    comboPrice: 0.00,
     comboStatus: '0',
     createTime: null,
     createBy: null,
@@ -511,23 +501,19 @@ function reset() {
     remark: null,
     tenantId: null,
     delFlag: null,
-    comboItem: [{
+    productComboItemList: [{
       itemId: null,
       comboId: null,
-      name1: null,
-      name2: null,
-      name3: null,
+      itemName: null,
       isOptional: '1',
       isOptionalQuantity: null,
-      itemDetail: [{
+      productComboItemDetailList: [{
         detailId: null,
         itemId: null,
         skuId: null,
-        skuCode: null,
-        productName: null,
-        skuValue: null,
-        skuPrice1: 0.0,
-        quantity: 0
+        detailPrice: 0.0,
+        quantity: 0,
+        detailAmount: 0.0
       },]
     }]
   };
@@ -593,15 +579,42 @@ function submitForm() {
   });
 }
 
+/** 获取商品套餐名称列表 */
+function getComboNamesByIds(comboIds) {
+  // 统一将 comboIds 转换为数组
+  const ids = Array.isArray(comboIds) ? comboIds : [comboIds];
+  const comboNames = [];
+
+  // 检查 productComboList 是否已加载
+  if (!productComboList.value || productComboList.value.length === 0) {
+    console.warn('商品套餐列表未加载或为空');
+    return '';
+  }
+
+  // 遍历 productComboList，获取套餐名称
+  productComboList.value.forEach(item => {
+    if (ids.includes(item.comboId)) {
+      comboNames.push(item.comboName);
+    }
+  });
+
+  // 如果 comboNames 为空，返回默认提示
+  return comboNames.length > 0 ? comboNames.join(', ') : '无匹配套餐';
+}
+
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _comboIds = row.comboId || ids.value;
-  proxy.$modal.confirm('是否确认删除商品套餐编号为"' + _comboIds + '"的数据项？').then(function() {
+  // 获取要删除的套餐名称
+  const comboNames = getComboNamesByIds(_comboIds);
+  proxy.$modal.confirm('是否确认删除商品套餐名称为"' + comboNames + '"的数据项？').then(function() {
     return delProductCombo(_comboIds);
   }).then(() => {
     getList();
     proxy.$modal.msgSuccess("删除成功");
-  }).catch(() => {});
+  }).catch((error) => {
+    console.error('删除失败:', error);
+  });
 }
 
 /** 导出按钮操作 */

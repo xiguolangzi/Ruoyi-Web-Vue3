@@ -28,7 +28,7 @@
       </el-form-item>
       <el-form-item label="税率" prop="rateId">
         <el-select v-model="queryParams.rateId" placeholder="请选择税率" clearable>
-          <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue" :value="items.rateId" />
+          <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'" :value="items.rateId" />
         </el-select>
       </el-form-item>
       <el-form-item label="成本计算:" prop="costMethod">
@@ -292,11 +292,7 @@
 </template>
 
 <script setup name="Product">
-import {
-  listProduct,
-  getProduct,
-  delProduct,
-} from "@/api/product/product";
+import {listProduct, getProduct, delProduct } from "@/api/product/product";
 import { listCategory } from "@/api/product/category";
 import { listUnit } from "@/api/product/unit";
 import { listBrand } from "@/api/product/brand";

@@ -68,7 +68,7 @@
               <el-col :span="8">
                 <el-form-item label="税率:" prop="rateId">
                   <el-select v-model="form.rateId" placeholder="请选择税率" @change="handleProductChanged">
-                    <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue"
+                    <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
                       :value="items.rateId" :disabled="items.rateStatus != '0'"/>
                   </el-select>
                 </el-form-item>

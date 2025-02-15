@@ -92,7 +92,7 @@
 
     <!-- 添加或修改商品套餐对话框 -->
     <el-dialog :title="title" v-model="open" width="900px" append-to-body :close-on-click-modal="false">
-      <el-tabs v-model="activeTab">
+      <el-tabs v-model="activeTab" type="border-card">
         <!-- 基础信息 -->
         <el-tab-pane label="基础信息" name="basic">
           <el-form ref="productComboRef" :model="form" :rules="rules" label-width="100px">

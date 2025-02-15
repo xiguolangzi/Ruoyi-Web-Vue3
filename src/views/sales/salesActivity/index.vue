@@ -167,10 +167,37 @@
     <!-- 添加或修改销售活动 对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="salesActivityRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="活动名称" prop="activityName">
+        <el-form-item label="活动名称:" prop="activityName">
           <el-input v-model="form.activityName" placeholder="请输入活动名称" type="textarea" :maxlength="50" show-word-limit :rows="1"/>
         </el-form-item>
-        <el-form-item label="基础佣金" prop="salesmanHasCommission">
+        <el-form-item label="活动时间:" prop="timeRange">
+          <el-date-picker
+            v-model="form.timeRange"
+            type="datetimerange"
+            range-separator="至"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            :default-time="defaultTime2"
+            @change="handleDateChange"
+          >
+          </el-date-picker>
+        </el-form-item>
+        <el-form-item label="活动状态:" prop="activityStatus">
+          <el-radio-group v-model="form.activityStatus">
+            <el-radio
+              v-for="dict in sys_tenant_status"
+              :key="dict.value"
+              :label="dict.value"
+              :value="dict.value"
+            >{{dict.label}}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
+        <el-divider content-position="center">
+          <span>业务员 - 基础佣金</span>
+        </el-divider>
+        <el-form-item label="基础佣金:" prop="salesmanHasCommission">
           <el-radio-group v-model="form.salesmanHasCommission">
             <el-radio
               v-for="dict in erp_sales_is_calculate"
@@ -181,20 +208,25 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="累加佣金点数" prop="salesmanAddCommissionRate">
-          <div class="flex items-center">
-            <el-input-number
-              v-model="form.salesmanAddCommissionRate"
-              :min="-100"
-              :max="100"
-              :controls="false"
-              :precision="0"
-              placeholder="请输入累加佣金点数"
-              ref="inputNumber" @focus="handleFocus()" 
-            />
-            <span> %</span>
-          </div>
+          <el-input-number
+            v-model="form.salesmanAddCommissionRate"
+            :min="-100"
+            :max="100"
+            :controls="false"
+            :precision="0"
+            placeholder="请输入累加佣金点数"
+            ref="inputNumber" @focus="handleFocus()" 
+          >
+            <template #suffix>
+              <span> %</span>
+            </template>
+          </el-input-number>
         </el-form-item>
-        <el-form-item label="客户基础折扣" prop="customerHasDiscount">
+
+        <el-divider content-position="center">
+          <span>客户 - 基础折扣</span>
+        </el-divider>
+        <el-form-item label="基础折扣:" prop="customerHasDiscount">
           <el-radio-group v-model="form.customerHasDiscount">
             <el-radio
               v-for="dict in erp_sales_is_calculate"
@@ -204,47 +236,29 @@
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="追加折上折" prop="customerAddDiscountRate">
-          <div class="flex items-center">
-            <el-input-number
-              v-model="form.customerAddDiscountRate"
-              :min="0"
-              :max="100"
-              :controls="false"
-              :precision="0"
-              placeholder="请输入折上折(大于0)"
-              ref="inputNumber2" @focus="handleFocus2()" 
-            />
-            <span> %</span>
-          </div>
+        <el-form-item label="追加折上折:" prop="customerAddDiscountRate">
+          <el-input-number
+            v-model="form.customerAddDiscountRate"
+            :min="0"
+            :max="100"
+            :controls="false"
+            :precision="0"
+            placeholder="请输入折上折(大于0)"
+            ref="inputNumber2" @focus="handleFocus2()" 
+          >
+            <template #suffix>
+              <span> %</span>
+            </template>
+          </el-input-number>
         </el-form-item>
-        <el-form-item label="sku产品活动" prop="closePromotion">
+
+        <el-divider content-position="center">
+          <span>sku - 促销活动</span>
+        </el-divider>
+        <el-form-item label="促销活动:" prop="closePromotion">
           <el-radio-group v-model="form.closePromotion">
             <el-radio
               v-for="dict in erp_sales_is_calculate"
-              :key="dict.value"
-              :label="dict.value"
-              :value="dict.value"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="活动时间" prop="timeRange">
-          <el-date-picker
-            v-model="form.timeRange"
-            type="datetimerange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            :default-time="defaultTime2"
-            @change="handleDateChange"
-          >
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="活动状态" prop="activityStatus">
-          <el-radio-group v-model="form.activityStatus">
-            <el-radio
-              v-for="dict in sys_tenant_status"
               :key="dict.value"
               :label="dict.value"
               :value="dict.value"
@@ -358,7 +372,6 @@ function cancel() {
 // 表单重置
 function reset() {
   form.value = {
-    timeRange: [],
     activityId: null,
     activityName: null,
     activityStatus: '0',

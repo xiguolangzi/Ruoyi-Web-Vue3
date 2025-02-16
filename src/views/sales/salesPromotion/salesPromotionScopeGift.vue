@@ -22,7 +22,7 @@
 
     <!-- SKU 绑定 -->
     <template v-if="isSkuScopeGift">
-      <el-table :data="salesPromotionScopeGift" border style="width: 100%">
+      <el-table :data="salesPromotionScopeGiftList" border style="width: 100%">
         <el-table-column label="SKU 条码" prop="skuId" align="center" min-width="120px">
           <template #default="scope">
             <el-select-v2 v-model="scope.row.skuId" filterable :options="formattedSkuList"
@@ -62,7 +62,7 @@
 
     <!-- 分类绑定 -->
     <template v-if="isCategoryScopeGift">
-      <el-table :data="salesPromotionScopeGift" border style="width: 100%">
+      <el-table :data="salesPromotionScopeGiftList" border style="width: 100%">
         <el-table-column label="商品分类" prop="categoryId" align="center" min-width="120px">
           <template #default="scope">
             <el-tree-select v-model="scope.row.categoryId" :data="categoryList"
@@ -80,7 +80,7 @@
 
     <!-- 添加 SKU 或 商品分类 -->
     <el-button type="primary" plain @click="addGiftDetail"
-      v-if="!isAllScopeGift && salesPromotionScopeGift.length < 10"
+      v-if="!isAllScopeGift && salesPromotionScopeGiftList.length < 10"
       style="margin-top: 10px;">
       {{ isSkuScopeGift ? "添加 SKU" : "添加 商品分类" }}
     </el-button>
@@ -92,7 +92,7 @@ import { computed } from 'vue';
 
 const props = defineProps({
   giftScopeType: String,
-  salesPromotionScopeGift: Array,
+  salesPromotionScopeGiftList: Array,
   formattedSkuList: Array,
   categoryList: Array,
   ScopeTypeEnum: Object,

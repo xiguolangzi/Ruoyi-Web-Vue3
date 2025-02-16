@@ -120,7 +120,7 @@
         <template #default="scope">
           <div>
             <strong>分类：</strong>
-            <span>{{ scope.row.productCategoryForProductVo?.categoryName || '--' }} </span>
+            <span>{{ scope.row.productCategoryVo?.categoryName || '--' }} </span>
           </div>
           <div>
             <strong>品牌：</strong>
@@ -179,7 +179,7 @@
           </div>
           <el-descriptions direction="vertical" :column="6" :size="size" border style="margin-top: 20px">
             <el-descriptions-item label="商品分类" :span="2" align="center">
-              {{productDetail.productCategoryForProductVo?.categoryName || '--'}}
+              {{productDetail.productCategoryVo?.categoryName || '--'}}
             </el-descriptions-item>
             <el-descriptions-item label="品牌" align="center">
               {{productDetail.brandForProductVo?.brandName || '--'}}

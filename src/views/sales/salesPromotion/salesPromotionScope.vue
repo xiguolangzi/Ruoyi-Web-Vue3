@@ -22,7 +22,7 @@
 
     <!-- SKU 绑定 -->
     <template v-if="isSkuScope">
-      <el-table :data="salesPromotionScope" border style="width: 100%" ref="salesPromotionScope">
+      <el-table :data="salesPromotionScopeList" border style="width: 100%" ref="salesPromotionScopeList">
         <el-table-column label="SKU 条码" prop="skuId" align="center" min-width="120px">
           <template #default="scope">
             <el-select-v2 v-model="scope.row.skuId" filterable :options="formattedSkuList"
@@ -61,14 +61,14 @@
         </el-table-column>
       </el-table>
 
-      <el-button type="primary" plain @click="addDetail" v-if="salesPromotionScope.length < 10" style="margin-top: 10px;">
+      <el-button type="primary" plain @click="addDetail" v-if="salesPromotionScopeList.length < 10" style="margin-top: 10px;">
         添加 SKU
       </el-button>
     </template>
 
     <!-- 分类绑定 -->
     <template v-if="isCategoryScope">
-      <el-table :data="salesPromotionScope" border style="width: 100%" ref="salesPromotionScope">
+      <el-table :data="salesPromotionScopeList" border style="width: 100%" ref="salesPromotionScopeList">
         <el-table-column label="商品分类" prop="categoryId" align="center" min-width="120px">
           <template #default="scope">
             <el-tree-select v-model="scope.row.categoryId" :data="categoryList" 
@@ -91,7 +91,7 @@
         </el-table-column>
       </el-table>
 
-      <el-button type="primary" plain @click="addDetail" v-if="salesPromotionScope.length < 10" style="margin-top: 10px;">
+      <el-button type="primary" plain @click="addDetail" v-if="salesPromotionScopeList.length < 10" style="margin-top: 10px;">
         添加 商品分类
       </el-button>
     </template>
@@ -103,7 +103,7 @@ import { computed, getCurrentInstance } from 'vue';
 
 const props = defineProps({
   promotionScopeType: String,
-  salesPromotionScope: Array,
+  salesPromotionScopeList: Array,
   formattedSkuList: Array,
   categoryList: Array,
   ScopeTypeEnum: Object,
@@ -113,8 +113,6 @@ const props = defineProps({
 const isSkuScope = computed(() => props.promotionScopeType === props.ScopeTypeEnum.SKU);
 const isCategoryScope = computed(() => props.promotionScopeType === props.ScopeTypeEnum.CATEGORY);
 const isAllScope = computed(() => props.promotionScopeType === props.ScopeTypeEnum.ALL);
-
-console.log(props);
 
 const emit = defineEmits(['handleSkuChange', 'removePromotionScopeDetail', 'addPromotionScopeDetail']);
 

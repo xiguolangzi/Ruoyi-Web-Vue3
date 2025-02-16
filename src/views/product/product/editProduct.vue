@@ -498,6 +498,7 @@ const handleProductChanged = () => {
     item.productName = form.value.productName;
     item.skuStatus = form.value.productStatus;
     item.rateId = form.value.rateId;
+    item.categoryId = form.value.categoryId;
   });
 }
 
@@ -520,6 +521,9 @@ const syncProductPriceMin3 = () => {
 // ****************************************************    新增/修改逻辑  ******************************************************
 const submitHandler = async () => {
   try {
+    // 0 验证表单
+    await proxy.$refs["productRef"].validate();
+
     // 1. 通用验证逻辑
     if (productSkuList.value.length === 0) {
       initData();

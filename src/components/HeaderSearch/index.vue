@@ -135,7 +135,7 @@ watchEffect(() => {
 
 watch(show, (value) => {
   if (value) {
-    document.body.addEventListener('click', close)
+    document.body.addEventListener('click', close, {passive: true})
   } else {
     document.body.removeEventListener('click', close)
   }

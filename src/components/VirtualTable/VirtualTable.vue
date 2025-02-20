@@ -219,12 +219,12 @@ useResizeObserver(tableContainer, () => {
 // 组件挂载时初始化尺寸
 onMounted(() => {
   updateTableSize()
-  window.addEventListener('resize', updateTableSize)
+  window.addEventListener('resize', updateTableSize, {passive: true})
 })
 
 // 组件卸载时清理事件监听
 onUnmounted(() => {
-  window.removeEventListener('resize', updateTableSize)
+  window.removeEventListener('resize', updateTableSize, {passive: true})
 })
 </script>
 

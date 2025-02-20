@@ -43,7 +43,7 @@ window.addEventListener('load', () => {
   //   })
   // })
 
-})
+},{passive:true})
 
 
 onMounted(() => {

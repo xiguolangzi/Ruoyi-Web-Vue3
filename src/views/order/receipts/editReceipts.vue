@@ -1447,8 +1447,8 @@ const addTouchEventListeners = () => {
 const removeTouchEventListeners = () => {
   const container = document.querySelector('#touch-scroll-container');
   if (!container) return;
-  container.removeEventListener('touchstart', addTouchClass);
-  container.removeEventListener('touchend', removeTouchClass);
+  container.removeEventListener('touchstart', addTouchClass, { passive: true });
+  container.removeEventListener('touchend', removeTouchClass, { passive: true });
 };
 //**************************** 解决虚拟表格 触屏滚动的问题 end 备用 ****************/
 

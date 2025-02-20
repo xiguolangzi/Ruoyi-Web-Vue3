@@ -44,7 +44,7 @@
               </el-col>
               <el-col :span="8">
                 <el-form-item label="商品价格:" prop="productPrice">
-                  <el-input v-model="form.productPrice" placeholder="请输入商品价格" type="number" />
+                  <el-input-number v-model="form.productPrice" placeholder="请输入商品价格" :min="0"  style="width: auto;"/>
                 </el-form-item>
               </el-col>
               <el-col :span="8">
@@ -212,6 +212,7 @@
                     <el-input v-model="scope.row.skuCode"></el-input>
                   </template>
                 </el-table-column>
+                
                 <el-table-column label="价格1" prop="skuPrice1" align="center">
                   <template #default="scope">
                     <el-input-number v-model="scope.row.skuPrice1" :precision="2" :step="0.01"></el-input-number>
@@ -227,6 +228,7 @@
                     <el-input-number v-model="scope.row.skuPrice3" :precision="2" :step="0.01"></el-input-number>
                   </template>
                 </el-table-column>
+
                 <el-table-column label="库存" prop="averageCostBySkuVo.currentStock" align="center">
                   <template #default="scope">
                     <span>{{ scope.row.averageCostBySkuVo?.currentStock || '--' }}</span>

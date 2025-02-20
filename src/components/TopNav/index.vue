@@ -158,10 +158,10 @@ function activeRoutes(key) {
 }
 
 onMounted(() => {
-  window.addEventListener('resize', setVisibleNumber)
+  window.addEventListener('resize', setVisibleNumber, {passive: true})
 })
 onBeforeUnmount(() => {
-  window.removeEventListener('resize', setVisibleNumber)
+  window.removeEventListener('resize', setVisibleNumber,{passive: true})
 })
 
 onMounted(() => {

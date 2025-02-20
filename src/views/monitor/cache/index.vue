@@ -124,7 +124,7 @@ function getList() {
     window.addEventListener("resize", () => {
       commandstatsIntance.resize();
       usedmemoryInstance.resize();
-    });
+    }, { passive: true });
   })
 }
 

@@ -15,8 +15,8 @@ export default {
           el.$copyCallback(el.$copyValue);
         }
       };
-      el.addEventListener("click", handler);
-      el.$destroyCopy = () => el.removeEventListener("click", handler);
+      el.addEventListener("click", handler, { passive: true });
+      el.$destroyCopy = () => el.removeEventListener("click", handler, { passive: true });
     }
   }
 }

@@ -96,7 +96,7 @@
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="productPriceTypeRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="价格编码" prop="priceCode">
-          <el-input v-model="form.priceCode" placeholder="请输入价格编码" />
+          <el-input v-model="form.priceCode" placeholder="请输入价格编码" :disabled="form.priceTypeId ? true : false"/>
         </el-form-item>
         <el-form-item label="价格名称" prop="priceName">
           <el-input v-model="form.priceName" placeholder="请输入价格名称" />

@@ -70,9 +70,9 @@ watch(route, () => {
 
 watch(visible, (value) => {
   if (value) {
-    document.body.addEventListener('click', closeMenu)
+    document.body.addEventListener('click', closeMenu, {passive: true})
   } else {
-    document.body.removeEventListener('click', closeMenu)
+    document.body.removeEventListener('click', closeMenu, {passive: true})
   }
 })
 

@@ -38,7 +38,7 @@
           <el-switch v-model="scope.row.categoryStatus" :active-value="sys_tenant_status[0].value"
             :inactive-value="sys_tenant_status[1].value" inline-prompt active-text="启用" inactive-text="禁用"
             style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
-            @change="handleChangeStatus(scope.row)"></el-switch>
+            @change="handleChangeStatus(scope.row)" />
         </template>
       </el-table-column>
       <el-table-column label="排列顺序" align="center" prop="orderNumber" />

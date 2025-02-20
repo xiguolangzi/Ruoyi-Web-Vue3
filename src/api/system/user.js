@@ -2,38 +2,42 @@ import request from '@/utils/request'
 import { parseStrEmpty } from "@/utils/ruoyi";
 
 // 查询用户列表
-export function listUser(query) {
+export function listUser(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/system/user/list',
     method: 'get',
-    params: { pageSize: 1000, ...query }
+    params: { pageSize, ...query }
   })
 }
 
 // 查询采购员列表
-export function listBuyer(query) {
+export function listBuyer(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/system/user/buyerList',
     method: 'get',
-    params: { pageSize: 1000, ...query }
+    params: { pageSize, ...query }
   })
 }
 
 // 查询业务员列表
-export function listSalesman(query) {
+export function listSalesman(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/system/user/salesmanList',
     method: 'get',
-    params: { pageSize: 1000, ...query }
+    params: { pageSize, ...query }
   })
 }
 
 // 查询收银员列表
-export function listCashier(query) {
+export function listCashier(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/system/user/cashierList',
     method: 'get',
-    params: { pageSize: 1000, ...query }
+    params: { pageSize, ...query }
   })
 }
 

@@ -1,11 +1,12 @@
 import request from '@/utils/request'
 
 // 查询仓库列表
-export function listWarehouse(query) {
+export function listWarehouse(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/product/warehouse/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

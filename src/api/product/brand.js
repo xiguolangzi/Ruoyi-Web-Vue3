@@ -1,11 +1,12 @@
 import request from '@/utils/request'
 
 // 查询品牌管理列表
-export function listBrand(query) {
+export function listBrand(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/product/brand/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

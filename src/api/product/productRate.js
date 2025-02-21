@@ -1,11 +1,12 @@
 import request from '@/utils/request'
 
 // 查询产品税率管理列表
-export function listProductRate(query) {
+export function listProductRate(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/product/productRate/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

@@ -27,15 +27,16 @@ import { ref } from 'vue';
 // 只有系统用户才展示
 const userStore = useUserStore();
 const show = ref(false);
-
 const selectedTenantId = ref(null); // 选中的租户ID
+
+
 
 // 获取租户列表
 const tenantList = ref([]); // 存储租户列表
 const fetchTenantList = async () => {
     try {
     const response = await selectAll();
-    tenantList.value = response.data;
+    tenantList.value = response.data || [];
     } catch (error) {
     console.error('获取租户列表失败:', error);
     }
@@ -60,10 +61,13 @@ watch(tenantList, (newVal) => {
 
 // 展示才获取租户列表，否则不会显示下拉框
 console.log("userStore.userType----", userStore.userType);
-if (userStore.userType === "00") {
+// 只有系统用户才展示 ，暂时超级管理员才展示！！
+if (userStore.userType === "00" && userStore.id === '1') {
     show.value = true;
     fetchTenantList()
 }
+
+
 
 </script>
 

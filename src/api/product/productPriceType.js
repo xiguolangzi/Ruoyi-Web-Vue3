@@ -1,11 +1,12 @@
 import request from '@/utils/request'
 
 // 查询价格类型列表
-export function listProductPriceType(query) {
+export function listProductPriceType(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/product/productPriceType/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

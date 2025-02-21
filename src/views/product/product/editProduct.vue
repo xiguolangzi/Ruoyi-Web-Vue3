@@ -6,7 +6,7 @@
       <!------------------------------------------   基础信息部分   -------------------------------------------->
       <el-tab-pane label="基础信息" name="first">
         <el-form ref="productRef" :model="form" :rules="rules" label-width="80px">
-          <el-card>
+          <el-card shadow="hover">
             <template #header>
               <span>必要信息</span>
             </template>
@@ -23,7 +23,7 @@
               </el-col>
               <el-col :span="8">
                 <el-form-item label="商品名称:" prop="productName">
-                  <el-input v-model="form.productName" placeholder="请输入商品名称" @change="handleProductChanged" />
+                  <el-input v-model="form.productName" placeholder="请输入商品名称" @change="handleProductChanged" type="textarea" :maxlength="50" show-word-limit :rows="1"/>
                 </el-form-item>
               </el-col>
               <el-col :span="8">
@@ -39,12 +39,16 @@
             <el-row :gutter="20">
               <el-col :span="8">
                 <el-form-item label="商品条码:" prop="productCode">
-                  <el-input v-model="form.productCode" placeholder="请输入商品条码" @change="handleProductChanged" />
+                  <el-input v-model="form.productCode" placeholder="请输入商品条码" @change="handleProductChanged" type="textarea" :maxlength="20" show-word-limit :rows="1"/>
                 </el-form-item>
               </el-col>
               <el-col :span="8">
                 <el-form-item label="商品价格:" prop="productPrice">
-                  <el-input-number v-model="form.productPrice" placeholder="请输入商品价格" :min="0"  style="width: auto;"/>
+                  <el-input-number v-model="form.productPrice" placeholder="请输入商品价格" :min="0" :max='99999' :precision='2' style="width: 100%;">
+                    <template #suffix>
+                      <span>€</span>
+                    </template>
+                  </el-input-number>
                 </el-form-item>
               </el-col>
               <el-col :span="8">
@@ -56,7 +60,7 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-row :gutter="80">
+            <el-row :gutter="20">
               <el-col :span="8">
                 <el-form-item label="商品状态:" prop="productStatus">
                   <el-radio-group v-model="form.productStatus" @change="handleProductChanged">
@@ -86,47 +90,136 @@
               <image-upload v-model="form.productImage" />
             </el-form-item>
             <el-form-item label="备注" prop="remark">
-              <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+              <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"  :maxlength="50" show-word-limit :rows="2"/>
             </el-form-item>
           </el-card>
-          <el-card>
+
+          <el-card shadow="hover" style="margin-top: 5px;">
+            <template #header>
+              <div>
+                <span>单价信息</span>
+                <el-button type="primary" size="small" style="margin-left: 50px;" plain @click="handleProductPriceChanged">同步商品单价</el-button>
+                <el-button type="danger" size="small" style="margin-left: 20px;" plain @click="handleSkuPriceChangedByProduct">同步SKU单价</el-button>
+              </div>
+            </template>
+            <el-row>
+              <el-col :span="1.5">
+                <el-form-item label="单价1:" prop="productPrice1">
+                  <el-input-number v-model="form.productPrice1" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                    <template #suffix>
+                      <span>€</span>
+                    </template>
+                  </el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :span="1.5">
+                <el-form-item label="单价2:" prop="productPrice2">
+                  <el-input-number v-model="form.productPrice2" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                    <template #suffix>
+                      <span>€</span>
+                    </template>
+                  </el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :span="1.5">
+                <el-form-item label="单价3:" prop="productPrice3">
+                  <el-input-number v-model="form.productPrice3" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                    <template #suffix>
+                      <span>€</span>
+                    </template>
+                  </el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :span="1.5">
+                <el-form-item label="单价4:" prop="productPrice4">
+                  <el-input-number v-model="form.productPrice4" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                    <template #suffix>
+                      <span>€</span>
+                    </template>
+                  </el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :span="1.5">
+                <el-form-item label="单价5:" prop="productPrice5">
+                  <el-input-number v-model="form.productPrice5" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                    <template #suffix>
+                      <span>€</span>
+                    </template>
+                  </el-input-number>
+                </el-form-item>
+              </el-col>
+              <el-col :span="1.5">
+                <el-form-item label="单价6:" prop="productPrice6">
+                  <el-input-number v-model="form.productPrice6" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                    <template #suffix>
+                      <span>€</span>
+                    </template>
+                  </el-input-number>
+                </el-form-item>
+              </el-col>
+              
+            </el-row>
+          </el-card>
+
+          <el-card shadow="hover" style="margin-top: 5px;">
             <template #header>
               <span>包装信息</span>
             </template>
             <el-row>
-              <el-col :span="4">
-                <el-form-item label="长(cm):" prop="length" style="margin-right: 20px">
-                  <el-input v-model="form.length" placeholder="请输入长(cm)" type="number" style="width: 125px"
-                    @change="calculateVolume" />
+              <el-col :span="1.5">
+                <el-form-item label="长度:" prop="length" >
+                  <el-input-number v-model="form.length" placeholder="请输入长(cm)" style="width: auto" :min="0" :controls="false"
+                    @change="calculateVolume" >
+                    <template #suffix>
+                      <span>cm</span>
+                    </template>
+                  </el-input-number>
                 </el-form-item>
               </el-col>
-              <el-col :span="4">
-                <el-form-item label="宽(cm):" prop="width" style="margin-right: 20px">
-                  <el-input v-model="form.width" placeholder="请输入宽(cm)" type="number" style="width: 125px"
-                    @change="calculateVolume" />
+              <el-col :span="1.5">
+                <el-form-item label="宽度:" prop="width" >
+                  <el-input-number v-model="form.width" placeholder="请输入宽(cm)" type="number" style="width: auto" :min="0" :controls="false"
+                    @change="calculateVolume" >
+                    <template #suffix>
+                      <span>cm</span>
+                    </template>
+                  </el-input-number>
                 </el-form-item>
               </el-col>
-              <el-col :span="4">
-                <el-form-item label="高(cm):" prop="height" style="margin-right: 20px">
-                  <el-input v-model="form.height" placeholder="请输入高(cm)" type="number" style="width: 125px"
-                    @change="calculateVolume" />
+              <el-col :span="1.5">
+                <el-form-item label="高度:" prop="height" >
+                  <el-input-number v-model="form.height" placeholder="请输入高(cm)" type="number" style="width: auto" :min="0" :controls="false"
+                    @change="calculateVolume" >
+                    <template #suffix>
+                      <span>cm</span>
+                    </template>
+                  </el-input-number>
                 </el-form-item>
               </el-col>
-              <el-col :span="6">
-                <el-form-item label="体积(m3):" prop="volume" style="margin-right: 20px">
-                  <el-input v-model="form.volume" placeholder="请输入体积(m3)" type="number" style="width: 150px" />
+            </el-row>
+            <el-row>
+              <el-col :span="1.5">
+                <el-form-item label="体积:" prop="volume" >
+                  <el-input-number v-model="form.volume" placeholder="请输入体积(m3)" type="number" style="width: auto" :min="0" :controls="false">
+                    <template #suffix>
+                      <span>m3</span>
+                    </template>
+                  </el-input-number>
                 </el-form-item>
               </el-col>
-              <el-col :span="6">
-                <el-form-item label="重量(kg):" prop="weight" style="margin-right: 20px">
-                  <el-input v-model="form.weight" placeholder="请输入重量(kg)" type="number" style="width: 150px" />
+              <el-col :span="1.5">
+                <el-form-item label="重量:" prop="weight" >
+                  <el-input-number v-model="form.weight" placeholder="请输入重量(kg)" type="number" style="width: auto" :min="0" :controls="false">
+                    <template #suffix>
+                      <span>kg</span>
+                    </template>
+                  </el-input-number>
                 </el-form-item>
               </el-col>
             </el-row>
           </el-card>
         </el-form>
         <div class="footer" style="margin: 20px; padding: 20px">
-          <!-- <el-button type="primary" @click="goToSecond">下一步</el-button> -->
           <el-button type="primary" @click="submitHandler"> 提 交 </el-button>
           <el-button type="info" @click="goBack"> 取消 </el-button>
         </div>
@@ -175,7 +268,7 @@
                 <el-table-column label="操作" width="120" align="center">
                   <template #default="scope">
                     <el-button @click="removeSpec(scope.$index)" type="danger" size="small"
-                      v-if="!names.includes(scope.row.name)">删除规格</el-button>
+                      :disabled="names.includes(scope.row.name)">删除规格</el-button>
                   </template>
                 </el-table-column>
               </el-table>
@@ -205,8 +298,10 @@
                     <image-upload v-model="scope.row.skuImage" :isShowTip="false" :isImgSize="80" />
                   </template>
                 </el-table-column>
+
                 <el-table-column v-for="spec in selectedSpecs" :key="spec.name" :prop="`skuValue.${spec.name}`"
-                  :label="spec.name" :width="calculateWidth(spec.name)"></el-table-column>
+                  :label="spec.name" :width="calculateWidth(spec.name)" />
+
                 <el-table-column label="规格编码" prop="skuCode" align="center">
                   <template #default="scope">
                     <el-input v-model="scope.row.skuCode"></el-input>
@@ -228,10 +323,25 @@
                     <el-input-number v-model="scope.row.skuPrice3" :precision="2" :step="0.01"></el-input-number>
                   </template>
                 </el-table-column>
-
-                <el-table-column label="库存" prop="averageCostBySkuVo.currentStock" align="center">
+                <el-table-column label="价格4" prop="skuPrice4" align="center">
                   <template #default="scope">
-                    <span>{{ scope.row.averageCostBySkuVo?.currentStock || '--' }}</span>
+                    <el-input-number v-model="scope.row.skuPrice4" :precision="2" :step="0.01"></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column label="价格5" prop="skuPrice5" align="center">
+                  <template #default="scope">
+                    <el-input-number v-model="scope.row.skuPrice5" :precision="2" :step="0.01"></el-input-number>
+                  </template>
+                </el-table-column>
+                <el-table-column label="价格6" prop="skuPrice6" align="center">
+                  <template #default="scope">
+                    <el-input-number v-model="scope.row.skuPrice6" :precision="2" :step="0.01"></el-input-number>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="库存" align="center">
+                  <template #default="scope">
+                    <span>{{ scope.row.productInventoryForSkuVo?.currentStock || '--' }}</span>
                   </template>
                 </el-table-column>
                 <el-table-column label="状态" prop="skuStatus" align="center">
@@ -303,6 +413,12 @@ const form = ref({
   productCode: null,
   productName: null,
   productPrice: null,
+  productPrice1: null,
+  productPrice2: null,
+  productPrice3: null,
+  productPrice4: null,
+  productPrice5: null,
+  productPrice6: null,
   productImage: null,
   productAttr: null,
   productStatus: "0",
@@ -319,6 +435,7 @@ const form = ref({
   remark: null,
   skuSelected: null,
   rateId: null,
+  delFlag: null
 });
 
 const rules = ref({
@@ -337,6 +454,13 @@ const rules = ref({
     },
   ],
   productPrice: [
+    {
+      required: true,
+      message: "商品价格不能为空",
+      trigger: ["blur", "change"],
+    },
+  ],
+  productPrice1: [
     {
       required: true,
       message: "商品价格不能为空",
@@ -492,6 +616,29 @@ const syncSkuPrice1 = () => {
   });
 };
 
+/** 同步 product 单价 1-6 */
+function handleProductPriceChanged (){
+  if(form.value.productPrice){
+    form.value.productPrice1 = form.value.productPrice;
+    form.value.productPrice2 = form.value.productPrice;
+    form.value.productPrice3 = form.value.productPrice;
+    form.value.productPrice4 = form.value.productPrice;
+    form.value.productPrice5 = form.value.productPrice;
+    form.value.productPrice6 = form.value.productPrice;
+  }
+}
+
+/** sku 价格 同步 product */
+function handleSkuPriceChangedByProduct (){
+  productSkuList.value.forEach((item) => {
+    item.skuPrice1 = form.value.productPrice1;
+    item.skuPrice2 = form.value.productPrice2;
+    item.skuPrice3 = form.value.productPrice3;
+    item.skuPrice4 = form.value.productPrice4;
+    item.skuPrice5 = form.value.productPrice5;
+    item.skuPrice6 = form.value.productPrice6;
+  })
+}
 /** product 变更 更新 sku  */
 const handleProductChanged = () => {
   productSkuList.value.forEach((item) => {
@@ -741,7 +888,7 @@ function getCategoryList() {
 }
 /** 获取计量单位下拉框数据 */
 function getUnitList() {
-  listUnit({})
+  listUnit()
     .then((response) => {
       // 产品只赋值基础单位
       unitList.value = response.rows.filter((row) => row.unitType === baseUnit);
@@ -759,7 +906,7 @@ function getUnitList() {
 }
 /** 获取品牌下拉框数据 */
 function getBrandList() {
-  listBrand({})
+  listBrand()
     .then((response) => {
       brandList.value = response.rows;
     })
@@ -769,7 +916,7 @@ function getBrandList() {
 }
 /** 获取sku名称下拉框数据 */
 function getSkuNameList() {
-  listSkuName({})
+  listSkuName()
     .then((response) => {
       skuNameList.value = response.rows;
     })

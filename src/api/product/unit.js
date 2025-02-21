@@ -1,11 +1,12 @@
 import request from '@/utils/request'
 
 // 查询计量单位列表
-export function listUnit(query) {
+export function listUnit(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/product/unit/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

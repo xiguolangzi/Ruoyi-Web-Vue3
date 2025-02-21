@@ -1,11 +1,12 @@
 import request from '@/utils/request'
 
 // 查询商品列表
-export function listProduct(query) {
+export function listProduct(query = {}) {
+  const pageSize = query.pageSize || 5000;
   return request({
     url: '/product/product/list',
     method: 'get',
-    params: { pageSize: 5000, ...query }
+    params: { pageSize, ...query }
   })
 }
 

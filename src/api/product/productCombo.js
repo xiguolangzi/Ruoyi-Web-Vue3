@@ -1,11 +1,12 @@
 import request from '@/utils/request'
 
 // 查询商品套餐列表
-export function listProductCombo(query) {
+export function listProductCombo(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/product/productCombo/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

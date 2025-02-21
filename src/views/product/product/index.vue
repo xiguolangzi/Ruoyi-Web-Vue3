@@ -267,7 +267,11 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="库存数量" align="center" prop="averageCostBySkuVo.currentStock" width="80" />
+            <el-table-column label="库存数量" align="center" width="80" >
+              <template #default="scope">
+                  <span> {{ scope.row.productInventoryForSkuVo?.currentStock || '--' }} </span>
+              </template>
+            </el-table-column>
             <el-table-column label="状态" align="center" prop="skuStatus" width="60">
               <template #default="scope">
                 <dict-tag :options="product_status" :value="scope.row.skuStatus" />

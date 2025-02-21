@@ -1,11 +1,12 @@
 import request from '@/utils/request'
 
 // 查询sku规格名称列表
-export function listSkuName(query) {
+export function listSkuName(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/product/skuName/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

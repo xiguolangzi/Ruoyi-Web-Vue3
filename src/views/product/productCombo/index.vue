@@ -14,7 +14,8 @@
       </el-form-item>
       <el-form-item label="套餐税率:" prop="rateId">
         <el-select v-model="queryParams.rateId" placeholder="请选择税率" clearable>
-          <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'" :value="items.rateId" />
+          <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
+            :value="items.rateId" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -49,7 +50,7 @@
       <el-table-column label="套餐编码" align="center" prop="comboCode" />
       <el-table-column label="套餐名称" align="center" prop="comboName" show-overflow-tooltip />
       <el-table-column label="辅助名称" align="center" prop="comboAssistName" show-overflow-tooltip />
-      <el-table-column label="套餐价格" align="center" prop="comboPrice" >
+      <el-table-column label="套餐价格" align="center" prop="comboPrice">
         <template #default="scope">
           <span>{{ formatTwo(scope.row.comboPrice) }} €</span>
         </template>
@@ -92,7 +93,7 @@
 
     <!-- 添加或修改商品套餐对话框 -->
     <el-dialog :title="title" v-model="open" width="900px" append-to-body :close-on-click-modal="false">
-      <el-tabs v-model="activeTab" type="border-card">
+      <el-tabs v-model="activeTab" type="border-card" :before-leave="beforeLeave">
         <!-- 基础信息 -->
         <el-tab-pane label="基础信息" name="basic">
           <el-form ref="productComboRef" :model="form" :rules="rules" label-width="100px">
@@ -102,14 +103,14 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="套餐名称:" prop="comboName">
-                  <el-input v-model="form.comboName" placeholder="请输入套餐名称" type="textarea" maxlength="50" show-word-limit
-                    :rows="1" />
+                  <el-input v-model="form.comboName" placeholder="请输入套餐名称" type="textarea" maxlength="50"
+                    show-word-limit :rows="1" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="辅助名称:" prop="comboAssistName">
-                  <el-input v-model="form.comboAssistName" placeholder="请输入辅助名称" type="textarea" maxlength="50" show-word-limit
-                    :rows="1" />
+                  <el-input v-model="form.comboAssistName" placeholder="请输入辅助名称" type="textarea" maxlength="50"
+                    show-word-limit :rows="1" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -124,7 +125,8 @@
               </el-form-item>
               <el-form-item label="套餐税率" prop="rateId">
                 <el-select v-model="form.rateId" placeholder="请选择套餐税率" clearable>
-                  <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'" :value="items.rateId" />
+                  <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
+                    :value="items.rateId" />
                 </el-select>
               </el-form-item>
             </el-row>
@@ -144,11 +146,13 @@
 
         <!-- 套餐项 -->
         <el-tab-pane label="添加套餐项" name="items">
-          <el-card v-for="(item, index) in form.productComboItemList" :key="index" class="mb-4" shadow="always" style="margin-bottom: 10px;">
+          <el-card v-for="(item, index) in form.productComboItemList" :key="index" class="mb-4" shadow="always"
+            style="margin-bottom: 10px;">
             <el-form-item label="套餐项名称:">
-              <el-input v-model="item.itemName" placeholder="请输入套餐项名称" type="textarea" :maxlength="50" show-word-limit :rows="1"/>
+              <el-input v-model="item.itemName" placeholder="请输入套餐项名称" type="textarea" :maxlength="50" show-word-limit
+                :rows="1" />
             </el-form-item>
-            <el-row >
+            <el-row>
               <el-form-item label="是否可选项:" style="margin-right: 20px;">
                 <el-radio-group v-model="item.isOptional" disabled>
                   <el-radio v-for="dict in erp_product_combo_optional" :key="dict.value" :label="dict.value"
@@ -164,8 +168,8 @@
             <el-divider content-position="left">
               <span>SKU 详情</span>
             </el-divider>
-            <el-table :data="item.productComboItemDetailList" border style="width: 100%" ref="productComboItemDetailList"
-              :summary-method="getSummaryRow" show-summary>
+            <el-table :data="item.productComboItemDetailList" border style="width: 100%"
+              ref="productComboItemDetailList" :summary-method="getSummaryRow" show-summary>
               <el-table-column label="SKU 条码" prop="skuId" align="center" min-width="120px">
                 <template #default="scope">
                   <el-select-v2 v-model="scope.row.skuId" filterable :options="formattedSkuList"
@@ -173,7 +177,7 @@
                     :fit-input-width="false" />
                 </template>
               </el-table-column>
-              <el-table-column label="SKU 名称" align="center" show-overflow-tooltip >
+              <el-table-column label="SKU 名称" align="center" show-overflow-tooltip>
                 <template #default="scope">
                   <span>{{ scope.row.productSkuVo?.productName }}</span>
                 </template>
@@ -191,21 +195,17 @@
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column label="单价" prop="detailPrice" align="center" min-width="50px">
+              <el-table-column label="单价" prop="detailPrice" align="center" min-width="70px" show-overflow-tooltip>
                 <template #default="scope">
                   <span>{{ formatTwo(scope.row.detailPrice) }} € </span>
                 </template>
               </el-table-column>
-              <el-table-column label="数量" prop="quantity" align="center" >
+              <el-table-column label="数量" prop="quantity" align="center">
                 <template #default="scope">
-                  <el-input-number :ref="(el) => setInputRef(el, index, scope.$index, 'quantity')" 
-                    v-model="scope.row.quantity"
-                    placeholder="发生额" 
-                    :max='99999999' :min='0' :controls="false" 
-                    style="width: 100%;"
-                    @focus="handleFocus(index, scope.$index, 'quantity')" 
-                    @click="handleFocus(index, scope.$index, 'quantity')"
-                    @change="calculateDetailAmount(scope.row)" />
+                  <el-input-number :ref="(el) => setInputRef(el, index, scope.$index, 'quantity')"
+                    v-model="scope.row.quantity" placeholder="发生额" :max='99999999' :min='0' :controls="false"
+                    style="width: 100%;" @focus="handleFocus(index, scope.$index, 'quantity')"
+                    @click="handleFocus(index, scope.$index, 'quantity')" @change="calculateDetailAmount(scope.row)" />
 
                 </template>
               </el-table-column>
@@ -214,15 +214,18 @@
                   <span>{{ formatTwo(scope.row.detailAmount) }} € </span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="100" align="center">
+              <el-table-column label="操作" width="60" align="center">
                 <template #default="scope">
-                  <el-button type="danger" size="small" @click="removeSkuDetail(index, scope.$index)">删除</el-button>
+                  <el-button type="danger" size="small" @click="removeSkuDetail(index, scope.$index)"
+                    style="width: 100%;">删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
 
-            <el-button type="primary" @click="addSkuDetail(index)" v-if="item.productComboItemDetailList && item.productComboItemDetailList.length < 10">添加 SKU</el-button>
-            <el-button type="danger" @click="removeComboItem(index)" v-if="item.isOptional && item.isOptional != '1'">删除套餐项</el-button>
+            <el-button type="primary" @click="addSkuDetail(index)"
+              v-if="item.productComboItemDetailList && item.productComboItemDetailList.length < 10">添加 SKU</el-button>
+            <el-button type="danger" @click="removeComboItem(index)"
+              v-if="item.isOptional && item.isOptional != '1'">删除套餐项</el-button>
           </el-card>
 
           <el-button type="primary" @click="addComboItem" style=" width: 50%; margin-top: 20px;"
@@ -353,6 +356,30 @@ const removeSkuDetail = (itemIndex, detailIndex) => {
   form.value.productComboItemList[itemIndex].productComboItemDetailList.splice(detailIndex, 1);
 };
 
+/** taps 界面切换之前的校验 newValue当前标签名、oldValue将要前往的标签名 */
+const beforeLeave = async (oldValue, newValue) => {
+  // 如果是从第一个标签切换到第二个标签
+  if (newValue === "basic" && oldValue === "items") {
+    try {
+      // 验证表单
+      await proxy.$refs["productComboRef"].validate();
+      console.log("验证通过");
+      // 验证通过，允许切换
+      return true;
+    } catch (error) {
+      // 验证失败，阻止切换并显示错误消息
+      ElMessage.error("请先完成必填项");
+      console.log("验证不通过");
+      // 从新赋值，解决 goToSecond() 重复调用的BUG
+      activeName.value = "first";
+      return false;
+    }
+  } else {
+    // 其他情况下允许自由切换
+    return true;
+  }
+};
+
 
 // *********************** 2 基础数据 end ***************************
 
@@ -467,7 +494,7 @@ const handleSkuChange = (row) => {
     if (!row.productSkuVo) {
       row.productSkuVo = {};
     }
-    row.detailPrice = selectedSku.skuPrice1; // 自动填充 SKU 价格
+    row.detailPrice = selectedSku.skuPrice; // 自动填充 SKU 价格
     row.productSkuVo.productName = selectedSku.productName;
     row.productSkuVo.skuValue = selectedSku.skuValue;
     row.quantity = 0;

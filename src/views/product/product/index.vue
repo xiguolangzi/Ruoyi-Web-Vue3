@@ -382,7 +382,6 @@ function getList() {
     productList.value.forEach((item) => {
       item.skuSelected = JSON.parse(item.skuSelected) || [];
     });
-    console.log("************* 获取转化后的产品信息", productList.value);
     total.value = response.total;
     loading.value = false;
   });
@@ -560,7 +559,7 @@ watch(
   () => {
     // 路由发生变化时执行操作
     getList();
-  }
+  },{props: true}
 );
 
 getCategoryList(); // 获取商品分类数据

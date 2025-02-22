@@ -4,7 +4,7 @@
     <el-tabs v-model="activeName" type="border-card" class="demo-tabs" style="margin: 0 20px"
       :before-leave="beforeLeave">
       <!------------------------------------------   基础信息部分   -------------------------------------------->
-      <el-tab-pane label="基础信息" name="first">
+      <el-tab-pane label="商品基础信息" name="first">
         <el-form ref="productRef" :model="form" :rules="rules" label-width="80px">
           <el-card shadow="hover">
             <template #header>
@@ -175,7 +175,7 @@
 
           <el-card shadow="hover" style="margin-top: 5px;">
             <template #header>
-              <span>包装信息</span>
+              <span>商品包装信息</span>
             </template>
             <el-row>
               <el-col :span="1.5">
@@ -239,13 +239,13 @@
         </div>
       </el-tab-pane>
       <!--------------------------------------------   SKU 部分  ---------------------------------------------->
-      <el-tab-pane label="添加规格信息" name="second">
+      <el-tab-pane label="SKU规格信息" name="second">
         <div class="product-spec-editor">
           <!---------------- 配置规格部分 ------------>
           <el-card>
             <template #header>
-              <span>规格配置:</span>
-              <el-tooltip content="修改时不允许更改之前的规格配置，只能新增规格配置！" placement="right">
+              <span>SKU规格配置:</span>
+              <el-tooltip content="修改时不允许更改之前的SKU规格配置，只能新增SKU规格配置！" placement="right">
                 <el-icon color="#e74c3c"><question-filled /></el-icon>
               </el-tooltip>
             </template>
@@ -296,7 +296,7 @@
           <el-card>
             <template #header>
               <div class="header-container">
-                <span>规格明细：</span>
+                <span>SKU规格明细：</span>
                 <div class="button-group">
                   <el-button type="success" @click="syncSkuPrice">sku单价 同步 商品单价</el-button>
                   <el-button type="primary" @click="syncProductPriceMin">商品单价 取 sku单价 中最小</el-button>
@@ -307,8 +307,8 @@
             </template>
             <div class="spec-combinations">
               <el-table :data="productSkuList" style="width: 100%" border>
-                <el-table-column type="index" :width="50" align="center" label="序号"></el-table-column>
-                <el-table-column label="规格图片" prop="skuImage" header-align="center" align="center" :min-width="90">
+                <el-table-column type="index" :width="55" align="center" label="序号"></el-table-column>
+                <el-table-column label="规格图片" prop="skuImage" header-align="center" align="center" :width="100">
                   <template #default="scope">
                     <image-upload v-model="scope.row.skuImage" :isShowTip="false" :isImgSize="80" />
                   </template>
@@ -339,7 +339,7 @@
                     <span>{{ scope.row.productInventoryForSkuVo?.currentStock || '--' }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="状态" prop="skuStatus" align="center" :min-width="90">
+                <el-table-column label="状态" prop="skuStatus" align="center" :width="90">
                   <template #default="scope">
                     <el-switch v-model="scope.row.skuStatus" size="small"
                       style="--el-switch-on-color: #13ce66;--el-switch-off-color: #ff4949;" active-value="0"
@@ -347,7 +347,7 @@
                     {{ scope.row.skuStatus === "0" ? "启售" : "停售" }}
                   </template>
                 </el-table-column>
-                <el-table-column label="操作" align="center">
+                <el-table-column label="操作" align="center" :width="70">
                   <template #default="scope">
                     <el-button link type="primary" size="small" @click="handleEditSku(scope.row)">>>更多</el-button>
                   </template>
@@ -472,6 +472,7 @@ import { useRouter, useRoute } from "vue-router";
 import useTagsViewStore from '@/store/modules/tagsView';
 import { ElMessage } from "element-plus";
 import { cloneDeep } from "lodash";
+import { toRefs } from "vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -503,104 +504,98 @@ const { proxy } = getCurrentInstance();
 const { product_cost_method, product_status } = proxy.useDict("product_cost_method", "product_status" );
 
 // 表单重置
-const form = ref({
-  productId: null,
-  productCode: null,
-  productName: null,
-  productPrice: null,
-  productPrice2: null,
-  productPrice3: null,
-  productPrice4: null,
-  productPrice5: null,
-  productPrice6: null,
-  productImage: null,
-  productAttr: null,
-  productStatus: "0",
-  unitId: null,
-  categoryId: null,
-  brandId: null,
-  costMethod: null,
-  length: null,
-  width: null,
-  height: null,
-  volume: null,
-  weight: null,
-  productSort: null,
-  remark: null,
-  skuSelected: null,
-  rateId: null,
+const data = reactive({
+  form: {
+    productId: null,
+    productCode: null,
+    productName: null,
+    productPrice: null,
+    productPrice2: null,
+    productPrice3: null,
+    productPrice4: null,
+    productPrice5: null,
+    productPrice6: null,
+    productImage: null,
+    productAttr: null,
+    productStatus: "0",
+    unitId: null,
+    categoryId: null,
+    brandId: null,
+    costMethod: null,
+    length: null,
+    width: null,
+    height: null,
+    volume: null,
+    weight: null,
+    productSort: null,
+    remark: null,
+    skuSelected: null,
+    rateId: null,
+  },
+  rules:{
+    productName: [
+      {
+        required: true,  message: "商品名称不能为空",  trigger: ["blur", "change"],
+      },
+    ],
+    categoryId: [
+      {
+        required: true,  message: "商品分类ID不能为空",  trigger: ["blur", "change"],
+      },
+    ],
+    productPrice: [
+      {
+        required: true,  message: "商品价格不能为空",  trigger: ["blur", "change"],
+      },
+    ],
+    productCode: [
+      {
+        required: true,  message: "商品编码不能为空",  trigger: ["blur", "change"],
+      },
+    ],
+    unitId: [
+      {
+        required: true,  message: "商品单位不能为空",  trigger: ["blur", "change"],
+      },
+    ],
+    rateId: [
+      {
+        required: true,  message: "商品税率不能为空",  trigger: ["blur", "change"],
+      },
+    ],
+  }
 });
 
-const rules = ref({
-  productName: [
-    {
-      required: true,
-      message: "商品名称不能为空",
-      trigger: ["blur", "change"],
-    },
-  ],
-  categoryId: [
-    {
-      required: true,
-      message: "商品分类ID不能为空",
-      trigger: ["blur", "change"],
-    },
-  ],
-  productPrice: [
-    {
-      required: true,
-      message: "商品价格不能为空",
-      trigger: ["blur", "change"],
-    },
-  ],
-  productCode: [
-    {
-      required: true,
-      message: "商品编码不能为空",
-      trigger: ["blur", "change"],
-    },
-  ],
-  unitId: [
-    {
-      required: true,
-      message: "商品单位不能为空",
-      trigger: ["blur", "change"],
-    },
-  ],
-  rateId: [
-    {
-      required: true,
-      message: "商品税率不能为空",
-      trigger: ["blur", "change"],
-    },
-  ],
-});
+const {form, rules} = toRefs(data);
+
 // **************************************** 1 基础资料部门 end *******************************************
 
 // **************************************** 2  SKU部分 start ********************************************
-// SKU数据列表
+// 1 SKU规则配置 内容列表:
 const specs = ref([{ name: "", values: [""], selected: false }]);
-
-// SKU表单列表
+// 2 SKU规则明细 内容列表:
 const productSkuList = ref([]);
-const newProductSkuList = ref([]);
-// 修改时传递的初始 productSkuList
-let initProductSkuList = [];
-let initSelectedSpecs = [];
+
+// 3 修改接受的初始值 -> 用于新旧对比
+let initProductSkuList = [];  // 初始的sku列表
+let initSelectedSpecs = [];   // 初始的specs列表
+
+// 4 SKU规则配置内容 - SKU规格名称列表
 let names = [];
 
-/** 构造一个只有单个 value 的新 spec */
+/** 5 判断当前规格是否在初始化值中 */
 const exist = (spec, index) => {
   // 直接提取单个 value
   const singleValue = spec.values[index]; 
   // 使用 `some` 查找是否存在匹配的 name 且 values 包含该 value
   let res = initSelectedSpecs.some(
-    (s) => s.name === spec.name && s.values.includes(singleValue)
+    (initSpec) => initSpec.name === spec.name && initSpec.values.includes(singleValue)
   );
+  // 如果 spec中的 规格名称 和 规格值，存在初始化值中，则返回true
   return res;
 };
 
-/** SKU列表 -> 过滤掉 空sku、空规格值 */ 
+/** 6.1 SKU规则配置内容列表 -> 过滤掉 空规格名称、空规格值 */ 
 const filteredSpecs = computed(() => {
   return specs.value
     .filter((spec) => spec.name.trim() !== "")
@@ -611,30 +606,30 @@ const filteredSpecs = computed(() => {
     .filter((spec) => spec.values.length > 0);
 });
 
-/** 已勾选的SKU组合列表 */ 
+/** 6.2 再次过滤出 已勾选的SKU规则配置内容列表 */ 
 const selectedSpecs = computed(() =>
   filteredSpecs.value.filter((spec) => spec.selected)
 );
 
-/** 递归多种SKU组合 */ 
+/** 6.3 递归多种SKU组合 */ 
 const generateCombinations = () => {
-  const selected = selectedSpecs.value;
-  if (selected.length === 0) {
+  if (selectedSpecs.value.length === 0) {
     productSkuList.value = [];
     return;
   }
   // 递归方法
-  const combine = (current, specs) => {
-    if (specs.length === 0) {
+  const combine = (current, specList) => {
+    if (specList.length === 0) {
       return [current];
     }
-    const [first, ...rest] = specs;
+    const [first, ...rest] = specList;
     return first.values.flatMap((value) =>
       combine({ ...current, [first.name]: value }, rest)
     );
   };
-  // specs 变化 生成新的 productSkuList
-  newProductSkuList.value = combine({}, selected).map((skuValue) => ({
+
+  // specs 变化 生成新的 newSkuList
+  const newSkuList = combine({}, selectedSpecs.value).map((skuValue) => ({
     skuValue,
     skuCode: "",
     skuImage: "",
@@ -652,24 +647,15 @@ const generateCombinations = () => {
     productName: form.value.productName,
   }));
 
-  // 通过 productSkuList 与 newProductSkuList 进行对比，存在相同的skuValue 就替换 -> 进一步融合 newProductSkuList
-  // 将 productSkuList 构建为一个 Map，使用 JSON.stringify(skuValue) 作为 key，便于快速查找
-  const skuValueMap = new Map(
-    productSkuList.value.map((item) => [JSON.stringify(item.skuValue), item])
+  // 使用 Map 进行高效比对和更新
+  const skuMap = new Map(productSkuList.value.map(item => [JSON.stringify(item.skuValue), item]));
+  
+  productSkuList.value = newSkuList.map(item =>
+    skuMap.get(JSON.stringify(item.skuValue)) || item
   );
-  // 基于 newProductSkuList 遍历并进行替换操作
-  productSkuList.value = newProductSkuList.value.map((item) => {
-    const skuValueStr = JSON.stringify(item.skuValue);
-    // 如果在 productSkuList 中找到相同的 skuValue，则用 productSkuList 中的项替换
-    if (skuValueMap.has(skuValueStr)) {
-      return skuValueMap.get(skuValueStr);
-    }
-    // 否则保持 newProductSkuList 中的原始值
-    return item;
-  });
 };
 
-/** 监听 配置规格变化 -> 更新 productSkuList */ 
+/**  6 监听 配置规格变化 -> 更新 productSkuList */ 
 watch(specs, generateCombinations, { deep: true });
 
 /** 通过修改传递的productId 获取商品信息 */
@@ -683,10 +669,7 @@ const getInfoById = () => {
       // 获取初始数据
       initSelectedSpecs = JSON.parse(form.value.skuSelected) || [];
       // 控制删除规格的数组（去除没有sku的名称）
-      names =
-        initSelectedSpecs
-          .map((spec) => spec.name)
-          .filter((name) => name !== "" && name !== '""') || [];
+      names = initSelectedSpecs.map((spec) => spec.name).filter((name) => name !== "" && name !== '""') || [];
       initProductSkuList = response.data.productSkuList;
       initProductSkuList.forEach((item) => {
         item.skuValue = JSON.parse(item.skuValue);
@@ -702,7 +685,7 @@ const getInfoById = () => {
 /** 同步价格 */
 const syncSkuPrice = () => {
   productSkuList.value.forEach((item) => {
-    item.skuPrice = form.value.productPrice;
+    item.skuPrice = form.value.productPrice || 0;
   });
 };
 
@@ -742,17 +725,23 @@ const handleProductChanged = () => {
 
 /** 商品价格取价格1中的最小值 */
 const syncProductPriceMin = () => {
-  form.value.productPrice = Math.min(...productSkuList.value.map((item) => item.skuPrice));
+  if (productSkuList.value.length > 0) {
+    form.value.productPrice = Math.min(...productSkuList.value.map(item => item.skuPrice || 0));
+  }
 };
 
 /**  商品价格取价格2中的最小值 */
 const syncProductPriceMin2 = () => {
-  form.value.productPrice = Math.min(...productSkuList.value.map((item) => item.skuPrice2));
+  if (productSkuList.value.length > 0) {
+    form.value.productPrice = Math.min(...productSkuList.value.map(item => item.skuPrice2 || 0));
+  }
 };
 
 /**  商品价格取价格3中的最小值 */
 const syncProductPriceMin3 = () => {
-  form.value.productPrice = Math.min(...productSkuList.value.map((item) => item.skuPrice3));
+  if (productSkuList.value.length > 0) {
+    form.value.productPrice = Math.min(...productSkuList.value.map(item => item.skuPrice3 || 0));
+  }
 };
 
 // **************************************** 2  SKU部分 end    ********************************************
@@ -762,47 +751,49 @@ const title = computed(() => {
   return form.value.productId != null ? "修改商品:" : "新增商品:";
 });
 
+/** SKU 数据验证 */
+const validateSkuData = (skuList) => {
+  for (const item of skuList) {
+    // null、undefined 或 空字符串
+    if (!item.skuCode?.trim()) {
+      ElMessage.error("请完善 SKU 编码信息！");
+      return false;
+    }
+    if (item.skuPrice == null || item.skuPrice <= 0) {
+      ElMessage.error("请完善 sku 单价信息！");
+      return false;
+    }
+  }
+  return true;
+};
+
 const submitHandler = async () => {
   try {
     // 0 验证表单
     await proxy.$refs["productRef"].validate();
 
-    // 1. 通用验证逻辑
+    // 1. 是否存在sku数据
     if (productSkuList.value.length === 0) {
+      // 没有sku数据 -> 直接初始化默认sku
       initData();
       return;
     }
-
-    // 2. SKU 数据验证
-    const validateSkuData = (skuList) => {
-      for (const item of skuList) {
-        if (!item.skuCode) {
-          ElMessage.error("请完善 规格编码 信息！");
-          return false;
-        }
-        if (!item.skuPrice) {
-          ElMessage.error("请完善 sku单价 信息！");
-          return false;
-        }
-      }
-      return true;
-    };
-
+    // 2. SKU 必填信息验证
     if (!validateSkuData(productSkuList.value)) {
       return;
     }
 
     // 3. 准备提交数据
     const prepareSubmitData = () => {
-      // 深拷贝防止直接修改原始数据
+      // 3.1 深拷贝防止直接修改原始数据
       const processedSkuList = cloneDeep(productSkuList.value);
 
-      // 只在未处理过的情况下进行 JSON.stringify
+      // 3.2 skuValue只在未处理过的情况下进行 JSON.stringify
       processedSkuList.forEach(item => {
         if (typeof item.skuValue === 'object') {
           item.skuValue = JSON.stringify(item.skuValue);
         }
-        // 同步禁用状态
+        // 同步商品禁用状态
         if (form.value.productStatus === '1') {
           item.skuStatus = '1';
         }
@@ -815,11 +806,12 @@ const submitHandler = async () => {
       };
     };
 
-    // 4. 处理修改或新增逻辑
+    // 4. 获取清洗后最终的提交数据
     const submitData = prepareSubmitData();
 
+    // 5 修改逻辑
     if (form.value.productId != null) {
-      // 修改逻辑
+      // 5.1 获取初始skuList的 Map<skuValue, skuId> -> 用于复原 初始skuValue 对应的 skuId
       const initSkuValueMap = new Map(
         initProductSkuList.map(item => [
           typeof item.skuValue === 'string' ? item.skuValue : JSON.stringify(item.skuValue),
@@ -827,11 +819,24 @@ const submitHandler = async () => {
         ])
       );
 
-      // 更新 skuId
+      // 5.2 复原初始skuValue 对应的 skuId
       submitData.productSkuList = submitData.productSkuList.map(item => ({
         ...item,
         skuId: initSkuValueMap.get(item.skuValue) || item.skuId
       }));
+
+      // 5.3 如果初始值 initProductSkuList 存在默认 sku 数据 -> 维护默认 sku 数据 -> 并赋值给 submitData.productSkuList
+      let defaultSku = initProductSkuList.find(item => item.skuValue === 'default');
+      if (defaultSku) {
+        // 5.3.1 复制 defaultSku 避免污染原数据
+        let newDefaultSku = { ...defaultSku };
+        // 5.3.2 defaultSku 的skuValue进行 JSON.stringify
+        newDefaultSku.skuValue = JSON.stringify(newDefaultSku.skuValue);
+        // 5.3.3 同步商品状态
+        newDefaultSku.skuStatus = form.value.productStatus;
+        // 5.3.4 将默认的defaultSku添加到 submitData.productSkuList
+        submitData.productSkuList.push(newDefaultSku);
+      }
 
       await updateProduct(submitData);
       proxy.$modal.msgSuccess("产品sku 修改成功");
@@ -849,43 +854,47 @@ const submitHandler = async () => {
 
 // **************************************** 3  新增/修改逻辑 end  ****************************************
 // **************************************** 4 处理没有sku信息的 新增修改 start *****************************
+const initSku = () => ({
+  skuId: null,
+  unitId: form.value.unitId,
+  rateId: form.value.rateId,
+  skuValue: "default",
+  skuCode: form.value.productCode,
+  skuImage: form.value.productImage,
+  skuPrice: form.value.productPrice,
+  skuPrice2: form.value.productPrice2,
+  skuPrice3: form.value.productPrice3,
+  skuPrice4: form.value.productPrice4,
+  skuPrice5: form.value.productPrice5,
+  skuPrice6: form.value.productPrice6,
+  skuStatus: form.value.productStatus,
+  productId: form.value.productId,
+  productCode: form.value.productCode,
+  productName: form.value.productName,
+});
+
 const initData = async () => {
   try {
-    // 初始化 form
+    // 1 初始化 form 的 skuSelected (规则配置内容)
     form.value.skuSelected = JSON.stringify([
       { name: "", values: [""], selected: false },
     ]);
-    // 初始化 skuList
+    // 2 初始化 productSkuList (规则明细内容)
     productSkuList.value = [
-      {
-        skuId: null,
-        unitId: form.value.unitId,
-        rateId: form.value.rateId,
-        skuValue: { skuName: "skuValue" },
-        skuCode: form.value.productCode,
-        skuImage: form.value.productImage,
-        skuPrice: form.value.productPrice,
-        skuPrice2: form.value.productPrice2,
-        skuPrice3: form.value.productPrice3,
-        skuPrice4: form.value.productPrice4,
-        skuPrice5: form.value.productPrice5,
-        skuPrice6: form.value.productPrice6,
-        skuStatus: form.value.productStatus,
-        productId: form.value.productId,
-        productCode: form.value.productCode,
-        productName: form.value.productName,
-      },
+      initSku(),
     ];
-    // 如果productId不为空，则同步skuId
+    // 3 如果修改操作，则同步skuId
     if (form.value.productId != null) {
       productSkuList.value[0].skuId = initProductSkuList[0].skuId;
     }
-    // 新增默认数据
+    // 4 对skuValue进行JSON.stringify
     productSkuList.value.forEach((item) => {
       item.skuValue = JSON.stringify(item.skuValue);
     });
+    // 5 将productSkuList赋值给form.value.productSkuList
     form.value.productSkuList = productSkuList.value;
     console.log("**** 无SKU 的新增 *******", form.value);
+
     // 如果productId为空，则新增数据
     if (form.value.productId == null) {
       await addProduct(form.value);
@@ -926,13 +935,6 @@ const calculateWidth = (specName) => {
   // 这里的逻辑可以根据需要调整
   return `${Math.max(specName.length * 30, 60)}px`;
 };
-// 页面跳转
-const goToFirst = () => {
-  activeName.value = "first";
-};
-const goToSecond = () => {
-  activeName.value = "second";
-};
 const goBack = () => {
   // 当前要关闭的 tabs
   const view = {
@@ -952,23 +954,18 @@ const beforeLeave = async (oldValue, newValue) => {
   // 如果是从第一个标签切换到第二个标签
   if (newValue === "first" && oldValue === "second") {
     try {
+      if (!proxy.$refs["productRef"]) return false;
       // 验证表单
       await proxy.$refs["productRef"].validate();
-      console.log("验证通过");
       // 验证通过，允许切换
       return true;
     } catch (error) {
-      // 验证失败，阻止切换并显示错误消息
-      ElMessage.error("请先完成必填项");
-      console.log("验证不通过");
-      // 从新赋值，解决 goToSecond() 重复调用的BUG
-      activeName.value = "first";
+      ElMessage.error("请先完成 [商品基础信息] 的必填项!");
       return false;
     }
-  } else {
-    // 其他情况下允许自由切换
-    return true;
-  }
+  } 
+  // 其他情况下允许自由切换
+  return true;
 };
 
 // **************************************** 5 SKU 布局样式处理 end    ***************************************

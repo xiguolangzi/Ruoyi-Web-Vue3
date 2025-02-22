@@ -23,7 +23,8 @@
               </el-col>
               <el-col :span="8">
                 <el-form-item label="商品名称:" prop="productName">
-                  <el-input v-model="form.productName" placeholder="请输入商品名称" @change="handleProductChanged" type="textarea" :maxlength="50" show-word-limit :rows="1"/>
+                  <el-input v-model="form.productName" placeholder="请输入商品名称" @change="handleProductChanged"
+                    type="textarea" :maxlength="50" show-word-limit :rows="1" />
                 </el-form-item>
               </el-col>
               <el-col :span="8">
@@ -39,12 +40,14 @@
             <el-row :gutter="20">
               <el-col :span="8">
                 <el-form-item label="商品条码:" prop="productCode">
-                  <el-input v-model="form.productCode" placeholder="请输入商品条码" @change="handleProductChanged" type="textarea" :maxlength="20" show-word-limit :rows="1"/>
+                  <el-input v-model="form.productCode" placeholder="请输入商品条码" @change="handleProductChanged"
+                    type="textarea" :maxlength="20" show-word-limit :rows="1" />
                 </el-form-item>
               </el-col>
               <el-col :span="8">
-                <el-form-item label="商品价格:" prop="productPrice">
-                  <el-input-number v-model="form.productPrice" placeholder="请输入商品价格" :min="0" :max='99999' :precision='2' style="width: 100%;">
+                <el-form-item label="商品单价:" prop="productPrice">
+                  <el-input-number v-model="form.productPrice" placeholder="请输入商品单价" :min="0" :max='99999'
+                    :precision='2' style="width: 100%;">
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -55,7 +58,7 @@
                 <el-form-item label="计量单位:" prop="unitId">
                   <el-select v-model="form.unitId" placeholder="请选择计量单位" @change="handleProductChanged">
                     <el-option v-for="items in unitList" :key="items.unitId" :label="items.unitCode"
-                      :value="items.unitId" :disabled="items.unitStatus != '0'"/>
+                      :value="items.unitId" :disabled="items.unitStatus != '0'" />
                   </el-select>
                 </el-form-item>
               </el-col>
@@ -73,7 +76,7 @@
                 <el-form-item label="税率:" prop="rateId">
                   <el-select v-model="form.rateId" placeholder="请选择税率" @change="handleProductChanged">
                     <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
-                      :value="items.rateId" :disabled="items.rateStatus != '0'"/>
+                      :value="items.rateId" :disabled="items.rateStatus != '0'" />
                   </el-select>
                 </el-form-item>
               </el-col>
@@ -90,22 +93,26 @@
               <image-upload v-model="form.productImage" />
             </el-form-item>
             <el-form-item label="备注" prop="remark">
-              <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"  :maxlength="50" show-word-limit :rows="2"/>
+              <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" :maxlength="50" show-word-limit
+                :rows="2" />
             </el-form-item>
           </el-card>
 
           <el-card shadow="hover" style="margin-top: 5px;">
             <template #header>
               <div>
-                <span>单价信息</span>
-                <el-button type="primary" size="small" style="margin-left: 50px;" plain @click="handleProductPriceChanged">同步商品单价</el-button>
-                <el-button type="danger" size="small" style="margin-left: 20px;" plain @click="handleSkuPriceChangedByProduct">同步SKU单价</el-button>
+                <span>商品单价信息</span>
+                <el-button type="primary" size="small" style="margin-left: 50px;" plain
+                  @click="handleProductPriceChanged">商品单价同步</el-button>
+                <el-button type="danger" size="small" style="margin-left: 20px;" plain
+                  @click="handleSkuPriceChangedByProduct">SKU单价信息 同步 商品单价信息</el-button>
               </div>
             </template>
             <el-row>
               <el-col :span="1.5">
-                <el-form-item label="单价1:" prop="productPrice1">
-                  <el-input-number v-model="form.productPrice1" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                <el-form-item label="商品单价:" prop="productPrice">
+                  <el-input-number v-model="form.productPrice" placeholder="输入单价" :max='99999' :min='0' :precision='2'
+                    style="width: 100%;">
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -113,8 +120,9 @@
                 </el-form-item>
               </el-col>
               <el-col :span="1.5">
-                <el-form-item label="单价2:" prop="productPrice2">
-                  <el-input-number v-model="form.productPrice2" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                <el-form-item label="商品单价2:" prop="productPrice2">
+                  <el-input-number v-model="form.productPrice2" placeholder="输入单价" :max='99999' :min='0' :precision='2'
+                    value-on-clear="min" style="width: 100%;">
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -122,8 +130,9 @@
                 </el-form-item>
               </el-col>
               <el-col :span="1.5">
-                <el-form-item label="单价3:" prop="productPrice3">
-                  <el-input-number v-model="form.productPrice3" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                <el-form-item label="商品单价3:" prop="productPrice3">
+                  <el-input-number v-model="form.productPrice3" placeholder="输入单价" :max='99999' :min='0' :precision='2'
+                    value-on-clear="min" style="width: 100%;">
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -131,8 +140,9 @@
                 </el-form-item>
               </el-col>
               <el-col :span="1.5">
-                <el-form-item label="单价4:" prop="productPrice4">
-                  <el-input-number v-model="form.productPrice4" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                <el-form-item label="商品单价4:" prop="productPrice4">
+                  <el-input-number v-model="form.productPrice4" placeholder="输入单价" :max='99999' :min='0' :precision='2'
+                    value-on-clear="min" style="width: 100%;">
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -140,8 +150,9 @@
                 </el-form-item>
               </el-col>
               <el-col :span="1.5">
-                <el-form-item label="单价5:" prop="productPrice5">
-                  <el-input-number v-model="form.productPrice5" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                <el-form-item label="商品单价5:" prop="productPrice5">
+                  <el-input-number v-model="form.productPrice5" placeholder="输入单价" :max='99999' :min='0' :precision='2'
+                    value-on-clear="min" style="width: 100%;">
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -149,15 +160,16 @@
                 </el-form-item>
               </el-col>
               <el-col :span="1.5">
-                <el-form-item label="单价6:" prop="productPrice6">
-                  <el-input-number v-model="form.productPrice6" placeholder="输入单价" :max='99999' :min='0' :precision='2' style="width: 100%;">
+                <el-form-item label="商品单价6:" prop="productPrice6">
+                  <el-input-number v-model="form.productPrice6" placeholder="输入单价" :max='99999' :min='0' :precision='2'
+                    value-on-clear="min" style="width: 100%;">
                     <template #suffix>
                       <span>€</span>
                     </template>
                   </el-input-number>
                 </el-form-item>
               </el-col>
-              
+
             </el-row>
           </el-card>
 
@@ -167,9 +179,9 @@
             </template>
             <el-row>
               <el-col :span="1.5">
-                <el-form-item label="长度:" prop="length" >
-                  <el-input-number v-model="form.length" placeholder="请输入长(cm)" style="width: auto" :min="0" :controls="false"
-                    @change="calculateVolume" >
+                <el-form-item label="长度:" prop="length">
+                  <el-input-number v-model="form.length" placeholder="请输入长(cm)" style="width: auto" :min="0"
+                    value-on-clear="min" :controls="false" @change="calculateVolume">
                     <template #suffix>
                       <span>cm</span>
                     </template>
@@ -177,9 +189,9 @@
                 </el-form-item>
               </el-col>
               <el-col :span="1.5">
-                <el-form-item label="宽度:" prop="width" >
-                  <el-input-number v-model="form.width" placeholder="请输入宽(cm)" type="number" style="width: auto" :min="0" :controls="false"
-                    @change="calculateVolume" >
+                <el-form-item label="宽度:" prop="width">
+                  <el-input-number v-model="form.width" placeholder="请输入宽(cm)" type="number" style="width: auto"
+                    :min="0" value-on-clear="min" :controls="false" @change="calculateVolume">
                     <template #suffix>
                       <span>cm</span>
                     </template>
@@ -187,9 +199,9 @@
                 </el-form-item>
               </el-col>
               <el-col :span="1.5">
-                <el-form-item label="高度:" prop="height" >
-                  <el-input-number v-model="form.height" placeholder="请输入高(cm)" type="number" style="width: auto" :min="0" :controls="false"
-                    @change="calculateVolume" >
+                <el-form-item label="高度:" prop="height">
+                  <el-input-number v-model="form.height" placeholder="请输入高(cm)" type="number" style="width: auto"
+                    :min="0" value-on-clear="min" :controls="false" @change="calculateVolume">
                     <template #suffix>
                       <span>cm</span>
                     </template>
@@ -199,8 +211,9 @@
             </el-row>
             <el-row>
               <el-col :span="1.5">
-                <el-form-item label="体积:" prop="volume" >
-                  <el-input-number v-model="form.volume" placeholder="请输入体积(m3)" type="number" style="width: auto" :min="0" :controls="false">
+                <el-form-item label="体积:" prop="volume">
+                  <el-input-number v-model="form.volume" placeholder="请输入体积(m3)" type="number" style="width: auto"
+                    :min="0" :controls="false">
                     <template #suffix>
                       <span>m3</span>
                     </template>
@@ -208,8 +221,9 @@
                 </el-form-item>
               </el-col>
               <el-col :span="1.5">
-                <el-form-item label="重量:" prop="weight" >
-                  <el-input-number v-model="form.weight" placeholder="请输入重量(kg)" type="number" style="width: auto" :min="0" :controls="false">
+                <el-form-item label="重量:" prop="weight">
+                  <el-input-number v-model="form.weight" placeholder="请输入重量(kg)" type="number" style="width: auto"
+                    :min="0" value-on-clear="min" :controls="false">
                     <template #suffix>
                       <span>kg</span>
                     </template>
@@ -254,7 +268,8 @@
                   <template #default="scope">
                     <div class="spec-values">
                       <el-input v-for="(value, index) in scope.row.values" :key="index"
-                        v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)" style="width: auto;">
+                        v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)"
+                        style="width: auto;">
                         <!----scope.$index 当前行数； index 在scope.row.values中的索引 可以用过 v-if="!exist(scope.row,index)" 控制删除初始化的规格值 -->
                         <template #append v-if="!exist(scope.row, index)">
                           <el-button @click="removeSpecValue(scope.$index, index)" icon="Minus"></el-button>
@@ -283,74 +298,58 @@
               <div class="header-container">
                 <span>规格明细：</span>
                 <div class="button-group">
-                  <el-button type="success" @click="syncSkuPrice1">所有价格1 同步 商品价格</el-button>
-                  <el-button type="primary" @click="syncProductPriceMin1">商品价格取 价格1 中最小</el-button>
-                  <el-button type="primary" @click="syncProductPriceMin2">商品价格取 价格2 中最小</el-button>
-                  <el-button type="primary" @click="syncProductPriceMin3">商品价格取 价格3 中最小</el-button>
+                  <el-button type="success" @click="syncSkuPrice">sku单价 同步 商品单价</el-button>
+                  <el-button type="primary" @click="syncProductPriceMin">商品单价 取 sku单价 中最小</el-button>
+                  <el-button type="primary" @click="syncProductPriceMin2">商品单价 取 sku单价2 中最小</el-button>
+                  <el-button type="primary" @click="syncProductPriceMin3">商品单价 取 sku单价3 中最小</el-button>
                 </div>
               </div>
             </template>
             <div class="spec-combinations">
-              <el-table :data="productSkuList" style="width: 100%">
-                <el-table-column type="index" width="50" align="center" label="序号"></el-table-column>
-                <el-table-column label="规格图片" prop="skuImage" header-align="center" align="center">
+              <el-table :data="productSkuList" style="width: 100%" border>
+                <el-table-column type="index" :width="50" align="center" label="序号"></el-table-column>
+                <el-table-column label="规格图片" prop="skuImage" header-align="center" align="center" :min-width="90">
                   <template #default="scope">
                     <image-upload v-model="scope.row.skuImage" :isShowTip="false" :isImgSize="80" />
                   </template>
                 </el-table-column>
 
                 <el-table-column v-for="spec in selectedSpecs" :key="spec.name" :prop="`skuValue.${spec.name}`"
-                  :label="spec.name" :width="calculateWidth(spec.name)" />
+                  :label="spec.name" :width="calculateWidth(spec.name)" show-overflow-tooltip />
 
-                <el-table-column label="规格编码" prop="skuCode" align="center">
+                <el-table-column label="规格编码" prop="skuCode" align="center" :min-width="150">
                   <template #default="scope">
-                    <el-input v-model="scope.row.skuCode"></el-input>
-                  </template>
-                </el-table-column>
-                
-                <el-table-column label="价格1" prop="skuPrice1" align="center">
-                  <template #default="scope">
-                    <el-input-number v-model="scope.row.skuPrice1" :precision="2" :step="0.01"></el-input-number>
-                  </template>
-                </el-table-column>
-                <el-table-column label="价格2" prop="skuPrice2" align="center">
-                  <template #default="scope">
-                    <el-input-number v-model="scope.row.skuPrice2" :precision="2" :step="0.01"></el-input-number>
-                  </template>
-                </el-table-column>
-                <el-table-column label="价格3" prop="skuPrice3" align="center">
-                  <template #default="scope">
-                    <el-input-number v-model="scope.row.skuPrice3" :precision="2" :step="0.01"></el-input-number>
-                  </template>
-                </el-table-column>
-                <el-table-column label="价格4" prop="skuPrice4" align="center">
-                  <template #default="scope">
-                    <el-input-number v-model="scope.row.skuPrice4" :precision="2" :step="0.01"></el-input-number>
-                  </template>
-                </el-table-column>
-                <el-table-column label="价格5" prop="skuPrice5" align="center">
-                  <template #default="scope">
-                    <el-input-number v-model="scope.row.skuPrice5" :precision="2" :step="0.01"></el-input-number>
-                  </template>
-                </el-table-column>
-                <el-table-column label="价格6" prop="skuPrice6" align="center">
-                  <template #default="scope">
-                    <el-input-number v-model="scope.row.skuPrice6" :precision="2" :step="0.01"></el-input-number>
+                    <el-input v-model="scope.row.skuCode" style="width: 100%;"></el-input>
                   </template>
                 </el-table-column>
 
-                <el-table-column label="库存" align="center">
+                <el-table-column label="sku单价" prop="skuPrice" align="center" :min-width="150">
+                  <template #default="scope">
+                    <el-input-number v-model="scope.row.skuPrice" placeholder="输入sku单价" :max='99999' :min='0' :step="0"
+                      value-on-clear="min" style="width: 100%;" :controls="false">
+                      <template #suffix>
+                        <span>€</span>
+                      </template>
+                    </el-input-number>
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="库存" align="center" show-overflow-tooltip>
                   <template #default="scope">
                     <span>{{ scope.row.productInventoryForSkuVo?.currentStock || '--' }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="状态" prop="skuStatus" align="center">
+                <el-table-column label="状态" prop="skuStatus" align="center" :min-width="90">
                   <template #default="scope">
-                    <el-switch v-model="scope.row.skuStatus" style="
-                        --el-switch-on-color: #13ce66;
-                        --el-switch-off-color: #ff4949;
-                      " active-value="0" inactive-value="1" />
+                    <el-switch v-model="scope.row.skuStatus" size="small"
+                      style="--el-switch-on-color: #13ce66;--el-switch-off-color: #ff4949;" active-value="0"
+                      inactive-value="1" />
                     {{ scope.row.skuStatus === "0" ? "启售" : "停售" }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" align="center">
+                  <template #default="scope">
+                    <el-button link type="primary" size="small" @click="handleEditSku(scope.row)">>>更多</el-button>
                   </template>
                 </el-table-column>
               </el-table>
@@ -364,6 +363,100 @@
         </div>
       </el-tab-pane>
     </el-tabs>
+
+    <!-- 详情抽屉弹窗 -->
+    <el-drawer v-model="drawer" direction="rtl" append-to-body>
+      <template #header>
+        <span>SKU 规格明细 详情</span>
+      </template>
+      <div v-if="currentRow">
+        <el-card shadow="hover">
+          <template #header>
+            <div class="clearfix">
+              <span>SKU基础数据</span>
+            </div>
+          </template>
+          <el-descriptions direction="vertical" :column="3" size="small" border>
+            <el-descriptions-item label="规格图片" :rowspan="2" align="center" :width="100">
+              <image-upload v-model="currentRow.skuImage" :isShowTip="false" :isImgSize="80" />
+            </el-descriptions-item>
+            <el-descriptions-item v-for="spec in selectedSpecs" :key="spec.name" :label="spec.name" align="center">
+              {{ currentRow.skuValue[spec.name] }}
+            </el-descriptions-item>
+            <el-descriptions-item label="库存" align="center" width="50%">
+              <span>{{ currentRow.productInventoryForSkuVo?.currentStock || '--' }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="状态" align="center" width="50%">
+              <el-switch v-model="currentRow.skuStatus"
+                style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;" active-value="0"
+                inactive-value="1" />
+              {{ currentRow.skuStatus === "0" ? "启售" : "停售" }}
+            </el-descriptions-item>
+            <el-descriptions-item label="规格编码">
+              <el-input v-model="currentRow.skuCode" type="textarea" :maxlength="50" show-word-limit :rows="1" />
+            </el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+
+        <el-card style="margin-top: 10px;" shadow="hover">
+          <template #header>
+            <div class="clearfix">
+              <span>SKU单价信息</span>
+            </div>
+          </template>
+          <el-descriptions direction="vertical" :column="2" size="small" border>
+            <el-descriptions-item label="sku单价" prop="skuPrice" align="center">
+              <el-input-number v-model="currentRow.skuPrice" placeholder="输入sku单价" :max='99999' :min='0' :step="0"
+                value-on-clear="min" style="width: 100%;" :controls="false">
+                <template #suffix>
+                  <span>€</span>
+                </template>
+              </el-input-number>
+            </el-descriptions-item>
+            <el-descriptions-item label="sku单价2" prop="skuPrice2" align="center">
+              <el-input-number v-model="currentRow.skuPrice2" placeholder="输入sku单价2" :max='99999' :min='0' :step="0"
+                value-on-clear="min" style="width: 100%;" :controls="false">
+                <template #suffix>
+                  <span>€</span>
+                </template>
+              </el-input-number>
+            </el-descriptions-item>
+            <el-descriptions-item label="sku单价3" prop="skuPrice3" align="center">
+              <el-input-number v-model="currentRow.skuPrice3" placeholder="输入sku单价3" :max='99999' :min='0' :step="0"
+                value-on-clear="min" style="width: 100%;" :controls="false">
+                <template #suffix>
+                  <span>€</span>
+                </template>
+              </el-input-number>
+            </el-descriptions-item>
+            <el-descriptions-item label="sku单价4" prop="skuPrice4" align="center">
+              <el-input-number v-model="currentRow.skuPrice4" placeholder="输入sku单价4" :max='99999' :min='0' :step="0"
+                value-on-clear="min" style="width: 100%;" :controls="false">
+                <template #suffix>
+                  <span>€</span>
+                </template>
+              </el-input-number>
+            </el-descriptions-item>
+            <el-descriptions-item label="sku单价5" prop="skuPrice5" align="center">
+              <el-input-number v-model="currentRow.skuPrice5" placeholder="输入sku单价5" :max='99999' :min='0' :step="0"
+                value-on-clear="min" style="width: 100%;" :controls="false">
+                <template #suffix>
+                  <span>€</span>
+                </template>
+              </el-input-number>
+            </el-descriptions-item>
+            <el-descriptions-item label="sku单价6" prop="skuPrice6" align="center">
+              <el-input-number v-model="currentRow.skuPrice6" placeholder="输入sku单价6" :max='99999' :min='0' :step="0"
+                value-on-clear="min" style="width: 100%;" :controls="false">
+                <template #suffix>
+                  <span>€</span>
+                </template>
+              </el-input-number>
+            </el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+      </div>
+    </el-drawer>
   </div>
 </template>
   
@@ -392,6 +485,8 @@ const skuNameList = ref([]);
 const baseUnit = "0";
 // 标签菜单默认首页
 const activeName = ref("first");
+// 抽屉弹窗
+const drawer = ref(false);
 
 
 /** 包装信息计算 */
@@ -403,7 +498,7 @@ const calculateVolume = () => {
   form.value.volume = (length * width * height)/(100*100*100);
 };
 
-// ************************************************  基础资料部门 ******************************************************
+// **************************************** 1 基础资料部门 start *******************************************
 const { proxy } = getCurrentInstance();
 const { product_cost_method, product_status } = proxy.useDict("product_cost_method", "product_status" );
 
@@ -413,7 +508,6 @@ const form = ref({
   productCode: null,
   productName: null,
   productPrice: null,
-  productPrice1: null,
   productPrice2: null,
   productPrice3: null,
   productPrice4: null,
@@ -435,7 +529,6 @@ const form = ref({
   remark: null,
   skuSelected: null,
   rateId: null,
-  delFlag: null
 });
 
 const rules = ref({
@@ -454,13 +547,6 @@ const rules = ref({
     },
   ],
   productPrice: [
-    {
-      required: true,
-      message: "商品价格不能为空",
-      trigger: ["blur", "change"],
-    },
-  ],
-  productPrice1: [
     {
       required: true,
       message: "商品价格不能为空",
@@ -489,8 +575,9 @@ const rules = ref({
     },
   ],
 });
+// **************************************** 1 基础资料部门 end *******************************************
 
-// ************************************************  SKU部分 ******************************************************
+// **************************************** 2  SKU部分 start ********************************************
 // SKU数据列表
 const specs = ref([{ name: "", values: [""], selected: false }]);
 
@@ -551,9 +638,12 @@ const generateCombinations = () => {
     skuValue,
     skuCode: "",
     skuImage: "",
-    skuPrice1: form.value.productPrice,
-    skuPrice2: form.value.productPrice,
-    skuPrice3: form.value.productPrice,
+    skuPrice: form.value.productPrice,
+    skuPrice2: form.value.productPrice2,
+    skuPrice3: form.value.productPrice3,
+    skuPrice4: form.value.productPrice4,
+    skuPrice5: form.value.productPrice5,
+    skuPrice6: form.value.productPrice6,
     skuStatus: form.value.productStatus,
     unitId: form.value.unitId,
     rateId: form.value.rateId,
@@ -610,16 +700,15 @@ const getInfoById = () => {
 };
 
 /** 同步价格 */
-const syncSkuPrice1 = () => {
+const syncSkuPrice = () => {
   productSkuList.value.forEach((item) => {
-    item.skuPrice1 = form.value.productPrice;
+    item.skuPrice = form.value.productPrice;
   });
 };
 
 /** 同步 product 单价 1-6 */
 function handleProductPriceChanged (){
   if(form.value.productPrice){
-    form.value.productPrice1 = form.value.productPrice;
     form.value.productPrice2 = form.value.productPrice;
     form.value.productPrice3 = form.value.productPrice;
     form.value.productPrice4 = form.value.productPrice;
@@ -631,7 +720,6 @@ function handleProductPriceChanged (){
 /** sku 价格 同步 product */
 function handleSkuPriceChangedByProduct (){
   productSkuList.value.forEach((item) => {
-    item.skuPrice1 = form.value.productPrice1;
     item.skuPrice2 = form.value.productPrice2;
     item.skuPrice3 = form.value.productPrice3;
     item.skuPrice4 = form.value.productPrice4;
@@ -653,8 +741,8 @@ const handleProductChanged = () => {
 
 
 /** 商品价格取价格1中的最小值 */
-const syncProductPriceMin1 = () => {
-  form.value.productPrice = Math.min(...productSkuList.value.map((item) => item.skuPrice1));
+const syncProductPriceMin = () => {
+  form.value.productPrice = Math.min(...productSkuList.value.map((item) => item.skuPrice));
 };
 
 /**  商品价格取价格2中的最小值 */
@@ -667,7 +755,13 @@ const syncProductPriceMin3 = () => {
   form.value.productPrice = Math.min(...productSkuList.value.map((item) => item.skuPrice3));
 };
 
-// ****************************************************    新增/修改逻辑  ******************************************************
+// **************************************** 2  SKU部分 end    ********************************************
+// **************************************** 3  新增/修改逻辑 start  ****************************************
+// 控制标题
+const title = computed(() => {
+  return form.value.productId != null ? "修改商品:" : "新增商品:";
+});
+
 const submitHandler = async () => {
   try {
     // 0 验证表单
@@ -686,8 +780,8 @@ const submitHandler = async () => {
           ElMessage.error("请完善 规格编码 信息！");
           return false;
         }
-        if (!item.skuPrice1) {
-          ElMessage.error("请完善 价格1 信息！");
+        if (!item.skuPrice) {
+          ElMessage.error("请完善 sku单价 信息！");
           return false;
         }
       }
@@ -753,7 +847,8 @@ const submitHandler = async () => {
   }
 };
 
-// --------------------------------------  处理没有sku信息的 新增修改 ------------------------------------------------
+// **************************************** 3  新增/修改逻辑 end  ****************************************
+// **************************************** 4 处理没有sku信息的 新增修改 start *****************************
 const initData = async () => {
   try {
     // 初始化 form
@@ -769,9 +864,12 @@ const initData = async () => {
         skuValue: { skuName: "skuValue" },
         skuCode: form.value.productCode,
         skuImage: form.value.productImage,
-        skuPrice1: form.value.productPrice,
-        skuPrice2: form.value.productPrice,
-        skuPrice3: form.value.productPrice,
+        skuPrice: form.value.productPrice,
+        skuPrice2: form.value.productPrice2,
+        skuPrice3: form.value.productPrice3,
+        skuPrice4: form.value.productPrice4,
+        skuPrice5: form.value.productPrice5,
+        skuPrice6: form.value.productPrice6,
         skuStatus: form.value.productStatus,
         productId: form.value.productId,
         productCode: form.value.productCode,
@@ -804,8 +902,9 @@ const initData = async () => {
     proxy.$modal.msgError(`产品 操作失败: ${error.message}`);
   }
 };
+// **************************************** 4 处理没有sku信息的 新增修改 end   *****************************
 
-// ****************************************************  SKU 布局样式处理 ******************************************************
+// **************************************** 5 SKU 布局样式处理 start ***************************************
 //增加规格
 const addSpec = () => {
   specs.value.push({ name: "", values: [""], selected: true });
@@ -825,7 +924,7 @@ const removeSpecValue = (specIndex, valueIndex) => {
 // 表格自动调节宽度
 const calculateWidth = (specName) => {
   // 这里的逻辑可以根据需要调整
-  return `${Math.max(specName.length * 15, 100)}px`;
+  return `${Math.max(specName.length * 30, 60)}px`;
 };
 // 页面跳转
 const goToFirst = () => {
@@ -847,7 +946,8 @@ const goBack = () => {
     path: "/productManage/product",
   });
 };
-// taps 界面切换之前的校验 newValue当前标签名、oldValue将要前往的标签名
+
+/** taps 界面切换之前的校验 newValue当前标签名、oldValue将要前往的标签名 */ 
 const beforeLeave = async (oldValue, newValue) => {
   // 如果是从第一个标签切换到第二个标签
   if (newValue === "first" && oldValue === "second") {
@@ -871,7 +971,18 @@ const beforeLeave = async (oldValue, newValue) => {
   }
 };
 
-// ****************************************************  基础数据获取 ******************************************************
+// **************************************** 5 SKU 布局样式处理 end    ***************************************
+// ***************************************  6 抽屉数据部分 start *********************************************
+const currentRow = ref(null)
+const handleEditSku = (row) => {
+  currentRow.value = row;
+  drawer.value = true;
+  
+}
+
+// ***************************************  6 抽屉数据部分 end *********************************************
+
+// ***************************************  7 基础数据获取 start ********************************************
 /** 获取商品分类下拉框数据 */
 function getCategoryList() {
   listCategory()
@@ -940,10 +1051,11 @@ getBrandList();
 getRateList();
 getSkuNameList();
 getInfoById(); // 获取修改传递的ID 然后继续进行初始化数据
-// 控制标题
-const title = computed(() => {
-  return form.value.productId != null ? "修改商品:" : "新增商品:";
-});
+
+
+// ***************************************  7 基础数据获取 end ********************************************
+
+
 </script>
   
 <style scoped lang="scss">

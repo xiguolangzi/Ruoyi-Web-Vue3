@@ -2,7 +2,7 @@
   <div class="app-container">
     <!-------------------- 搜索条件 ----------------------->
 
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" :label-width="68">
       <el-form-item label="商品编码:" prop="productCode">
         <el-input v-model="queryParams.productCode" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
@@ -26,14 +26,10 @@
           <el-option v-for="items in brandList" :key="items.brandId" :label="items.brandName" :value="items.brandId" />
         </el-select>
       </el-form-item>
-      <el-form-item label="税率" prop="rateId">
+      <el-form-item label="税率:" prop="rateId">
         <el-select v-model="queryParams.rateId" placeholder="请选择税率" clearable>
-          <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'" :value="items.rateId" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="成本计算:" prop="costMethod">
-        <el-select v-model="queryParams.costMethod" placeholder="请选择成本计算" clearable>
-          <el-option v-for="dict in product_cost_method" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
+            :value="items.rateId" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -67,13 +63,13 @@
     <!-------------------- 数据展示列表区域 ----------------------->
 
     <el-table v-loading="loading" :data="productList" @selection-change="handleSelectionChange" fit>
-      <el-table-column type="selection" width="50" align="center" fixed="left" />
-      <el-table-column label="商品主图" align="center" prop="productImage" width="100">
+      <el-table-column type="selection" :width="50" align="center" fixed="left" />
+      <el-table-column label="商品主图" align="center" prop="productImage" :width="100">
         <template #default="scope">
           <image-preview :src="scope.row.productImage" :width="75" :height="75" />
         </template>
       </el-table-column>
-      <el-table-column label="商品编码/名称" header-align="center" min-width="200" show-overflow-tooltip>
+      <el-table-column label="商品编码/名称" header-align="center" :min-width="200" show-overflow-tooltip>
         <template #default="scope">
           <div>
             <strong> 编码：</strong>
@@ -85,7 +81,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="sku规格" min-width="80" show-overflow-tooltip>
+      <el-table-column label="sku规格" :min-width="80" show-overflow-tooltip>
         <template #default="scope">
           <div v-for="(item, index) in scope.row.skuSelected" :key="index">
             <strong v-if="item.name">{{ item.name }} : </strong>
@@ -94,22 +90,22 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="计量单位" align="center" prop="unitVo.unitCode" width="80">
+      <el-table-column label="计量单位" align="center" prop="unitVo.unitCode" :width="80">
         <template #default="scope">
           <span>{{ scope.row.unitVo?.unitCode || '--' }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="商品价格" header-align="center" align="right" prop="productPrice" width="80">
+      <el-table-column label="商品价格" header-align="center" align="right" prop="productPrice" :width="80">
         <template #default="scope">
           <span>{{ formatTwo(scope.row.productPrice) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="税率" align="center" prop="productRateVo.rateValue" width="80">
+      <el-table-column label="税率" align="center" prop="productRateVo.rateValue" :width="80">
         <template #default="scope">
           <span>{{ scope.row.productRateVo?.rateValue || '--' }} %</span>
         </template>
       </el-table-column>
-      <el-table-column label="状态" align="center" prop="productStatus" width="80">
+      <el-table-column label="状态" align="center" prop="productStatus" :width="80">
         <template #default="scope">
           <dict-tag :options="product_status" :value="scope.row.productStatus" />
         </template>
@@ -128,20 +124,8 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="最后修改信息" header-align="center" show-overflow-tooltip>
-        <template #default="scope">
-          <div>
-            <strong>修改人：</strong>
-            <span>{{ scope.row.updateBy }} </span>
-          </div>
-          <div>
-            <strong>时间：</strong>
-            <span>{{ scope.row.updateTime }}</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip width="200" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="200">
+      <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip :width="200" />
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" :width="200">
         <template #default="scope">
           <div>
             <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
@@ -150,7 +134,7 @@
               v-hasPermi="['product:product:remove']">删除</el-button>
           </div>
           <div>
-            <el-button link type="success" icon="MoreFilled" @click="lookDetails(scope.row)">查看详情</el-button>
+            <el-button link type="success" icon="MoreFilled" @click="lookDetails(scope.row)">查看更多详情</el-button>
           </div>
         </template>
       </el-table-column>
@@ -158,48 +142,59 @@
 
     <!-------------------- 商品详情查看 dialog ----------------------->
 
-    <el-dialog :title="title" v-model="open" width="800px" append-to-body>
+    <el-dialog :title="title" v-model="open" :width="800" append-to-body>
       <!------ 商品部分 ------>
       <div>
         <el-card>
-          <template #header> 基础信息 </template>
-          <div style="
-              display: flex;
-              justify-content: space-evenly;
-              align-items: center;
-            ">
-            <div>
-              <strong>产品名称: </strong>
+          <template #header>
+            基础信息
+          </template>
+          <el-descriptions direction="horizontal" :column="2" size="small" border>
+            <el-descriptions-item label="商品主图" align="center" :rowspan="2" :width="100">
+              <image-preview :src="productDetail.productImage" :width="75" :height="75" />
+            </el-descriptions-item>
+            <el-descriptions-item label="商品名称" align="center">
               <span> {{ productDetail.productName }} </span>
-            </div>
-            <div>
-              <strong>产品编码: </strong>
+            </el-descriptions-item>
+            <el-descriptions-item label="商品编码" align="center">
               <span> {{ productDetail.productCode }} </span>
-            </div>
-          </div>
-          <el-descriptions direction="vertical" :column="6" :size="size" border style="margin-top: 20px">
+            </el-descriptions-item>
+          </el-descriptions>
+          <el-descriptions direction="vertical" :column="4" size="small" border style="margin-top: 20px">
             <el-descriptions-item label="商品分类" :span="2" align="center">
               {{productDetail.productCategoryVo?.categoryName || '--'}}
             </el-descriptions-item>
-            <el-descriptions-item label="品牌" align="center">
-              {{productDetail.brandForProductVo?.brandName || '--'}}
-            </el-descriptions-item>
-            <el-descriptions-item label="价格" align="center">
+            <el-descriptions-item label="商品单价" align="center">
               {{ formatTwo(productDetail.productPrice) }} €
             </el-descriptions-item>
-            <el-descriptions-item label="税率" align="center">
+            <el-descriptions-item label="商品品牌" align="center">
+              {{ productDetail.brandForProductVo?.brandName || '--' }}
+            </el-descriptions-item>
+            <el-descriptions-item label="商品税率" align="center">
               {{productDetail.productRateVo?.rateValue || '--'}} %
             </el-descriptions-item>
             <el-descriptions-item label="计量单位" align="center">
               {{productDetail.unitVo?.unitCode || '--'}}
             </el-descriptions-item>
-            <el-descriptions-item label="状态" align="center">
+            <el-descriptions-item label="商品状态" align="center">
               <dict-tag :options="product_status" :value="productDetail.productStatus" />
             </el-descriptions-item>
             <el-descriptions-item label="成本核算方式" :span="2" align="center">
               <dict-tag :options="product_cost_method" :value="productDetail.costMethod" />
             </el-descriptions-item>
-            <el-descriptions-item label="备注" :span="4" align="left" label-align="center">
+            <el-descriptions-item label="创建人" align="center">
+              <span>{{ productDetail.createBy }} </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="创建时间" align="center">
+              <span>{{ productDetail.createTime }} </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="修改人" align="center">
+              <span>{{ productDetail.updateBy }} </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="修改时间" align="center">
+              <span>{{ productDetail.updateTime }} </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="备注信息" :span="4" align="left" label-align="center">
               {{ productDetail.remark ? productDetail.remark : "--" }}
             </el-descriptions-item>
           </el-descriptions>
@@ -209,7 +204,7 @@
       <div>
         <el-card>
           <template #header> 包装信息 </template>
-          <el-descriptions direction="vertical" :column="5" :size="size" border style="margin-top: 20px">
+          <el-descriptions direction="vertical" :column="5" size="small" border style="margin-top: 20px">
             <el-descriptions-item label="长(cm)" align="center">{{ productDetail.length ? productDetail.length : "--" }}
               cm
             </el-descriptions-item>
@@ -251,33 +246,51 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="价格" header-align="center" align="left" width="140px">
+            <el-table-column label="sku单价" header-align="center" align="left" :width="140" show-overflow-tooltip>
               <template #default="scope">
                 <div class="price">
-                  <strong> 价格1: </strong>
-                  <span> {{ formatTwo(scope.row.skuPrice1) }} €</span>
+                  <div style="margin-right: 5px;">
+                    <div class="price">
+                      <strong> sku单价: </strong>
+                      <span> {{ formatTwo(scope.row.skuPrice) }} €</span>
+                    </div>
+                    <div class="price">
+                      <strong> sku单价2: </strong>
+                      <span> {{ formatTwo(scope.row.skuPrice2) }} €</span>
+                    </div>
+                    <div class="price">
+                      <strong> sku单价3: </strong>
+                      <span> {{ formatTwo(scope.row.skuPrice3) }} €</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="price">
+                      <strong> sku单价4: </strong>
+                      <span> {{ formatTwo(scope.row.skuPrice4) }} €</span>
+                    </div>
+                    <div class="price">
+                      <strong> sku单价5: </strong>
+                      <span> {{ formatTwo(scope.row.skuPrice5) }} €</span>
+                    </div>
+                    <div class="price">
+                      <strong> sku单价6: </strong>
+                      <span> {{ formatTwo(scope.row.skuPrice6) }} €</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="price">
-                  <strong> 价格2: </strong>
-                  <span> {{ formatTwo(scope.row.skuPrice2) }} €</span>
-                </div>
-                <div class="price">
-                  <strong> 价格3: </strong>
-                  <span> {{ formatTwo(scope.row.skuPrice3) }} €</span>
-                </div>
+
               </template>
             </el-table-column>
-            <el-table-column label="库存数量" align="center" width="80" >
+            <el-table-column label="库存数量" align="center" :width="80">
               <template #default="scope">
-                  <span> {{ scope.row.productInventoryForSkuVo?.currentStock || '--' }} </span>
+                <span> {{ scope.row.productInventoryForSkuVo?.currentStock || '--' }} </span>
               </template>
             </el-table-column>
-            <el-table-column label="状态" align="center" prop="skuStatus" width="60">
+            <el-table-column label="状态" align="center" prop="skuStatus" :width="60">
               <template #default="scope">
                 <dict-tag :options="product_status" :value="scope.row.skuStatus" />
               </template>
             </el-table-column>
-            <el-table-column label="最后修改" align="center" prop="updateBy" width="50" show-overflow-tooltip />
           </el-table>
         </el-card>
       </div>

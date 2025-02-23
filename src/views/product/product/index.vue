@@ -233,16 +233,15 @@
                 <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
               </template>
             </el-table-column>
-            <el-table-column label="规格编码" align="center" prop="skuCode" show-overflow-tooltip />
-            <el-table-column label="规格值" align="center" show-overflow-tooltip>
+            <el-table-column label="SKU编码" align="center" prop="skuCode" show-overflow-tooltip />
+            <el-table-column label="SKU规格值" align="center" show-overflow-tooltip>
               <template #default="scope">
-                <div v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
-                  <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
-                    {{ item[0] }}:
-                  </strong>
-                  <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
-                    {{ item[1] }}
-                  </span>
+                <div v-if="getSkuValue(scope.row.skuValue) === 'default'">
+                  --  <!-- 直接显示默认 SKU -->
+                </div>
+                <div v-else v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
+                  <strong>{{ item[0] }}:</strong>
+                  <span>{{ item[1] }}</span>
                 </div>
               </template>
             </el-table-column>
@@ -281,7 +280,7 @@
 
               </template>
             </el-table-column>
-            <el-table-column label="库存数量" align="center" :width="80">
+            <el-table-column label="SKU库存" align="center" :width="80">
               <template #default="scope">
                 <span> {{ scope.row.productInventoryForSkuVo?.currentStock || '--' }} </span>
               </template>

@@ -54,14 +54,12 @@
       <el-table-column label="suk编号" align="left" prop="skuCode" :min-width="120" show-overflow-tooltip />
       <el-table-column label="suk属性值" align="left" prop="skuValue" show-overflow-tooltip>
         <template #default="scope">
-          <div v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
-            <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
-              {{ item[0] }}:
-            </strong>
-            <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
-              {{ item[1] }}
-            </span>
-            <span v-if="item[0] == '' || item[0] == 'skuName'"> -- -- </span>
+          <div v-if="getSkuValue(scope.row.skuValue) === 'default'">
+            --  <!-- 直接显示默认 SKU -->
+          </div>
+          <div v-else v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
+            <strong>{{ item[0] }}:</strong>
+            <span>{{ item[1] }}</span>
           </div>
         </template>
       </el-table-column>
@@ -207,16 +205,12 @@
               <span>{{ currentRow.skuCode }}</span>
             </el-descriptions-item>
             <el-descriptions-item label="suk属性值" align="center" :span="2">
-              <div style="display: flex;  align-items: center; justify-content: space-around; ">
-                <div v-for="(item, index) in getSkuValue(currentRow.skuValue)" :key="index">
-                  <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
-                    {{ item[0] }}:
-                  </strong>
-                  <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
-                    {{ item[1] }}
-                  </span>
-                  <span v-if="item[0] == '' || item[0] == 'skuName'"> -- -- </span>
-                </div>
+              <div v-if="getSkuValue(currentRow.skuValue) === 'default'">
+                --  <!-- 直接显示默认 SKU -->
+              </div>
+              <div v-else v-for="(item, index) in getSkuValue(currentRow.skuValue)" :key="index">
+                <strong>{{ item[0] }}:</strong>
+                <span>{{ item[1] }}</span>
               </div>
             </el-descriptions-item>
             <el-descriptions-item label="库存" align="center" width="50%">
@@ -318,6 +312,7 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
 
 /** SKU状态修改  */
 function handleStatusChange(row) {

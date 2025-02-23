@@ -323,21 +323,19 @@
       
         
       <!-- 采购订单明细 -->
-      <el-table v-loading="loading" :data="purchaseOrder.details" @selection-change="handleSelectionChange">
+      <el-table :data="purchaseOrder.details" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column type="index" label="序号" width="50"  align="center"/>
         <el-table-column label="商品名称" align="left" prop="productSkuVo.productName"  min-width="120" show-overflow-tooltip/>
         <el-table-column label="sku编码" align="left" prop="productSkuVo.skuCode" min-width="120" show-overflow-tooltip/>
         <el-table-column label="suk" align="left" prop="productSkuVo.skuValue" min-width="90" show-overflow-tooltip>
           <template #default="scope">
-            <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo.skuValue)" :key="index">
-              <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
-                {{ item[0] }}:
-              </strong>
-              <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
-                {{ item[1] }}
-              </span>
-              <span v-if="item[0] == '' || item[0] == 'skuName'"> -- -- </span>
+            <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) === 'default'">
+              --  <!-- 直接显示默认 SKU -->
+            </div>
+            <div v-else v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
+              <strong>{{ item[0] }}:</strong>
+              <span>{{ item[1] }}</span>
             </div>
           </template>
         </el-table-column>
@@ -413,6 +411,7 @@ import { listLogisticsCompanies} from "@/api/order/logisticsCompanies";
 import { listWarehouse} from "@/api/product/warehouse";
 import { listPurchaseOrderByStatus, getPurchaseOrder} from "@/api/order/purchaseOrder";
 import { listCostInvoice } from "@/api/finance/costInvoice";
+import { getSkuValue } from '@/utils/ruoyi.js';
 
 
 const router = useRouter();
@@ -472,7 +471,7 @@ const handleLinkPurchaseOrderChange = (linkPurchaseOrderId) => {
       // 还原数据
       if (purchaseOrder.value.details) {
         purchaseOrder.value.details.forEach(item => {
-          item.productSkuVo.skuValue = JSON.parse(item.productSkuVo.skuValue);
+          item.productSkuVo.skuValue = item.productSkuVo.skuValue;
           item.batchNo = form.value.batchNo;
           item.expireDate = null;
           item.inputQuantity = 0;
@@ -859,7 +858,7 @@ const columns = computed(() => [
     align: 'left',
     hidden: !showPurchaseNo.value,  // 控制列是否可见
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.purchaseOrderNo;}
+      const getTooltipContent = () => {return rowData.purchaseOrderNo ? rowData.purchaseOrderNo : '';}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -869,7 +868,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.purchaseOrderNo)
+        } }, getTooltipContent())
       }
       )   
     }
@@ -912,14 +911,14 @@ const columns = computed(() => [
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
-      },[
-        h('div', {style: {
+      },{
+        default: () => h('div', {style: {
           overflow: 'hidden',       // 隐藏溢出部分
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productSkuVo.productCode)
-        ]
+        } }, getTooltipContent())
+      }
       )  
     }
   },
@@ -929,7 +928,7 @@ const columns = computed(() => [
     width: 150,
     align: 'left',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.productSkuVo.productName;}
+      const getTooltipContent = () => {return rowData.productSkuVo?.productName;}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -939,7 +938,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productSkuVo.productName)
+        } }, getTooltipContent())
       }
       )   
     }
@@ -950,7 +949,7 @@ const columns = computed(() => [
     width: 180,
     align: 'left',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.productSkuVo.skuCode;}
+      const getTooltipContent = () => {return rowData.productSkuVo?.skuCode || ' ';}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -960,7 +959,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productSkuVo.skuCode)
+        } }, getTooltipContent())
       }
       )   
     }
@@ -971,7 +970,10 @@ const columns = computed(() => [
     width: 120,
     align: 'left',
     cellRenderer: ({ rowData }) => {
-      const skuValueArr =  getSkuValue(rowData.productSkuVo.skuValue)
+      const skuValueArr =  getSkuValue(rowData.productSkuVo?.skuValue)
+      if(skuValueArr === "default"){
+        return h('span', ' -- -- ')
+      }
       return h('div', {}, skuValueArr.map(([key, value]) => {
         if (key !== '' && key !== 'skuName') {
           return h('div', [
@@ -979,7 +981,6 @@ const columns = computed(() => [
             h('span', ` ${value}`)
           ])
         }
-        return h('span', ' -- -- ')
       }))
     }
   },
@@ -1598,15 +1599,6 @@ const formatAmount = (amount) => {
   return amount ? (Math.round(amount * 100) / 100).toFixed(2) : '0.00';
 }
 
-/**  skuValue 转化成表格数据 */
-const getSkuValue = (skuValueList) => {
-  if (!skuValueList) {
-    return [];
-  }
-  // 将 skuValueList 转化成 [["型号","AA"] , ["尺寸","SS"]]
-  const tableData = ref(Object.entries(skuValueList));
-  return tableData.value;
-};
 
 // ******************************  数据展示  end ****************************
 
@@ -1618,14 +1610,7 @@ const skuList = ref([])
 /** 商品 - 获取列表 */
 const getSkuList = () => {
   listSkuByAddOrder().then(response => {
-    skuList.value = response.rows || []
-    if(skuList.value){
-      // 转移 skuValue 的json格式
-      skuList.value.map((item) => {
-        item.skuValue = JSON.parse(item.skuValue);
-      });
-    }
-    
+    skuList.value = response.rows || [] ;
   })
 }
 /** 商品 -  自动补全输入框的返回值 */
@@ -1967,19 +1952,11 @@ const addApprovalLog = (action, status, remark, actionValue) => {
 const parseJson = () => {
   // 恢复json数据
   form.value.operateLog = orderOperateLog.value
-  if(form.value.details){
-    form.value.details.forEach(item => {
-    item.productSkuVo.skuValue = JSON.parse(item.productSkuVo.skuValue)
-  })
-  }
   
 }
 
  /** 提交数据预处理 */ 
 const prepareData = () => {
-  if(form.value.details){
-    form.value.details.forEach(item => item.productSkuVo.skuValue = JSON.stringify(item.productSkuVo.skuValue));
-  }
   if(orderOperateLog.value){
     form.value.operateLog = JSON.stringify(orderOperateLog.value);
   }
@@ -2230,17 +2207,10 @@ const getInfoById = () => {
         orderOperateLog.value = JSON.parse(form.value.operateLog);
         form.value.operateLog = JSON.parse(form.value.operateLog);
       }
-      // 还原数据
-      if (form.value.details) {
-        form.value.details.forEach(item => {
-          item.productSkuVo.skuValue = JSON.parse(item.productSkuVo.skuValue);
-        });
-      }
       // 是否引用采购单
       showPurchaseNo.value = form.value.showPurchaseNo
       // 获取供应商未核销的采购发票
       getPurchaseInvoiceList(form.value.supplierId)
-
 
       console.log("初始化数据正常：",form.value);
       

@@ -20,23 +20,36 @@ export function getSkuValue(skuValue) {
   if (!skuValue) {
     return [];
   }
+  if (skuValue == null || (Array.isArray(skuValue) && skuValue.length === 0)) {
+    return [];
+  }
 
-  let paramsSkuValue;
+  let parsedSkuValue;
   try {
-    paramsSkuValue = JSON.parse(skuValue);
+    parsedSkuValue = JSON.parse(skuValue);
   } catch (error) {
     // 如果解析失败，返回空数组或进行其他处理
-    console.warn('Invalid JSON string:', skuValue);
+    console.warn('解析失败 JSON string skuValue:', skuValue);
     return [];
   }
 
-  if (!paramsSkuValue || typeof paramsSkuValue !== 'object') {
+  if (parsedSkuValue === "default") {
+    return "default";
+
+  }
+
+  if (!parsedSkuValue || typeof parsedSkuValue !== 'object') {
     return [];
   }
 
-  // 将 paramsSkuValue 转化成 [["型号","AA"] , ["尺寸","SS"]]
-  const tableData = ref(Object.entries(paramsSkuValue));
-  return tableData.value;
+  // 处理对象格式的 skuValue: {"型号": "B", "颜色": "红"}
+  if (typeof parsedSkuValue === "object" && parsedSkuValue !== null) {
+    // 将 paramsSkuValue 转化成 [["型号","AA"] , ["尺寸","SS"]]
+    return Object.entries(parsedSkuValue);
+  }
+
+  console.warn("Unexpected skuValue format:", parsedSkuValue);
+  return [];
 };
 
 

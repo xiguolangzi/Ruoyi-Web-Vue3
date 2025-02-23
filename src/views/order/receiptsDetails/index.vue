@@ -66,16 +66,14 @@
       <el-table-column label="商品编码" align="left" header-align="center" prop="productSkuVo.productCode" min-width="100" show-overflow-tooltip/>
       <el-table-column label="商品名称" align="left" header-align="center" prop="productSkuVo.productName" min-width="100" show-overflow-tooltip/> 
       <el-table-column label="sku编码" align="left" header-align="center" prop="productSkuVo.skuCode" min-width="100" show-overflow-tooltip/>
-      <el-table-column label="sku值" align="center" prop="productSkuVo.skuValue" min-width="100" show-overflow-tooltip>
+      <el-table-column label="sku值" align="center" min-width="100" show-overflow-tooltip>
          <template #default="scope">
-          <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo.skuValue)" :key="index">
-            <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
-              {{ item[0] }}:
-            </strong>
-            <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
-              {{ item[1] }}
-            </span>
-            <span v-if="item[0] == '' || item[0] == 'skuName'"> -- -- </span>
+          <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) === 'default'">
+            --  <!-- 直接显示默认 SKU -->
+          </div>
+          <div v-else v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
+            <strong>{{ item[0] }}:</strong>
+            <span>{{ item[1] }}</span>
           </div>
         </template>
       </el-table-column>

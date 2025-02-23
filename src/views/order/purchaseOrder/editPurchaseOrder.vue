@@ -228,6 +228,7 @@ import { debounce } from 'lodash'
 import { TableV2SortOrder } from 'element-plus'
 import { listPurchaseOrder, getPurchaseOrder, delPurchaseOrder, addPurchaseOrder, updatePurchaseOrder, updatePurchaseOrderStatus } from "@/api/order/purchaseOrder";
 import { useRouter, useRoute } from "vue-router";
+import { getSkuValue } from '@/utils/ruoyi.js';
 
 const router = useRouter();
 const route = useRoute();
@@ -249,6 +250,7 @@ getSuppliers()
 
 // ******************************  供应商 数据获取 end *****************************
 //*******************************   虚拟表格 数据部分  start *************************
+
 const columns = computed(() => [
   {
     key: 'actions',
@@ -284,7 +286,7 @@ const columns = computed(() => [
     align: 'center',
     cellRenderer: ({ rowData, rowIndex  }) => {
       const inputId = getInputId(rowIndex, 'productCode')
-      const getTooltipContent = () => {return rowData.productSkuVo.productCode;}
+      const getTooltipContent = () => {return rowData.productSkuVo?.productCode || '';}
       if (form.value.orderStatus === OrderStatusEnum.EDIT) {
         return h(ElAutocomplete, {
           id: inputId,
@@ -310,18 +312,17 @@ const columns = computed(() => [
         })
       }
       // 非编辑状态，显示商品编码
-      
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
-      },[
-        h('div', {style: {
+      },{
+        default: () => h('div', {style: {
           overflow: 'hidden',       // 隐藏溢出部分
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productSkuVo.productCode)
-        ]
+        } }, getTooltipContent())
+      }
       )  
     }
   },
@@ -341,7 +342,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productSkuVo?.productName || '')
+        } }, getTooltipContent())
       }
       )   
     }
@@ -362,7 +363,7 @@ const columns = computed(() => [
           textOverflow: 'ellipsis', // 使用省略号
           whiteSpace: 'nowrap',     // 禁止换行
           cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } },rowData.productSkuVo?.skuCode || '')
+        } }, getTooltipContent())
       }
       )   
     }
@@ -374,6 +375,9 @@ const columns = computed(() => [
     align: 'center',
     cellRenderer: ({ rowData }) => {
       const skuValueArr =  getSkuValue(rowData.productSkuVo?.skuValue || [])
+      if (skuValueArr === "default"){
+        return h('span', ' -- -- ')
+      } 
       return h('div', {}, skuValueArr.map(([key, value]) => {
         if (key !== '' && key !== 'skuName') {
           return h('div', [
@@ -381,7 +385,6 @@ const columns = computed(() => [
             h('span', ` ${value}`)
           ])
         }
-        return h('span', ' -- -- ')
       }))
     }
   },
@@ -906,37 +909,54 @@ const maxLength = 500
 // 每次添加新增的条数
 const onceAddItemLength = 5
 
-// 表单数据
-const form = ref({
-  orderId: '',
-  orderNo: '',
-  supplierId: '',
-  buyerId: '',
-  totalPurchaseAmount:0,
-  totalDiscountAmount:0,
-  totalTaxAmount:0,
-  totalNetAmount:0,
-  orderDate: new Date(),
-  orderStatus: OrderStatusEnum.EDIT,
-  operateType: '',
-  remark: '',
-  details: [],
-  operateLog: '',
-})
-
-// 表单校验规则
-const rules = ref({
-  orderDate: [
+const data = reactive({
+  form:{
+    orderId: '',
+    orderNo: '',
+    supplierId: '',
+    buyerId: '',
+    totalPurchaseAmount:0,
+    totalDiscountAmount:0,
+    totalTaxAmount:0,
+    totalNetAmount:0,
+    orderDate: new Date(),
+    orderStatus: OrderStatusEnum.EDIT,
+    operateType: '',
+    remark: '',
+    details: [],
+    operateLog: '',
+  },
+  rules:{
+    orderDate: [
     { required: true, message: '请选择订单日期' , trigger: ['blur','change'] }
-  ],
-  supplierId: [
-    { required: true, message: '请选择供应商' , trigger: ['blur','change'] }
-  ],
-  buyerId: [
-    { required: true, message: '请选择采购员' , trigger: ['blur','change'] }
-  ],
+    ],
+    supplierId: [
+      { required: true, message: '请选择供应商' , trigger: ['blur','change'] }
+    ],
+    buyerId: [
+      { required: true, message: '请选择采购员' , trigger: ['blur','change'] }
+    ],
+  }
 })
 
+const {form, rules} = toRefs(data)
+
+const resetForm = () => ({
+   orderId: '',
+    orderNo: '',
+    supplierId: '',
+    buyerId: '',
+    totalPurchaseAmount:0,
+    totalDiscountAmount:0,
+    totalTaxAmount:0,
+    totalNetAmount:0,
+    orderDate: new Date(),
+    orderStatus: OrderStatusEnum.EDIT,
+    operateType: '',
+    remark: '',
+    details: [],
+    operateLog: '',
+})
 
 // ******************************  数据展示  start **************************
 /** 格式化金额 - 通过Math.round处理小数点精度(5不进位的BUG) */ 
@@ -948,17 +968,6 @@ function formatTwo(value) {
   // 然后进行四舍五入和格式化
   return (Math.round(Number(value) * 100) / 100).toFixed(2);
 };
-
-/**  skuValue 转化成表格数据 */
-const getSkuValue = (skuValueList) => {
-  if (!skuValueList) {
-    return [];
-  }
-  // 将 skuValueList 转化成 [["型号","AA"] , ["尺寸","SS"]]
-  const tableData = ref(Object.entries(skuValueList));
-  return tableData.value;
-};
-
 
 // 采购员 - 初始化列表
 const buyerList = ref([])
@@ -978,12 +987,6 @@ const skuList = ref([])
 const getSkuList = () => {
   listSkuByAddOrder().then(response => {
     skuList.value = response.rows || []
-    if(skuList.value){
-      // 转移 skuValue 的json格式
-      skuList.value.map((item) => {
-        item.skuValue = JSON.parse(item.skuValue);
-      });
-    }
     console.log("----------商品列表：",skuList.value)
     
   })
@@ -1035,7 +1038,6 @@ const handleProductOnBlur = (index) => {
     return;
   }
   if (matchedSku.productCode !== form.value.details[index].productSkuVo.productCode) {
-    //console.log("提示：输入的商品编码与列表不匹配，未选中或回车确认，清空输入框内容！");
     initializeEmptyDetail(index);
     ElMessage.error('提示：没有选择或回车确认，清空输入框内容！');
     return;
@@ -1337,20 +1339,16 @@ const addApprovalLog = (action, status, remark, actionValue) => {
 const parseJson = () => {
   // 恢复json数据
   form.value.operateLog = orderOperateLog.value
-  form.value.details.forEach(item => {
-    item.productSkuVo.skuValue = JSON.parse(item.productSkuVo.skuValue)
-  })
 }
 
  /** 提交数据预处理 */ 
 const prepareData = () => {
-  form.value.details.forEach(item => item.productSkuVo.skuValue = JSON.stringify(item.productSkuVo.skuValue));
   form.value.operateLog = JSON.stringify(orderOperateLog.value);
 };
 
 /** 提交数据错误处理函数 */ 
 const handleError = (message = "操作失败") => {
-  // 恢复 skuValue operateLog 的Json格式
+  // 恢复 operateLog 的Json格式
   parseJson();
   ElMessage.error(message);
   // 关闭对话框和加载状态
@@ -1491,29 +1489,34 @@ const RefreshTab = () => {
 }
 
 /** 通过修改传递的 orderId 获取商品信息 */
-const getInfoById = () => {
+const getInfoById = async () => {
   // 获取修改传递的参数 productId
   const _orderId = route.query.orderId;
+  console.log("获取到传递过来的ID_orderId", _orderId)
+  if (!_orderId) {
+    console.error("orderId 不能为空");
+    return;
+  }
 
-  if (_orderId) {
-    getPurchaseOrder(_orderId).then((response) => {
-      form.value = response.data;
-      // 还原数据
-      if (form.value.operateLog) {
-        orderOperateLog.value = JSON.parse(form.value.operateLog);
-        form.value.operateLog = JSON.parse(form.value.operateLog);
-        console.log(form.value);
-      }
-      // 还原数据
-      if (form.value.details) {
-        form.value.details.forEach(item => {
-          item.productSkuVo.skuValue = JSON.parse(item.productSkuVo.skuValue);
-        });
-      }
+  try {
+    // 获取订单信息
+    const response = await getPurchaseOrder(_orderId);
+    form.value = response?.data || resetForm();
 
-      console.log("初始化数据正常：",form.value);
-      
-    });
+    // 处理 operateLog
+    if (form.value.operateLog) {
+      try {
+        const parsedLog = JSON.parse(form.value.operateLog);
+        orderOperateLog.value = parsedLog;
+      } catch (error) {
+        console.error("operateLog 解析失败:", error);
+        orderOperateLog.value = [];
+      }
+    }
+
+    console.log("初始化数据正常：", form.value);
+  } catch (error) {
+    console.error("获取订单信息失败:", error);
   }
 }
 

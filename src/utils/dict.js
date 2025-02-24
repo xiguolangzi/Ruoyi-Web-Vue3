@@ -6,19 +6,23 @@ import { getDicts } from '@/api/system/dict/data'
  */
 export function useDict(...args) {
   const res = ref({});
-  return (() => {
-    args.forEach((dictType, index) => {
-      res.value[dictType] = [];
-      const dicts = useDictStore().getDict(dictType);
-      if (dicts) {
-        res.value[dictType] = dicts;
-      } else {
-        getDicts(dictType).then(resp => {
-          res.value[dictType] = resp.data.map(p => ({ label: p.dictLabel, value: p.dictValue, elTagType: p.listClass, elTagClass: p.cssClass }))
-          useDictStore().setDict(dictType, res.value[dictType]);
-        })
-      }
-    })
-    return toRefs(res.value);
-  })()
+  const dictStore = useDictStore();
+
+  args.forEach(dictType => {
+    res.value[dictType] = dictStore.getDict(dictType) || [];
+
+    if (!dictStore.getDict(dictType)) {
+      getDicts(dictType).then(resp => {
+        const dictData = resp.data.map(p => ({
+          label: p.dictLabel,
+          value: p.dictValue,
+          elTagType: p.listClass,
+          elTagClass: p.cssClass
+        }));
+        res.value[dictType] = dictData;
+        dictStore.setDict(dictType, dictData);
+      });
+    }
+  });
+  return toRefs(res.value);
 }

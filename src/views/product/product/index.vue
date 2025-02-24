@@ -79,6 +79,10 @@
             <strong> 名称：</strong>
             <span>{{ scope.row.productName }}</span>
           </div>
+          <div>
+            <strong> 辅助名：</strong>
+            <span>{{ scope.row.assistName }}</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="sku规格" :min-width="80" show-overflow-tooltip>
@@ -233,16 +237,15 @@
                 <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
               </template>
             </el-table-column>
-            <el-table-column label="规格编码" align="center" prop="skuCode" show-overflow-tooltip />
-            <el-table-column label="规格值" align="center" show-overflow-tooltip>
+            <el-table-column label="SKU编码" align="center" prop="skuCode" show-overflow-tooltip />
+            <el-table-column label="SKU规格值" align="center" show-overflow-tooltip>
               <template #default="scope">
-                <div v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
-                  <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
-                    {{ item[0] }}:
-                  </strong>
-                  <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
-                    {{ item[1] }}
-                  </span>
+                <div v-if="getSkuValue(scope.row.skuValue) === 'default'">
+                  --  <!-- 直接显示默认 SKU -->
+                </div>
+                <div v-else v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
+                  <strong>{{ item[0] }}:</strong>
+                  <span>{{ item[1] }}</span>
                 </div>
               </template>
             </el-table-column>
@@ -281,7 +284,7 @@
 
               </template>
             </el-table-column>
-            <el-table-column label="库存数量" align="center" :width="80">
+            <el-table-column label="SKU库存" align="center" :width="80">
               <template #default="scope">
                 <span> {{ scope.row.productInventoryForSkuVo?.currentStock || '--' }} </span>
               </template>
@@ -382,7 +385,6 @@ function getList() {
     productList.value.forEach((item) => {
       item.skuSelected = JSON.parse(item.skuSelected) || [];
     });
-    console.log("************* 获取转化后的产品信息", productList.value);
     total.value = response.total;
     loading.value = false;
   });
@@ -485,10 +487,9 @@ function lookDetails(row) {
   if (_productId) {
     getProduct(_productId).then((response) => {
       console.log("商品详情", response.data);
-      productDetail.value = response.data;
+      productDetail.value = response.data || [];
       // json转化
-      productDetail.value.skuSelected =
-        JSON.parse(productDetail.value.skuSelected) || [];
+      productDetail.value.skuSelected = JSON.parse(productDetail.value.skuSelected) || [];
       open.value = true;
       title.value = "商品详情";
     });
@@ -560,7 +561,7 @@ watch(
   () => {
     // 路由发生变化时执行操作
     getList();
-  }
+  },{props: true}
 );
 
 getCategoryList(); // 获取商品分类数据

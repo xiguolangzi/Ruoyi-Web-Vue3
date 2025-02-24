@@ -59,18 +59,27 @@
 
     <el-table v-loading="loading" :data="customerLevelList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键ID" align="center" prop="levelId" />
-      <el-table-column label="等级名称" align="center" prop="levelName" />
-      <el-table-column label="等级折扣" align="center" prop="levelDiscount" />
-      <el-table-column label="等级描述" align="center" prop="levelDesc" />
+      <el-table-column label="序号" align="center" type="index" :width="55"/>
+      <el-table-column label="等级名称" align="center" prop="levelName" show-overflow-tooltip/>
+      <el-table-column label="基础折扣" align="center" prop="levelDiscount" >
+        <template #default="scope">
+          <el-tag>{{ scope.row.levelDiscount }} %</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="单价类型" align="center" prop="levelPrice" >
+        <template #default="scope">
+          <dict-tag :options="erp_product_price_type" :value="scope.row.levelPrice" />
+        </template>
+      </el-table-column>
+      <el-table-column label="备注描述" align="left" header-align="center" prop="remark" show-overflow-tooltip/>
       <el-table-column label="创建人" align="center" prop="createBy" />
       <el-table-column label="创建时间" align="center" prop="createTime" />
       <el-table-column label="修改人" align="center" prop="updateBy" />
       <el-table-column label="修改时间" align="center" prop="updateTime" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" :min-width="140" fixed="right">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['order:customerLevel:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['order:customerLevel:remove']">删除</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['order:customerLevel:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -87,13 +96,28 @@
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="customerLevelRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="等级名称" prop="levelName">
-          <el-input v-model="form.levelName" placeholder="请输入等级名称" />
+          <el-input v-model="form.levelName" placeholder="请输入等级名称" type="textarea" :maxlength="50" show-word-limit :rows="1"/>
         </el-form-item>
-        <el-form-item label="等级折扣" prop="levelDiscount">
-          <el-input v-model="form.levelDiscount" placeholder="请输入等级折扣" />
+        <el-form-item label="基础折扣" prop="levelDiscount">
+          <el-input-number v-model="form.levelDiscount" placeholder="输入基础折扣" :max='100' :min='0' :step="0"
+            value-on-clear="min" style="width: 100%;" :controls="false">
+            <template #suffix>
+              <span>%</span>
+            </template>
+          </el-input-number>
         </el-form-item>
-        <el-form-item label="等级描述" prop="levelDesc">
-          <el-input v-model="form.levelDesc" placeholder="请输入等级描述" />
+        <el-form-item label="单价类型" prop="levelPrice">
+          <el-radio-group v-model="form.levelPrice" size="small">
+            <el-radio-button 
+              v-for="dict in erp_product_price_type" 
+              :key="dict.value" 
+              :value="dict.value">
+              {{ dict.label }}
+            </el-radio-button>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="备注信息：" prop="remark">
+          <el-input v-model="form.remark" placeholder="请输入备注信息：" type="textarea" :maxlength="100" show-word-limit :rows="2"/>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -114,6 +138,8 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
+const { erp_product_price_type } = proxy.useDict('erp_product_price_type');
+
 
 const customerLevelList = ref([]);
 const open = ref(false);
@@ -140,8 +166,8 @@ const data = reactive({
     levelDiscount: [
       { required: true, message: "等级折扣不能为空", trigger: "blur" }
     ],
-    levelDesc: [
-      { required: true, message: "等级描述不能为空", trigger: "blur" }
+    levelPrice: [
+      { required: true, message: "等级价格不能为空", trigger: "blur" }
     ],
   }
 });
@@ -172,12 +198,13 @@ function reset() {
     levelId: null,
     levelName: null,
     levelDiscount: null,
-    levelDesc: null,
+    levelPrice:'1',
     tenantId: null,
     createBy: null,
     createTime: null,
     updateBy: null,
-    updateTime: null
+    updateTime: null,
+    remark: null
   };
   proxy.resetForm("customerLevelRef");
 }

@@ -10,9 +10,9 @@
           style="width: 150px;"
         />
       </el-form-item>
-      <el-form-item label="商品名称" prop="productName">
+      <el-form-item label="商品名称" prop="skuName">
         <el-input
-          v-model="queryParams.productName"
+          v-model="queryParams.skuName"
           placeholder="请输入商品名称"
           clearable
           @keyup.enter="handleQuery"
@@ -67,8 +67,17 @@
           </router-link>
         </template>
       </el-table-column>
-      <el-table-column label="商品名称" align="left" header-align="center" prop="productSkuVo.productName"  min-width="150" show-overflow-tooltip/>
-      <el-table-column label="sku编码" align="left" header-align="center" prop="productSkuVo.skuCode" min-width="150" show-overflow-tooltip/>
+      <el-table-column label="商品名称" align="left" header-align="center" prop="productSkuVo.skuName"  min-width="150" show-overflow-tooltip/>
+      <el-table-column label="sku编码" align="left" header-align="center" prop="productSkuVo.skuCode" min-width="150" show-overflow-tooltip>
+        <template v-slot="scope">
+          <el-popover trigger="hover" placement="left">
+            <image-preview :src="scope.row.productSkuVo?.skuImage" :width="60" :height="60" />
+            <template #reference>
+              <el-link type="primary" :underline="false">{{ scope.row.productSkuVo?.skuCode }}</el-link>
+            </template>
+        </el-popover>
+        </template>
+      </el-table-column>
       <el-table-column label="计量单位" align="center" prop="unitVo.unitCode" min-width="80" show-overflow-tooltip>
         <template v-slot="scope">
           {{ scope.row.unitVo?.unitCode || '--' }}
@@ -172,7 +181,7 @@ const data = reactive({
     orderId: null,
     orderNo: null,
     skuId: null,
-    productName: null,
+    skuName: null,
     productCode: null,
     skuCode: null,
     tenantId: null

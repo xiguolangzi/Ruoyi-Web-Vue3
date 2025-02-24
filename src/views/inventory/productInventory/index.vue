@@ -10,9 +10,9 @@
           style="width: 150px;"
         />
       </el-form-item>
-      <el-form-item label="商品名称" prop="productName" style="margin-right: 0px;">
+      <el-form-item label="商品名称" prop="skuName" style="margin-right: 0px;">
         <el-input
-          v-model="queryParams.productName"
+          v-model="queryParams.skuName"
           placeholder="请输入商品名称"
           clearable
           @keyup.enter="handleQuery"
@@ -100,11 +100,32 @@
     <el-table v-loading="loading" :data="productInventoryList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" v-if="showOperation"/>
       <el-table-column label="序号" width="50" align="center" type="index" />
-      <el-table-column label="仓库名称" align="left" prop="warehouseForStockInVo.warehouseName" show-overflow-tooltip/>
-      <el-table-column label="商品名称" align="left" prop="productSkuVo.productName" show-overflow-tooltip/>
-      <el-table-column label="商品编码" align="left" prop="productSkuVo.productCode" show-overflow-tooltip/>
-      <el-table-column label="sku编码" align="left" prop="productSkuVo.skuCode" show-overflow-tooltip/>
-      <el-table-column label="suk规格" align="left" prop="productSkuVo.skuValue" min-width="100" show-overflow-tooltip>
+      <el-table-column label="仓库名称" align="left" show-overflow-tooltip>
+        <template #default="scope">
+          <span>{{scope.row.warehouseForStockInVo?.warehouseName || '--'  }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="商品名称" align="left" show-overflow-tooltip>
+        <template #default="scope">
+          <span>{{scope.row.productSkuVo?.skuName || '--'  }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="商品编码" align="left" show-overflow-tooltip>
+        <template #default="scope">
+          <span>{{scope.row.productSkuVo?.productCode || '--'  }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="sku编码" align="left" show-overflow-tooltip>
+        <template v-slot="scope">
+          <el-popover trigger="hover" placement="left">
+            <image-preview :src="scope.row.productSkuVo?.skuImage" :width="60" :height="60" />
+            <template #reference>
+              <el-link type="primary" :underline="false">{{ scope.row.productSkuVo?.skuCode || '--' }}</el-link>
+            </template>
+          </el-popover>
+        </template>
+      </el-table-column>
+      <el-table-column label="suk规格" align="left" min-width="100" show-overflow-tooltip>
         <template #default="scope">
           <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) === 'default'">
             --  <!-- 直接显示默认 SKU -->
@@ -115,7 +136,11 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="计量单位" width="80" align="center" prop="unitVo.unitCode" />
+      <el-table-column label="计量单位" width="80" align="center" >
+        <template #default="scope">
+          <span>{{scope.row.unitVo?.unitCode || '--'  }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="批次号" align="center" prop="batchNo" />
       <el-table-column label="库存数量" align="center" prop="quantity" />
       <el-table-column label="加权平均成本" align="center" prop="averageCost" >
@@ -214,7 +239,7 @@ const data = reactive({
     warehouseName: null,
     skuCode: null,
     productCode: null,
-    productName: null,
+    skuName: null,
     batchNo: null,
     tenantId: null
   },

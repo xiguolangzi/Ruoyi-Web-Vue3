@@ -290,7 +290,7 @@ const columns = computed(() => [
       if (form.value.orderStatus === OrderStatusEnum.EDIT) {
         return h(ElAutocomplete, {
           id: inputId,
-          modelValue: rowData.productSkuVo?.productCode,
+          modelValue: rowData.productSkuVo?.productCode || '',
           'onUpdate:modelValue': (value) => {
             form.value.details[rowIndex].productSkuVo.productCode = value
           },
@@ -306,7 +306,7 @@ const columns = computed(() => [
           },
         }, {
           default: ({ item }) => h('div', { style: { display: 'flex', justifyContent:'space-between', alignItems: 'center' } }, [
-            h('div', `${item.skuCode} - ${item.productName}`),
+            h('div', `${item.skuCode} - ${item.skuName}`),
             h('small',{style:{color:'#909399',marginLeft:'5px'}} ,`库存: ${item.averageCostBySkuVo?.currentStock || 0}`)
           ])
         })
@@ -327,12 +327,12 @@ const columns = computed(() => [
     }
   },
   {
-    key: 'productName',
-    title: '商品名称',
+    key: 'skuName',
+    title: 'SKU名称',
     width: 150,
     align: 'center',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.productSkuVo?.productName || '';}
+      const getTooltipContent = () => {return rowData.productSkuVo?.skuName || '';}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -993,13 +993,11 @@ const getSkuList = () => {
 }
 /** 商品 -  自动补全输入框的返回值 */
 const queryProducts = (queryString, cb) => {
-  const results = queryString
-    ? skuList.value.filter(sku =>
-      sku.skuCode.toLowerCase().includes(queryString.toLowerCase()) ||
-      sku.productName.toLowerCase().includes(queryString.toLowerCase()) ||
-      sku.productCode.toLowerCase().includes(queryString.toLowerCase())
-    )
-    : []
+  const results = queryString ? skuList.value.filter(sku =>
+      (sku.skuCode && sku.skuCode.toLowerCase().includes(queryString.toLowerCase())) ||
+      (sku.skuName && sku.skuName.toLowerCase().includes(queryString.toLowerCase())) ||
+      (sku.productCode && sku.productCode.toLowerCase().includes(queryString.toLowerCase()))
+    ) : []
     console.log("商品搜索结果：",results)
   cb(results || [])
 }
@@ -1014,7 +1012,7 @@ const handleProductSelect = (sku, index) => {
     skuId: sku.skuId,
     skuCode: sku.skuCode,
     skuValue: sku.skuValue,
-    productName: sku.productName,
+    skuName: sku.skuName,
     productCode: sku.productCode,
     unitId: sku.unitId,
     skuStock: sku.averageCostBySkuVo?.currentStock || 0,
@@ -1050,7 +1048,7 @@ const initializeEmptyDetail = (index) => {
     skuId: null,
     skuCode: null,
     skuValue: null,
-    productName: null,
+    skuName: null,
     productCode: null,
     unitId: null,
     skuStock: 0,
@@ -1081,7 +1079,7 @@ const addItem = () => {
       skuId: null,
       skuCode: null,
       skuValue: null,
-      productName: null,
+      skuName: null,
       productCode: null,
       unitId: null,
       skuStock: 0,

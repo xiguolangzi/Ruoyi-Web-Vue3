@@ -36,35 +36,6 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['order:purchaseInvoiceReceipts:add']"
-        >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['order:purchaseInvoiceReceipts:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['order:purchaseInvoiceReceipts:remove']"
-        >删除</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
           type="warning"
           plain
           icon="Download"
@@ -77,8 +48,8 @@
 
     <el-table v-loading="loading" :data="purchaseInvoiceReceiptsList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="发票号" align="center" prop="invoiceNo" />
-      <el-table-column label="采购入库单号" align="center" prop="receiptsNo" />
+      <el-table-column label="发票号" align="left"  prop="invoiceNo" />
+      <el-table-column label="采购入库单号" align="left"  prop="receiptsNo" />
       <el-table-column label="实际入库金额" align="center" prop="accountsPayable" >
         <template #default="scope">
           <span>{{ formatTwo(scope.row.accountsPayable) }} €</span>
@@ -89,10 +60,10 @@
           <dict-tag :options="erp_purchase_invoice_receipts_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" v-if="false">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['order:purchaseInvoiceReceipts:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['order:purchaseInvoiceReceipts:remove']">删除</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['order:purchaseInvoiceReceipts:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -104,21 +75,6 @@
       v-model:limit="queryParams.pageSize"
       @pagination="getList"
     />
-
-    <!-- 添加或修改采购发票关联采购入库单对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="purchaseInvoiceReceiptsRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="租户ID" prop="tenantId">
-          <el-input v-model="form.tenantId" placeholder="请输入租户ID" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 

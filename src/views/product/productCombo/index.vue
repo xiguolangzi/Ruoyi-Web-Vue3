@@ -46,10 +46,24 @@
 
     <el-table v-loading="loading" :data="productComboList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" align="center" type="index" width="50" />
+      <el-table-column label="套餐图片" align="center" :width="88" show-overflow-tooltip>
+        <template #default="scope">
+          <image-preview :src="scope.row.comboImage" :width="60" :height="60" />
+        </template>
+      </el-table-column>
       <el-table-column label="套餐编码" align="center" prop="comboCode" />
-      <el-table-column label="套餐名称" align="center" prop="comboName" show-overflow-tooltip />
-      <el-table-column label="辅助名称" align="center" prop="comboAssistName" show-overflow-tooltip />
+      <el-table-column label="套餐名称" align="left" header-align="center" show-overflow-tooltip >
+        <template #default="scope">
+          <div>
+            <strong> 主名称：</strong>
+            <span>{{ scope.row.comboName }}</span>
+          </div>
+          <div>
+            <strong> 辅助名：</strong>
+            <span>{{ scope.row.assistName }}</span>
+          </div>
+        </template>
+     </el-table-column>
       <el-table-column label="套餐价格" align="center" prop="comboPrice">
         <template #default="scope">
           <span>{{ formatTwo(scope.row.comboPrice) }} €</span>
@@ -65,20 +79,33 @@
           <dict-tag :options="sys_tenant_status" :value="scope.row.comboStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" align="center" prop="createTime">
+      <el-table-column label="创建信息" align="left" header-align="center" show-overflow-tooltip>
         <template #default="scope">
-          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
+          <div>
+            <strong> 创建人：</strong>
+            <span>{{ scope.row.createBy }}</span>
+          </div>
+          <div> 
+             <strong> 时间：</strong>
+             <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
+          </div>
         </template>
       </el-table-column>
-      <el-table-column label="创建人" align="center" prop="createBy" />
-      <el-table-column label="修改时间" align="center" prop="updateTime">
+
+      <el-table-column label="修改信息" align="left" header-align="center" show-overflow-tooltip>
         <template #default="scope">
-          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
+          <div> 
+            <strong> 修改人：</strong>
+            <span>{{ scope.row.updateBy }}</span>
+          </div>
+          <div> 
+            <strong> 时间：</strong>
+            <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
+          </div>
         </template>
       </el-table-column>
-      <el-table-column label="修改人" align="center" prop="updateBy" />
-      <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="备注" align="left" header-align="center" prop="remark" show-overflow-tooltip />
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" :width="130" fixed="right">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
             v-hasPermi="['product:productCombo:edit']">修改</el-button>
@@ -108,33 +135,50 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="辅助名称:" prop="comboAssistName">
-                  <el-input v-model="form.comboAssistName" placeholder="请输入辅助名称" type="textarea" maxlength="50"
+                <el-form-item label="辅助名称:" prop="assistName">
+                  <el-input v-model="form.assistName" placeholder="请输入辅助名称" type="textarea" maxlength="50"
                     show-word-limit :rows="1" />
                 </el-form-item>
               </el-col>
             </el-row>
+            
+            <!-- 套餐价格数据 -->
             <el-row>
-              <el-form-item label="套餐单价:" prop="comboPrice">
-                <el-input-number v-model="form.comboPrice" placeholder="套餐单价" :max='99999' :min='0' :precision='2'
-                  :controls="false" ref="inputNumber1" @focus="handleFocus1">
+              <el-form-item v-for="(item, index) in inputFields" :key="item.prop" :label="item.label" :prop="item.prop">
+                <el-input-number 
+                  v-model="form[item.prop]" 
+                  :placeholder="item.placeholder" 
+                  :max="99999" 
+                  :min="0" 
+                  :precision="2"
+                  :controls="false"
+                  ref="inputRefs"
+                  @focus="handleFocus2(index)"
+                >
                   <template #suffix>
                     <span>€</span>
                   </template>
                 </el-input-number>
               </el-form-item>
-              <el-form-item label="套餐税率" prop="rateId">
+            </el-row>
+
+            <el-row>
+              <el-form-item label="套餐税率:" prop="rateId">
                 <el-select v-model="form.rateId" placeholder="请选择套餐税率" clearable>
                   <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
                     :value="items.rateId" />
                 </el-select>
               </el-form-item>
+              <el-form-item label="套餐状态:" prop="comboStatus">
+                <el-radio-group v-model="form.comboStatus">
+                  <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.value" :value="dict.value">{{
+                    dict.label }}</el-radio>
+                </el-radio-group>
+              </el-form-item>
             </el-row>
-            <el-form-item label="套餐状态:" prop="comboStatus">
-              <el-radio-group v-model="form.comboStatus">
-                <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.value" :value="dict.value">{{
-                  dict.label }}</el-radio>
-              </el-radio-group>
+
+            <el-form-item label="商品主图:" prop="comboImage">
+              <image-upload v-model="form.comboImage" />
             </el-form-item>
 
             <el-form-item label="备注描述:" prop="remark">
@@ -179,7 +223,7 @@
               </el-table-column>
               <el-table-column label="SKU 名称" align="center" show-overflow-tooltip>
                 <template #default="scope">
-                  <span>{{ scope.row.productSkuVo?.productName }}</span>
+                  <span>{{ scope.row.productSkuVo?.skuName }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="SKU 规格" align="center" show-overflow-tooltip>
@@ -287,10 +331,21 @@ const data = reactive({
     comboName: [{ required: true, message: '套餐名称不能为空', trigger: 'blur' }],
     rateId: [{ required: true, message: '税率不能为空', trigger: 'blur' }],
     comboStatus: [{ required: true, message: '套餐状态不能为空', trigger: 'blur' }],
+    comboPrice: [{ required: true, message: '套餐价格不能为空', trigger: 'blur' }],
   }
 });
 
 const { queryParams, form, rules } = toRefs(data);
+
+// 定义输入框列表，方便扩展
+const inputFields = [
+  { label: "套餐单价:", prop: "comboPrice", placeholder: "套餐单价" },
+  { label: "单价2:", prop: "comboPrice2", placeholder: "单价2" },
+  { label: "单价3:", prop: "comboPrice3", placeholder: "单价3" },
+  { label: "单价4:", prop: "comboPrice4", placeholder: "单价4" },
+  { label: "单价5:", prop: "comboPrice5", placeholder: "单价5" },
+  { label: "单价6:", prop: "comboPrice6", placeholder: "单价6" },
+];
 
 /** 查询商品套餐列表 */
 function getList() {
@@ -305,12 +360,9 @@ function getList() {
 }
 
 // --------------------- 1 表单 输入框聚焦选中 start ---------------
-const inputNumber1 = ref({}); // 使用对象存储各列引用
-
-// 聚焦时选中内容
-
-const handleFocus1 = () => {
-  const input = inputNumber1.value?.$el.querySelector("input");
+// 统一的 focus 事件
+const handleFocus2 = (index) => {
+  const input = inputRefs.value[index]?.$el.querySelector("input");
   if (input) {
     input.select(); // 选中输入框内的所有文本
   }
@@ -482,7 +534,7 @@ getRateList()
 const formattedSkuList = computed(() => {
   return skuList.value.map((sku) => ({
     value: sku.skuId, // SKU ID
-    label: `${sku.skuCode} - ${sku.productName} - ${sku.skuValue}`, // 显示 SKU Code 和 Name
+    label: `${sku.skuCode} - ${sku.skuName} - ${sku.skuValue}`, // 显示 SKU Code 和 Name
   }));
 });
 
@@ -495,7 +547,7 @@ const handleSkuChange = (row) => {
       row.productSkuVo = {};
     }
     row.detailPrice = selectedSku.skuPrice; // 自动填充 SKU 价格
-    row.productSkuVo.productName = selectedSku.productName;
+    row.productSkuVo.skuName = selectedSku.skuName;
     row.productSkuVo.skuValue = selectedSku.skuValue;
     row.quantity = 0;
     row.detailAmount = 0;
@@ -518,7 +570,7 @@ function reset() {
     rateId: null,
     comboCode: null,
     comboName: null,
-    comboAssistName: null,
+    assistName: null,
     comboPrice: 0.00,
     comboStatus: '0',
     createTime: null,

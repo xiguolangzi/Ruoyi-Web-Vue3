@@ -79,6 +79,10 @@
             <strong> 名称：</strong>
             <span>{{ scope.row.productName }}</span>
           </div>
+          <div>
+            <strong> 辅助名：</strong>
+            <span>{{ scope.row.assistName }}</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="sku规格" :min-width="80" show-overflow-tooltip>
@@ -483,10 +487,9 @@ function lookDetails(row) {
   if (_productId) {
     getProduct(_productId).then((response) => {
       console.log("商品详情", response.data);
-      productDetail.value = response.data;
+      productDetail.value = response.data || [];
       // json转化
-      productDetail.value.skuSelected =
-        JSON.parse(productDetail.value.skuSelected) || [];
+      productDetail.value.skuSelected = JSON.parse(productDetail.value.skuSelected) || [];
       open.value = true;
       title.value = "商品详情";
     });

@@ -478,7 +478,7 @@
           </el-col>
         </el-row>
         <el-form-item label="备注/摘要:" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" rows="1" maxlength="30" show-word-limit />
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" :rows="1" :maxlength="30" show-word-limit />
         </el-form-item>
         <el-form-item label="上传附件:" prop="uploadedFile">
           <file-upload v-model="form.uploadedFile"/>
@@ -501,8 +501,8 @@
           ref="purchaseInvoiceDetail"
           :summary-method="getSummaryRow" show-summary
         >
-          <el-table-column type="selection" width="50" align="center" />
-          <el-table-column label="会计项目" prop="projectId" width="130" align="center">
+          <el-table-column type="selection" :width="50" align="center" />
+          <el-table-column label="会计项目" prop="projectId" :width="130" align="center">
             <template #default="scope">
               <el-tree-select 
                 v-model="scope.row.projectId" :data="projectTree" :props="treeProps2" value-key="projectId"
@@ -512,7 +512,7 @@
               </el-tree-select>
             </template>
           </el-table-column>
-          <el-table-column label="会计科目" prop="financeAccountId" width="200" align="center">
+          <el-table-column label="会计科目" prop="financeAccountId" :width="200" align="center">
             <template #default="scope">
               <el-tree-select 
                 v-model="scope.row.financeAccountId" :data="accountTree" :props="treeProps" value-key="accountId"
@@ -521,7 +521,7 @@
               </el-tree-select>
             </template>
           </el-table-column>
-          <el-table-column label="发生额" prop="baseAmount" align="center" min-width="130">
+          <el-table-column label="发生额" prop="baseAmount" align="center" :min-width="130">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'baseAmount')" v-model="scope.row.baseAmount"
                 placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false"
@@ -536,7 +536,7 @@
               </el-input-number>
             </template>
           </el-table-column>
-          <el-table-column label="折扣率" prop="discountRate" align="center" min-width="95">
+          <el-table-column label="折扣率" prop="discountRate" align="center" :min-width="95">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'discountRate')" v-model="scope.row.discountRate"
                 placeholder="发生额" :max='100' :min='0' :precision='1' :step='0' :controls="false"
@@ -551,7 +551,7 @@
               </el-input-number>
             </template>
           </el-table-column>
-          <el-table-column label="折扣额" prop="discountAmount" align="center" min-width="130">
+          <el-table-column label="折扣额" prop="discountAmount" align="center" :min-width="130">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'discountAmount')" v-model="scope.row.discountAmount"
                 placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false"
@@ -566,7 +566,7 @@
               </el-input-number>
             </template>
           </el-table-column>
-          <el-table-column label="税率" prop="taxRate" align="center" min-width="95">
+          <el-table-column label="税率" prop="taxRate" align="center" :min-width="95">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'taxRate')" v-model="scope.row.taxRate"
                 placeholder="发生额" :max='100' :min='0' :precision='0' :step='0' :controls="false"
@@ -581,7 +581,7 @@
               </el-input-number>
             </template>
           </el-table-column>
-          <el-table-column label="税额" prop="taxAmount" align="center" min-width="130">
+          <el-table-column label="税额" prop="taxAmount" align="center" :min-width="130">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'taxAmount')" v-model="scope.row.taxAmount"
                 placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false" style="width: 100%;" disabled
@@ -595,7 +595,7 @@
               </el-input-number>
             </template>
           </el-table-column>
-          <el-table-column label="实际总金额" prop="netAmount" align="center" min-width="130">
+          <el-table-column label="实际总金额" prop="netAmount" align="center" :min-width="130">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'netAmount')" v-model="scope.row.netAmount"
                 placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false" disabled
@@ -634,13 +634,13 @@
       </el-card>
 
       <!-- 操作意见弹窗 -->
-      <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
+      <el-dialog v-model="dialogVisible" :title="dialogTitle" :width="500">
         <!-- 强制填写备注 -->
-        <el-form :model="approvalForm" label-width="80px">
+        <el-form :model="approvalForm" :label-width="80">
           <el-form-item :label="getRemarkMessage(currentAction) + ':'"
             v-if="actionRequiresRemark.includes(currentAction)"
           >
-            <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20"
+            <el-input v-model="approvalForm.remark" type="textarea" show-word-limit :maxlength="20"
               :placeholder="'请输入' + getRemarkMessage(currentAction)" />
           </el-form-item>
         </el-form>

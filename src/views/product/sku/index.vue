@@ -4,8 +4,8 @@
       <el-form-item label="商品编码:" prop="productCode">
         <el-input v-model="queryParams.productCode" placeholder="请输入商品编码" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="商品名称:" prop="productName">
-        <el-input v-model="queryParams.productName" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="商品名称:" prop="skuName">
+        <el-input v-model="queryParams.skuName" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="suk编号:" prop="skuCode">
         <el-input v-model="queryParams.skuCode" placeholder="请输入suk编号" clearable @keyup.enter="handleQuery" />
@@ -50,7 +50,18 @@
         </template>
       </el-table-column>
       <el-table-column label="商品编码" align="left" prop="productCode" :min-width="120" show-overflow-tooltip />
-      <el-table-column label="商品名称" align="left" prop="productName" :min-width="120" show-overflow-tooltip />
+      <el-table-column label="商品名称" align="left" prop="skuName" :min-width="120" show-overflow-tooltip >
+        <template #default="scope">
+          <div>
+            <strong> 名称：</strong>
+            <span>{{ scope.row.skuName }}</span>
+          </div>
+          <div>
+            <strong> 辅助名：</strong>
+            <span>{{ scope.row.assistName }}</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="suk编号" align="left" prop="skuCode" :min-width="120" show-overflow-tooltip />
       <el-table-column label="suk属性值" align="left" prop="skuValue" show-overflow-tooltip>
         <template #default="scope">
@@ -63,7 +74,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="单位" prop="unitVo.unitCode" width="80" align="center" show-overflow-tooltip>
+      <el-table-column label="单位"  width="80" align="center" show-overflow-tooltip>
         <template #default="scope">
           <span>{{scope.row.unitVo?.unitCode || '--'}}</span>
         </template>
@@ -105,9 +116,9 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="库存数量" align="center" prop="averageCostBySkuVo.currentStock" width="80">
+      <el-table-column label="库存数量" align="center" width="80">
         <template #default="scope">
-          <span>{{ scope.row.averageCostBySkuVo?.currentStock || 0 }}</span>
+          <span>{{ scope.row.productInventoryForSkuVo?.currentStock || 0 }}</span>
         </template>
       </el-table-column>
       <el-table-column label="sku状态" align="center" prop="skuStatus" width="80">
@@ -147,8 +158,8 @@
         <el-form-item label="商品编码" prop="productCode">
           <el-input v-model="form.productCode" placeholder="请输入商品编码" />
         </el-form-item>
-        <el-form-item label="商品名称" prop="productName">
-          <el-input v-model="form.productName" placeholder="请输入商品名称" />
+        <el-form-item label="商品名称" prop="skuName">
+          <el-input v-model="form.skuName" placeholder="请输入商品名称" />
         </el-form-item>
         <el-form-item label="suk编号" prop="skuCode">
           <el-input v-model="form.skuCode" placeholder="请输入suk编号" />
@@ -199,7 +210,7 @@
               <image-upload v-model="currentRow.skuImage" :isShowTip="false" :isImgSize="80" />
             </el-descriptions-item>
             <el-descriptions-item label="商品名称" width="60%" :span="2">
-              <span>{{ currentRow.productName }}</span>
+              <span>{{ currentRow.skuName }}</span>
             </el-descriptions-item>
             <el-descriptions-item label="SKU编码" width="40%">
               <span>{{ currentRow.skuCode }}</span>
@@ -335,7 +346,7 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     productCode: null,
-    productName: null,
+    skuName: null,
     skuCode: null,
     skuStatus: null,
     tenantId: null
@@ -380,7 +391,7 @@ function reset() {
     skuId: null,
     productId: null,
     productCode: null,
-    productName: null,
+    skuName: null,
     skuCode: null,
     skuValue: null,
     skuImage: null,

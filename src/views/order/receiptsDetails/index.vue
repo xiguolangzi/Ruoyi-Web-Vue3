@@ -26,9 +26,9 @@
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item label="商品名称:" prop="productName">
+        <el-form-item label="商品名称:" prop="skuName">
           <el-input
-            v-model="queryParams.productName"
+            v-model="queryParams.skuName"
             placeholder="请输入商品名称"
             clearable
             @keyup.enter="handleQuery"
@@ -64,8 +64,17 @@
       </el-table-column>
       <el-table-column label="采购订单" align="left" header-align="center" prop="purchaseOrderNo" min-width="100" show-overflow-tooltip/>
       <el-table-column label="商品编码" align="left" header-align="center" prop="productSkuVo.productCode" min-width="100" show-overflow-tooltip/>
-      <el-table-column label="商品名称" align="left" header-align="center" prop="productSkuVo.productName" min-width="100" show-overflow-tooltip/> 
-      <el-table-column label="sku编码" align="left" header-align="center" prop="productSkuVo.skuCode" min-width="100" show-overflow-tooltip/>
+      <el-table-column label="商品名称" align="left" header-align="center" prop="productSkuVo.skuName" min-width="100" show-overflow-tooltip/> 
+      <el-table-column label="sku编码" align="left" header-align="center" prop="productSkuVo.skuCode" min-width="100" show-overflow-tooltip>
+        <template #default="scope">
+          <el-popover trigger="hover" placement="left">
+            <image-preview :src="scope.row.productSkuVo?.skuImage" :width="60" :height="60" />
+            <template #reference>
+              <el-link type="primary" :underline="false">{{ scope.row.productSkuVo?.skuCode }}</el-link>
+            </template>
+          </el-popover>
+        </template>
+      </el-table-column>
       <el-table-column label="sku值" align="center" min-width="100" show-overflow-tooltip>
          <template #default="scope">
           <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) === 'default'">
@@ -159,7 +168,7 @@ const data = reactive({
     receiptsId: null,
     purchaseOrderId: null,
     skuId: null,
-    productName: null,
+    skuName: null,
     productCode: null,
     skuCode: null,
     tenantId: null,

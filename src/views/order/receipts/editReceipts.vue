@@ -326,7 +326,7 @@
       <el-table :data="purchaseOrder.details" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column type="index" label="序号" width="50"  align="center"/>
-        <el-table-column label="商品名称" align="left" prop="productSkuVo.productName"  min-width="120" show-overflow-tooltip/>
+        <el-table-column label="商品名称" align="left" prop="productSkuVo.skuName"  min-width="120" show-overflow-tooltip/>
         <el-table-column label="sku编码" align="left" prop="productSkuVo.skuCode" min-width="120" show-overflow-tooltip/>
         <el-table-column label="suk" align="left" prop="productSkuVo.skuValue" min-width="90" show-overflow-tooltip>
           <template #default="scope">
@@ -542,10 +542,10 @@ const submitLinkPurchaseOrder = () => {
     skuId: item.skuId,
     unitId: item.unitId,
     productSkuVo: {
-      skuCode: item.productSkuVo.skuCode || '',
-      skuValue: item.productSkuVo.skuValue || [],
-      productCode: item.productSkuVo.productCode || '',
-      productName: item.productSkuVo.productName || ''
+      skuCode: item.productSkuVo?.skuCode || '',
+      skuValue: item.productSkuVo?.skuValue || [],
+      productCode: item.productSkuVo?.productCode || '',
+      skuName: item.productSkuVo?.skuName || ''
     },
     unitVo: {
       unitCode: item.unitVo.unitCode || '',
@@ -685,13 +685,13 @@ const purchaseInvoiceList = ref([]);
 // 获取发票列表
 const getPurchaseInvoiceList = async (supplierId) => {
   // 定义发票状态: 草稿 未审核 已审核
-  const invoiceStatuses = ['1', '2', '3'];
+  const invoiceStatusList = ['1', '2', '3'];
   const invoiceType = '1';  // 采购发票
   const assistType = '2';   // 辅助类型：供应商
 
   try {
     // 并行发起请求
-    const requests = invoiceStatuses.map(status => 
+    const requests = invoiceStatusList.map(status => 
       listCostInvoice({
         assistType: assistType,
         assistId: supplierId || null,
@@ -901,7 +901,7 @@ const columns = computed(() => [
           },
         }, {
           default: ({ item }) => h('div', { style: { display: 'flex', justifyContent:'space-between', alignItems: 'center' } }, [
-            h('div', `${item.skuCode} - ${item.productName}`),
+            h('div', `${item.skuCode} - ${item.skuName}`),
             h('small',{style:{color:'#909399',marginLeft:'5px'}} ,`库存: ${item.averageCostBySkuVo?.currentStock || '--'}`)
           ])
         })
@@ -923,12 +923,12 @@ const columns = computed(() => [
     }
   },
   {
-    key: 'productName',
+    key: 'skuName',
     title: '商品名称',
     width: 150,
     align: 'left',
     cellRenderer: ({ rowData }) => {
-      const getTooltipContent = () => {return rowData.productSkuVo?.productName;}
+      const getTooltipContent = () => {return rowData.productSkuVo?.skuName;}
       return h(ElTooltip, {
         content: getTooltipContent(),
         placement: 'top'
@@ -1615,13 +1615,11 @@ const getSkuList = () => {
 }
 /** 商品 -  自动补全输入框的返回值 */
 const queryProducts = (queryString, cb) => {
-  const results = queryString
-    ? skuList.value.filter(sku =>
-      sku.skuCode.toLowerCase().includes(queryString.toLowerCase()) ||
-      sku.productName.toLowerCase().includes(queryString.toLowerCase()) ||
-      sku.productCode.toLowerCase().includes(queryString.toLowerCase())
-    )
-    : []
+  const results = queryString  ? skuList.value.filter(sku =>
+      (sku.skuCode && sku.skuCode.toLowerCase().includes(queryString.toLowerCase())) ||
+      (sku.skuName && sku.skuName.toLowerCase().includes(queryString.toLowerCase())) ||
+      (sku.productCode && sku.productCode.toLowerCase().includes(queryString.toLowerCase()))
+    ) : []
     console.log("商品搜索结果：",results)
   cb(results || [])
 }
@@ -1634,7 +1632,7 @@ const handleProductSelect = (sku, index) => {
   const item = form.value.details[index]
   item.skuId = sku.skuId
   item.unitId = sku.unitId
-  item.productSkuVo.productName = sku.productName
+  item.productSkuVo.skuName = sku.skuName
   item.productSkuVo.productCode = sku.productCode
   item.productSkuVo.skuCode = sku.skuCode
   item.productSkuVo.skuValue = sku.skuValue
@@ -1680,7 +1678,7 @@ const initializeEmptyDetail = (index) => {
   form.value.details[index].productSkuVo = {
     skuCode: '',
     skuValue: '',
-    productName: '',
+    skuName: '',
     productCode: '',
     skuStock: 0,
   }
@@ -1714,7 +1712,7 @@ const addItem = () => {
     productSkuVo:{
       skuCode: '',
       skuValue: '',
-      productName: '',
+      skuName: '',
       productCode: '',
       skuStock: 0,
     },

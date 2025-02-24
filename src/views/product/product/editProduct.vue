@@ -24,15 +24,13 @@
               <el-col :span="8">
                 <el-form-item label="商品名称:" prop="productName">
                   <el-input v-model="form.productName" placeholder="请输入商品名称" @change="handleProductChanged"
-                    type="textarea" :maxlength="50" show-word-limit :rows="1" />
+                    type="textarea" :maxlength="100" show-word-limit :rows="1" />
                 </el-form-item>
               </el-col>
               <el-col :span="8">
-                <el-form-item label="商品品牌:" prop="brandId">
-                  <el-select v-model="form.brandId" placeholder="请选择商品品牌" style="width: 195px">
-                    <el-option v-for="items in brandList" :key="items.brandId" :label="items.brandName"
-                      :value="items.brandId" />
-                  </el-select>
+                <el-form-item label="辅助名称:" prop="assistName">
+                  <el-input v-model="form.assistName" placeholder="请输入辅助名称" @change="handleProductChanged"
+                    type="textarea" :maxlength="100" show-word-limit :rows="1" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -55,16 +53,16 @@
                 </el-form-item>
               </el-col>
               <el-col :span="8">
-                <el-form-item label="计量单位:" prop="unitId">
-                  <el-select v-model="form.unitId" placeholder="请选择计量单位" @change="handleProductChanged">
-                    <el-option v-for="items in unitList" :key="items.unitId" :label="items.unitCode"
-                      :value="items.unitId" :disabled="items.unitStatus != '0'" />
+                <el-form-item label="商品品牌:" prop="brandId">
+                  <el-select v-model="form.brandId" placeholder="请选择商品品牌" style="width: 195px">
+                    <el-option v-for="items in brandList" :key="items.brandId" :label="items.brandName"
+                      :value="items.brandId" />
                   </el-select>
                 </el-form-item>
               </el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="8">
+              <el-col :span="6">
                 <el-form-item label="商品状态:" prop="productStatus">
                   <el-radio-group v-model="form.productStatus" @change="handleProductChanged">
                     <el-radio v-for="dict in product_status" :key="dict.value" :value="dict.value">{{ dict.label
@@ -72,7 +70,7 @@
                   </el-radio-group>
                 </el-form-item>
               </el-col>
-              <el-col :span="8">
+              <el-col :span="6">
                 <el-form-item label="税率:" prop="rateId">
                   <el-select v-model="form.rateId" placeholder="请选择税率" @change="handleProductChanged">
                     <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
@@ -80,9 +78,17 @@
                   </el-select>
                 </el-form-item>
               </el-col>
-              <el-col :span="8">
+              <el-col :span="6">
+                <el-form-item label="计量单位:" prop="unitId">
+                  <el-select v-model="form.unitId" placeholder="请选择计量单位" @change="handleProductChanged">
+                    <el-option v-for="items in unitList" :key="items.unitId" :label="items.unitCode"
+                      :value="items.unitId" :disabled="items.unitStatus != '0'" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
                 <el-form-item label="成本计算:" prop="costMethod">
-                  <el-select v-model="form.costMethod" placeholder="请选择成本计算" style="width: 200px">
+                  <el-select v-model="form.costMethod" placeholder="请选择成本计算" style="width: 200px" disabled>
                     <el-option v-for="dict in product_cost_method" :key="dict.value" :label="dict.label"
                       :value="dict.value"></el-option>
                   </el-select>
@@ -509,6 +515,7 @@ const data = reactive({
     productId: null,
     productCode: null,
     productName: null,
+    assistName: null,
     productPrice: null,
     productPrice2: null,
     productPrice3: null,
@@ -644,7 +651,8 @@ const generateCombinations = () => {
     rateId: form.value.rateId,
     productId: form.value.productId,
     productCode: form.value.productCode,
-    productName: form.value.productName,
+    skuName: form.value.productName,
+    assistName: form.value.assistName,
   }));
 
   // 使用 Map 进行高效比对和更新
@@ -715,7 +723,8 @@ const handleProductChanged = () => {
   productSkuList.value.forEach((item) => {
     item.unitId = form.value.unitId;
     item.productCode = form.value.productCode;
-    item.productName = form.value.productName;
+    item.skuName = form.value.productName;
+    item.assistName = form.value.assistName;
     item.skuStatus = form.value.productStatus;
     item.rateId = form.value.rateId;
     item.categoryId = form.value.categoryId;
@@ -870,7 +879,8 @@ const initSku = () => ({
   skuStatus: form.value.productStatus,
   productId: form.value.productId,
   productCode: form.value.productCode,
-  productName: form.value.productName,
+  skuName: form.value.productName,
+  assistName: form.value.assistName
 });
 
 const initData = async () => {

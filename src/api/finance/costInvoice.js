@@ -1,11 +1,12 @@
 import request from '@/utils/request'
 
 // 查询费用登记列表
-export function listCostInvoice(query) {
+export function listCostInvoice(query = {}) {
+  const pageSize = query.pageSize || 2000;
   return request({
     url: '/finance/costInvoice/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 
@@ -47,6 +48,15 @@ export function delCostInvoice(invoiceId) {
 export function submitAuditInvoice(data) {
   return request({
     url: '/finance/costInvoice/submitAudit',
+    method: 'put',
+    data: data
+  })
+}
+
+/** 驳回提交审核 */
+export function rejectInvoice(data) {
+  return request({
+    url: '/finance/costInvoice/reject',
     method: 'put',
     data: data
   })

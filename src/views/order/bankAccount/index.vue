@@ -162,6 +162,7 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
+const { sys_yes_or_no } = proxy.useDict('sys_yes_or_no');
 
 const bankAccountList = ref([]);
 const open = ref(false);

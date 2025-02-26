@@ -308,7 +308,7 @@ const handleFocus2 = () => {
 // ------------------------------------ 2 表单 输入框聚焦选中 end ----------------------
 
 // ------------------------------------ 3合计 start ------------------------------------
-/** 合计行 */
+/** 合计行 - 计算借方总金额 */
 const getSummaryRow = (param) => {
   const { columns, data } = param
   const sums = []
@@ -316,7 +316,6 @@ const getSummaryRow = (param) => {
   columns.forEach((column, index) => {
     // 只计算特定列
     if (column.property === 'writeOffAmount') {
-      // 计算借方总金额
       const totalAmount = data.reduce((sum, item) => {
         const value = Number(item.writeOffAmount)
         if (!isNaN(value)) {
@@ -325,9 +324,39 @@ const getSummaryRow = (param) => {
         return sum
       }, 0)
       sums[index] = `${totalAmount.toFixed(2)} € `
-    }  else {
+    } else if (column.property === 'invoiceTotalNetAmount') {
+      const totalAmount = data.reduce((sum, item) => {
+        const value = Number(item.invoiceTotalNetAmount)
+        if (!isNaN(value)) {
+          return sum + value
+        }
+        return sum
+      }, 0)
+      sums[index] = `${totalAmount.toFixed(2)} € `
+
+    } else if (column.property === 'verifiedAmount') {
+      const totalAmount = data.reduce((sum, item) => {
+        const value = Number(item.verifiedAmount)
+        if (!isNaN(value)) {
+          return sum + value
+        }
+        return sum
+      }, 0)
+      sums[index] = `${totalAmount.toFixed(2)} € `
+
+    } else if (column.property === 'remainAmount') {
+      const totalAmount = data.reduce((sum, item) => {
+        const value = Number(item.remainAmount)
+        if (!isNaN(value)) {
+          return sum + value
+        }
+        return sum
+      }, 0)
+      sums[index] = `${totalAmount.toFixed(2)} € `
+
+    } else {
       // 其他列显示"合计"或留空
-      sums[index] = column.property === 'paymentDueDate' ? '合计核销 :' : ''
+      sums[index] = column.property === 'paymentDueDate' ? '本次核销 :' : ''
     }
   })
   

@@ -6,48 +6,59 @@
         <div class="header-content">
           <div class="title">
             <h2>采购入库单详情</h2>
-            <el-tag :type=OrderStatusColor[form.receiptsStatus] >{{OrderStatusName[form.receiptsStatus]}}</el-tag>
-            <svg-icon icon-class="waitReceived" style="font-size: 40px;" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED || form.receiptsStatus === OrderStatusEnum.INVOICED"/>
-            <svg-icon icon-class="invoice" style="font-size: 40px;"  v-if="form.receiptsStatus === OrderStatusEnum.INVOICED"/>
+            <dict-tag :options="erp_receipts_status" :value="form.receiptsStatus" />
+            <svg-icon icon-class="waitReceived" style="font-size: 40px;"
+              v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED || form.receiptsStatus === OrderStatusEnum.BIND_INVOICED" />
+            <svg-icon icon-class="invoice" style="font-size: 40px;"
+              v-if="form.receiptsStatus === OrderStatusEnum.BIND_INVOICED" />
           </div>
           <div class="actions">
             <!-- 根据不同状态显示不同的操作按钮 -->
-            <el-button-group class="ml-4" >
+            <el-button-group class="ml-4">
               <!-- 草稿状态 -->
-              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.EDIT" @click="handleSave" v-hasPermi="['order:receipts:add','order:receipts:edit']" >
+              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.EDIT" @click="handleSave"
+                v-hasPermi="['order:receipts:add','order:receipts:edit']">
                 保存
               </el-button>
-              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.EDIT" @click="handleDelete" v-hasPermi="['order:receipts:add','order:receipts:edit']" >
+              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.EDIT" @click="handleDelete"
+                v-hasPermi="['order:receipts:add','order:receipts:edit']">
                 删除
               </el-button>
 
               <!-- 保存状态 -->
-              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.SAVE" @click="handleSubmitForReceive"  v-hasPermi="['order:receipts:add','order:receipts:edit']">
+              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.SAVE"
+                @click="handleSubmitForReceive" v-hasPermi="['order:receipts:add','order:receipts:edit']">
                 提交入库申请
               </el-button>
-              <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.SAVE" @click="handleEdit"  v-hasPermi="['order:receipts:add','order:receipts:edit']" >
+              <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.SAVE" @click="handleEdit"
+                v-hasPermi="['order:receipts:add','order:receipts:edit']">
                 继续编辑
               </el-button>
-              
+
               <!-- 待入库状态 -->
-              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_RECEIVED" @click="handleReceived"  v-hasPermi="['order:receipts:received']">
+              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_RECEIVED"
+                @click="handleReceived" v-hasPermi="['order:receipts:received']">
                 确认入库
               </el-button>
-              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_RECEIVED" @click="handleReject"  v-hasPermi="['order:receipts:received']" >
+              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_RECEIVED"
+                @click="handleReject" v-hasPermi="['order:receipts:received']">
                 驳回入库申请
               </el-button>
 
               <!-- 已入库状态 -->
-              <el-button type="success" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED" @click="handleInvoiced"  v-hasPermi="['order:receipts:invoiced']" >
-                同步发票
+              <el-button type="success" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED"
+                @click="handleBindInvoiced" v-hasPermi="['order:receipts:invoiced']">
+                绑定发票
               </el-button>
-              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED" @click="handleUnReceived"  v-hasPermi="['order:receipts:received']" >
+              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED" @click="handleUnReceived"
+                v-hasPermi="['order:receipts:received']">
                 反入库
               </el-button>
 
               <!-- 生成发票 -->
-              <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.INVOICED" @click="handleUnInvoiced"  v-hasPermi="['order:receipts:invoiced']" >
-                反同步发票
+              <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.BIND_INVOICED"
+                @click="handleUnBindInvoiced" v-hasPermi="['order:receipts:invoiced']">
+                解绑发票
               </el-button>
 
             </el-button-group>
@@ -57,164 +68,106 @@
               <el-button @click="handlePrint">打印</el-button>
               <el-button @click="handleExport">导出</el-button>
               <el-tooltip content="退出编辑" effect="dark" placement="bottom">
-                <el-button icon="Close" type="info" @click="goBack" > 退出编辑 </el-button>
+                <el-button icon="Close" type="info" @click="goBack"> 退出编辑 </el-button>
               </el-tooltip>
             </el-button-group>
           </div>
         </div>
       </template>
 
-      <el-form ref="receiptsRef" :model="form" :rules="rules" label-width="120px" :disabled="form.receiptsStatus !== OrderStatusEnum.EDIT"  >
+      <el-form ref="receiptsRef" :model="form" :rules="rules" label-width="120px"
+        :disabled="form.receiptsStatus !== OrderStatusEnum.EDIT">
 
         <!-- 基本信息 -->
         <el-row :gutter="20">
-          <el-form-item label="入库单号:" prop="receiptsNo" >
+          <el-form-item label="入库单号:" prop="receiptsNo">
             <el-input v-model="form.receiptsNo" placeholder="系统自动生成" disabled />
           </el-form-item>
           <el-form-item label="供应商：" prop="supplierId">
-            <el-select
-              v-model="form.supplierId"
-              filterable
-              clearable
-              placeholder="请选中供应商"
-              @change="handleChangeSupplier"
-            >
+            <el-select v-model="form.supplierId" filterable clearable placeholder="请选中供应商"
+              @change="handleChangeSupplier">
               <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
-              <el-option
-              v-for="item in supplierList"
-              :key="item.supplierId"
-              :label="item.supplierName"
-              :value="item.supplierId"
-              />
+              <el-option v-for="item in supplierList" :key="item.supplierId" :label="item.supplierName"
+                :value="item.supplierId" />
             </el-select>
           </el-form-item>
           <el-form-item label="入库仓库:" prop="warehouseId">
-            <el-select
-              v-model="form.warehouseId"
-              filterable
-              clearable
-              placeholder="请选择存入的仓库"
-            >
+            <el-select v-model="form.warehouseId" filterable clearable placeholder="请选择存入的仓库">
               <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
-              <el-option
-              v-for="item in warehouseList"
-              :key="item.warehouseId"
-              :label="item.warehouseName"
-              :value="item.warehouseId"
-              />
+              <el-option v-for="item in warehouseList" :key="item.warehouseId" :label="item.warehouseName"
+                :value="item.warehouseId" />
             </el-select>
           </el-form-item>
-          <el-form-item label="入库时间:" prop="receivedTime" >
-            <el-date-picker v-model="form.receivedTime" type="date" placeholder="选择入库日期" style="width: 150px;"/>
+          <el-form-item label="入库时间:" prop="receivedTime">
+            <el-date-picker v-model="form.receivedTime" type="date" placeholder="选择入库日期" style="width: 150px;" />
           </el-form-item>
-          <el-form-item label="入库备注:" prop="remark" >
-            <el-input v-model="form.remark"  placeholder="请输入备注" />
+          <el-form-item label="入库备注:" prop="remark">
+            <el-input v-model="form.remark" placeholder="请输入备注" />
           </el-form-item>
         </el-row>
         <el-row :gutter="20">
-          <el-form-item label="发票号:" prop="invoiceId" >
-             <el-select
-              v-model="form.invoiceId"
-              filterable
-              clearable
-              placeholder="请选择发票号"
-            >
+          <el-form-item label="发票号:" prop="invoiceId">
+            <el-select v-model="form.invoiceId" filterable clearable placeholder="请选择发票号"
+              @focus="handleCheckSupplierId()" style="width: 100%;">
               <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
-              <el-option
-              v-for="item in purchaseInvoiceList"
-              :key="item.invoiceId"
-              :label="item.invoiceNo"
-              :value="item.invoiceId"
-              />
+              <el-option v-for="item in purchaseInvoiceList" :key="item.invoiceId" :label="item.invoiceNo"
+                :value="item.invoiceId" />
             </el-select>
           </el-form-item>
           <el-form-item label="配送方式" prop="deliveryType">
             <el-select v-model="form.deliveryType" placeholder="请选择配送方式" clearable>
-              <el-option
-                v-for="dict in erp_delivery_type"
-                :key="dict.value"
-                :label="dict.label"
-                :value="dict.value"
-              />
+              <el-option v-for="dict in erp_delivery_type" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
           <el-form-item label="物流公司:" prop="deliveryCompanyId" v-if="form.deliveryType=='2'">
-            <el-select
-              v-model="form.deliveryCompanyId"
-              filterable
-              clearable
-              placeholder="请选中物流公司"
-              style="width: 200px"
-            >
+            <el-select v-model="form.deliveryCompanyId" filterable clearable placeholder="请选中物流公司" style="width: 200px">
               <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
-              <el-option
-              v-for="item in logisticsCompanyList"
-              :key="item.companyId"
-              :label="item.companyName"
-              :value="item.companyId"
-              />
+              <el-option v-for="item in logisticsCompanyList" :key="item.companyId" :label="item.companyName"
+                :value="item.companyId" />
             </el-select>
           </el-form-item>
           <el-form-item label="物流单号:" prop="deliveryNo" v-if="form.deliveryType=='2'">
-            <el-input v-model="form.deliveryNo"  placeholder="请输入备注" />
+            <el-input v-model="form.deliveryNo" placeholder="请输入备注" />
           </el-form-item>
           <el-form-item label="货柜编号:" prop="containerId" v-if="form.deliveryType=='3'">
-            <el-select
-              v-model="form.containerId"
-              filterable
-              clearable
-              placeholder="请选中货柜"
-              style="width: 200px"
-            >
+            <el-select v-model="form.containerId" filterable clearable placeholder="请选中货柜" style="width: 200px">
               <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
-              <el-option
-              v-for="item in containerList"
-              :key="item.containerId"
-              :label="item.containerCode"
-              :value="item.containerId"
-              />
+              <el-option v-for="item in containerList" :key="item.containerId" :label="item.containerCode"
+                :value="item.containerId" />
             </el-select>
           </el-form-item>
-          <el-form-item label="默认批次号:" prop="batchNo" >
-            <el-input v-model="form.batchNo"  placeholder="请输入批次号" />
+          <el-form-item label="默认批次号:" prop="batchNo">
+            <el-input v-model="form.batchNo" placeholder="请输入批次号" />
           </el-form-item>
         </el-row>
-      </el-form> 
+      </el-form>
 
       <!-- 分割线 -->
       <el-divider content-position="left">
         <strong style="margin-right: 30px;">入库商品明细</strong>
-        <el-button type="primary" size="small" icon="Link" @click="handleLinkPurchaseOrder" v-if="form.receiptsStatus == OrderStatusEnum.EDIT">引入采购单</el-button>
+        <el-button type="primary" size="small" icon="Link" @click="handleLinkPurchaseOrder"
+          v-if="form.receiptsStatus == OrderStatusEnum.EDIT">引入采购单</el-button>
       </el-divider>
 
       <!-- 商品明细 -->
-      <div id="touch-scroll-container" style="height:400px" >
+      <div id="touch-scroll-container" style="height:400px">
         <!-- 隐藏输入框 -->
-        <input ref="hiddenInput" style="opacity: 0; position: absolute;" /> 
-        <el-auto-resizer >
+        <input ref="hiddenInput" style="opacity: 0; position: absolute;" />
+        <el-auto-resizer>
           <template #default="{ height, width }">
-            <el-table-v2
-              ref="tableRef"
-              :columns="columns"
-              :data="tableData"
-              :sort-by="sortState"
-              :width="width"
-              :height="height"
-              :row-height="50"
-              
-              fixed
-              class="custom-table"
-              @scroll="handleScroll"
-              @column-sort="onSort"
-              >
+            <el-table-v2 ref="tableRef" :columns="columns" :data="tableData" :sort-by="sortState" :width="width"
+              :height="height" :row-height="50" fixed class="custom-table" @scroll="handleScroll" @column-sort="onSort">
             </el-table-v2>
           </template>
         </el-auto-resizer>
       </div>
 
-      <div class="table-operations" v-if="form.receiptsStatus === OrderStatusEnum.EDIT && form.details.length < maxLength">
+      <div class="table-operations"
+        v-if="form.receiptsStatus === OrderStatusEnum.EDIT && form.details.length < maxLength">
         <el-button type="primary" @click="addItem">
-          <el-icon><Plus /></el-icon>   
+          <el-icon>
+            <Plus />
+          </el-icon>
           <span> 添加商品 (限制最多 {{ maxLength }} 条流水)</span>
         </el-button>
       </div>
@@ -223,13 +176,13 @@
       <template #footer>
         <div style="display: flex; justify-content: space-evenly; align-items: center;">
           <div>
-              <span > 合计采购额: {{ formatAmount(form.totalPurchaseAmount) }} € </span>
+            <span> 合计采购额: {{ formatAmount(form.totalPurchaseAmount) }} € </span>
           </div>
           <div>
-              <span >合计折扣额: {{ formatAmount(form.totalDiscountAmount) }} €  </span>
+            <span>合计折扣额: {{ formatAmount(form.totalDiscountAmount) }} € </span>
           </div>
           <div>
-            <span > 合计税额: {{ formatAmount(form.totalTaxAmount) }} € </span>
+            <span> 合计税额: {{ formatAmount(form.totalTaxAmount) }} € </span>
           </div>
           <div>
             <strong class="total-net-amount"> 实际金额: {{ formatAmount(form.totalNetAmount) }} € </strong>
@@ -237,7 +190,7 @@
         </div>
       </template>
     </el-card>
-  
+
     <!-- 订单操作记录 -->
     <el-card class="operation-card">
       <template #header>
@@ -249,7 +202,7 @@
         <el-timeline-item v-for="(activity, index) in orderOperateLog" :key="index"
           :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top">
           {{ activity.operator }} - {{ activity.action }}
-          <span v-if="activity.remark"> - -  描述 : </span>
+          <span v-if="activity.remark"> - - 描述 : </span>
           <span class="remark">{{ activity.remark }}</span>
         </el-timeline-item>
       </el-timeline>
@@ -259,16 +212,26 @@
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
       <el-form :model="approvalForm" label-width="80px">
         <!-- 必须要填写备注的操作类型 -->
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="actionRequiresRemark.includes(currentAction)">
-          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)" />
+        <el-form-item :label="getRemarkMessage(currentAction) + ':'"
+          v-if="actionRequiresRemark.includes(currentAction)">
+          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20"
+            :placeholder="'请输入' + getRemarkMessage(currentAction)" />
+        </el-form-item>
+        <el-form-item label="请选择发票:" v-if="currentAction == OrderOperateType.BIND_INVOICED">
+          <el-select v-model="form.invoiceId" filterable clearable placeholder="请选择发票号" @focus="handleCheckSupplierId()"
+            style="width: 100%;">
+            <template #prefix><svg-icon icon-class="admin" class="el-input__icon input-icon" /></template>
+            <el-option v-for="item in purchaseInvoiceList" :key="item.invoiceId" :label="item.invoiceNo"
+              :value="item.invoiceId" />
+          </el-select>
         </el-form-item>
       </el-form>
-       <!-- 不须要填写备注的操作类型 -->
+      <!-- 不须要填写备注的操作类型 -->
       <span v-if="actionRequiresNoRemark.includes(currentAction)"> 您确认要 {{ dialogTitle }} 吗？</span>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitApproval" >
+          <el-button type="primary" @click="submitApproval">
             确认
           </el-button>
         </span>
@@ -276,113 +239,86 @@
     </el-dialog>
 
     <!-- 引入采购订单 -->
-    <el-dialog :title="linkPurchaseOrderTitle" v-model="open" width="70%" append-to-body >
+    <el-dialog :title="linkPurchaseOrderTitle" v-model="open" width="70%" append-to-body>
       <el-card>
-      <!---- 采购订单选择器 -->
-      <el-row>
-         <el-col :span="5">
-          <el-form-item label="开启采购订单引入">
-            <el-switch
-              v-model="showPurchaseNo"
-              size="large"
-              width="60"
-              inline-prompt
-              style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
-              active-text="开启"
-              inactive-text="关闭"
-            />
-          </el-form-item>
+        <!---- 采购订单选择器 -->
+        <el-row>
+          <el-col :span="5">
+            <el-form-item label="开启采购订单引入">
+              <el-switch v-model="showPurchaseNo" size="large" width="60" inline-prompt
+                style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" active-text="开启"
+                inactive-text="关闭" />
+            </el-form-item>
           </el-col>
           <el-col :span="6">
-          <el-form-item label="采购订单号:" prop="orderNo" style="margin-right: 20px">
-            <el-select 
-              v-model="linkPurchaseOrderId" 
-              filterable 
-              clearable 
-              placeholder="请选择采购订单" 
-              style="width: 200px"
-              @change="handleLinkPurchaseOrderChange"
-              :disabled="!showPurchaseNo"
-              >
-                <el-option
-                  v-for="item in linkPurchaseOrderList" :key="item.orderId"
-                  :label="item.orderNo" :value="item.orderId"
-                />
+            <el-form-item label="采购订单号:" prop="orderNo" style="margin-right: 20px">
+              <el-select v-model="linkPurchaseOrderId" filterable clearable placeholder="请选择采购订单" style="width: 200px"
+                @change="handleLinkPurchaseOrderChange" :disabled="!showPurchaseNo">
+                <el-option v-for="item in linkPurchaseOrderList" :key="item.orderId" :label="item.orderNo"
+                  :value="item.orderId" />
               </el-select>
-          </el-form-item>
-         </el-col>
+            </el-form-item>
+          </el-col>
           <el-col :span="5">
-          <el-form-item>
-            <el-button-group >
-              <el-button type="primary" @click="syncPurchaseQuantity" :disabled="!showPurchaseNo">同步采购数量</el-button>
-              <el-button type="success" @click="syncShortageQuantity" :disabled="!showPurchaseNo">同步缺货数量</el-button>
-            </el-button-group>
-          </el-form-item>
-        </el-col>
-      </el-row>
-      
-        
-      <!-- 采购订单明细 -->
-      <el-table :data="purchaseOrder.details" @selection-change="handleSelectionChange">
-        <el-table-column type="selection" width="55" align="center" />
-        <el-table-column type="index" label="序号" width="50"  align="center"/>
-        <el-table-column label="商品名称" align="left" prop="productSkuVo.skuName"  min-width="120" show-overflow-tooltip/>
-        <el-table-column label="sku编码" align="left" prop="productSkuVo.skuCode" min-width="120" show-overflow-tooltip/>
-        <el-table-column label="suk" align="left" prop="productSkuVo.skuValue" min-width="90" show-overflow-tooltip>
-          <template #default="scope">
-            <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) === 'default'">
-              --  <!-- 直接显示默认 SKU -->
-            </div>
-            <div v-else v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
-              <strong>{{ item[0] }}:</strong>
-              <span>{{ item[1] }}</span>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column label="采购单价" align="right" header-align="center" prop="unitPrice">
-          <template #default="scope">
-            <span>{{ formatTwo(scope.row.unitPrice) }} €</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="采购数量" align="center" prop="quantity"/>
-        <el-table-column label="入库数量" align="center" prop="inputQuantity">
-          <template #default="scope">
-            <el-input-number 
-            v-model="scope.row.inputQuantity" 
-            :min="0" 
-            :controls="false" 
-            style="width: 100%" 
-            :precision="0" 
-            :step="0"
-            :disabled="!showPurchaseNo || scope.row.unitPrice == 0"
-            @change="calculateShortageQuantity(scope.$index)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="已入库" align="center" prop="receivedQuantity"/>
-        <el-table-column label="缺货数量" align="center" prop="shortageQuantity"/>
-        <!-- <el-table-column label="批次号" align="center" prop="batchNo" min-width="120" >
-          <template #default="scope">
-            <el-tooltip placement="top" :content="scope.row.batchNo">
-              <el-input v-model="scope.row.batchNo" placeholder="请输入批次号"  />
-            </el-tooltip>
-          </template>
-        </el-table-column>
-        <el-table-column label="过期日期" align="center" prop="expireDate" min-width="150" >
-          <template #default="scope">
-            <el-date-picker
-              v-model="scope.row.expireDate"
-              type="date"
-              placeholder="请选择过期日期"
-              format="YYYY-MM-DD"
-              value-format="YYYY-MM-DD"
-              :disabled-date="disablePastDates"
-              style="width: 100%;"
-            />
-          </template>
-        </el-table-column> -->
-      </el-table>
-        
+            <el-form-item>
+              <el-button-group>
+                <el-button type="primary" @click="syncPurchaseQuantity" :disabled="!showPurchaseNo">同步采购数量</el-button>
+                <el-button type="success" @click="syncShortageQuantity" :disabled="!showPurchaseNo">同步缺货数量</el-button>
+              </el-button-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+
+        <!-- 采购订单明细 -->
+        <el-table :data="purchaseOrder.details" @selection-change="handleSelectionChange">
+          <el-table-column type="selection" width="55" align="center" />
+          <el-table-column type="index" label="序号" width="50" align="center" />
+          <el-table-column label="商品名称" align="left" prop="productSkuVo.skuName" min-width="120"
+            show-overflow-tooltip />
+          <el-table-column label="sku编码" align="left" prop="productSkuVo.skuCode" min-width="120"
+            show-overflow-tooltip />
+          <el-table-column label="suk" align="left" prop="productSkuVo.skuValue" min-width="90" show-overflow-tooltip>
+            <template #default="scope">
+              <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) === 'default'">
+                -- <!-- 直接显示默认 SKU -->
+              </div>
+              <div v-else v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
+                <strong>{{ item[0] }}:</strong>
+                <span>{{ item[1] }}</span>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column label="采购单价" align="right" header-align="center" prop="unitPrice">
+            <template #default="scope">
+              <span>{{ formatTwo(scope.row.unitPrice) }} €</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="采购数量" align="center" prop="quantity" />
+          <el-table-column label="入库数量" align="center" prop="inputQuantity">
+            <template #default="scope">
+              <el-input-number v-model="scope.row.inputQuantity" :min="0" :controls="false" style="width: 100%"
+                :precision="0" :step="0" :disabled="!showPurchaseNo || scope.row.unitPrice == 0"
+                @change="calculateShortageQuantity(scope.$index)" />
+            </template>
+          </el-table-column>
+          <el-table-column label="已入库" align="center" prop="receivedQuantity" />
+          <el-table-column label="缺货数量" align="center" prop="shortageQuantity" />
+          <el-table-column label="批次号" align="center" prop="batchNo" min-width="120">
+            <template #default="scope">
+              <el-tooltip placement="top" :content="scope.row.batchNo">
+                <el-input v-model="scope.row.batchNo" placeholder="请输入批次号" />
+              </el-tooltip>
+            </template>
+          </el-table-column>
+          <el-table-column label="过期日期" align="center" prop="expireDate" min-width="150">
+            <template #default="scope">
+              <el-date-picker v-model="scope.row.expireDate" type="date" placeholder="请选择过期日期" format="YYYY-MM-DD"
+                value-format="YYYY-MM-DD" :disabled-date="disablePastDates" style="width: 100%;" />
+            </template>
+          </el-table-column>
+        </el-table>
+
       </el-card>
       <template #footer>
         <div class="dialog-footer">
@@ -403,7 +339,7 @@ import { h } from 'vue'
 import { nextTick } from 'vue'
 import { debounce } from 'lodash'
 import { TableV2SortOrder } from 'element-plus'
-import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts, updateReceiptsStatus, received, unReceived, invoiced, unInvoiced } from "@/api/order/receipts";
+import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts, updateReceiptsStatus, received, unReceived, bindInvoiced, unBindInvoiced } from "@/api/order/receipts";
 import { listSupplier } from "@/api/order/supplier"
 import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
 import { listContainers } from "@/api/transportation/containers";
@@ -412,6 +348,8 @@ import { listWarehouse} from "@/api/product/warehouse";
 import { listPurchaseOrderByStatus, getPurchaseOrder} from "@/api/order/purchaseOrder";
 import { listCostInvoice } from "@/api/finance/costInvoice";
 import { getSkuValue } from '@/utils/ruoyi.js';
+import { CostInvoiceSelectStatusList, OrderStatusEnum, OrderStatusColor, OrderStatusName, OrderOperateType } from "./receiptsEnum.js"
+import { InvoiceTypeEnum, InvoiceStatusEnum, AssistTypeEnum } from "@/views/finance/costInvoice/costInvoiceEnum.js"
 
 
 const router = useRouter();
@@ -680,14 +618,21 @@ const calculateAmount = () => {
 
 
 // ****************************** 发票号 数据获取 start *****************************
+const handleCheckSupplierId = () => {
+  // 如果没有选择供应商，提示请先选择供应商
+  if (form.value.supplierId == null){
+    ElMessage.warning("请先选择供应商！")
+  }
+}
+
 const purchaseInvoiceList = ref([]);
 
 // 获取发票列表
 const getPurchaseInvoiceList = async (supplierId) => {
-  // 定义发票状态: 草稿 未审核 已审核
-  const invoiceStatusList = ['1', '2', '3'];
-  const invoiceType = '1';  // 采购发票
-  const assistType = '2';   // 辅助类型：供应商
+  // TODO: 定义发票状态: 草稿 未审核 已审核
+  const invoiceStatusList = CostInvoiceSelectStatusList;
+  const invoiceType = InvoiceTypeEnum.INVOICE_TYPE_PURCHASE;  // 采购发票
+  const assistType = AssistTypeEnum.ASSIST_TYPE_SUPPLIER;   // 辅助类型：供应商
 
   try {
     // 并行发起请求
@@ -768,6 +713,7 @@ getSuppliers()
 
 let originalSupplierId = null; // 缓存原始的供应商ID
 const handleChangeSupplier = () => {
+  form.value.invoiceId = null;
   // 1 更新查询参数
   purchaseQueryParams.value.supplierId = form.value.supplierId;
   // 2 如果开启了 显示采购订单号，更新供应商就会清空商品明细
@@ -798,9 +744,6 @@ const handleChangeSupplier = () => {
   }
   // 3 获取供应商对应的发票号
   getPurchaseInvoiceList(form.value.supplierId);
-  
-
-
 }
 
 // ******************************  供应商 数据获取 end *****************************
@@ -829,7 +772,6 @@ const columns = computed(() => [
     title: '删除',
     width: 60,
     align: 'center',
-    fixed:'left',
     hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT,  // 控制列是否可见
     cellRenderer: ({ rowIndex }) => {
       if (form.value.receiptsStatus === OrderStatusEnum.EDIT) {
@@ -848,7 +790,6 @@ const columns = computed(() => [
     title: '序号',
     width: 55,
     align: 'center',
-    fixed:'left',
     cellRenderer: ({ rowIndex }) => rowIndex + 1
   },
    {
@@ -874,53 +815,20 @@ const columns = computed(() => [
     }
   },
   {
-    key: 'productCode',
-    title: '商品编码',
-    width: 180,
-    align: 'left',
-    cellRenderer: ({ rowData, rowIndex  }) => {
-      const inputId = getInputId(rowIndex, 'productCode')
-      const getTooltipContent = () => {return rowData.productSkuVo?.productCode || '';}
-      if (form.value.receiptsStatus === OrderStatusEnum.EDIT) {
-        return h(ElAutocomplete, {
-          id: inputId,
-          modelValue: rowData.productSkuVo?.productCode || '',
-          'onUpdate:modelValue': (value) => {
-            form.value.details[rowIndex].productSkuVo.productCode = value
-          },
-          fetchSuggestions: queryProducts,
-          placeholder: '输入商品编码或名称',
-          highlightFirstItem: true,
-          onSelect: (item) => handleProductSelect(item, rowIndex),
-          onBlur: () => handleProductOnBlur(rowIndex),
-          onChange: () => handleProductChange(rowIndex),
-          onKeydown: (e) => handleAutocompleteKeydown(e, rowIndex, 'productCode'),
-          onFocus: () => {
-            currentFocus.value = { rowIndex, columnKey: 'productCode' };
-            isAutocompleteEdit.value = true;
-          },
-        }, {
-          default: ({ item }) => h('div', { style: { display: 'flex', justifyContent:'space-between', alignItems: 'center' } }, [
-            h('div', `${item.skuCode} - ${item.skuName}`),
-            h('small',{style:{color:'#909399',marginLeft:'5px'}} ,`库存: ${item.averageCostBySkuVo?.currentStock || '--'}`)
-          ])
-        })
-      }
-      // 非编辑状态，显示商品编码
-      
-      return h(ElTooltip, {
-        content: getTooltipContent(),
-        placement: 'top'
-      },{
-        default: () => h('div', {style: {
-          overflow: 'hidden',       // 隐藏溢出部分
-          textOverflow: 'ellipsis', // 使用省略号
-          whiteSpace: 'nowrap',     // 禁止换行
-          cursor: 'pointer'         // 鼠标变成指针，增加交互提示
-        } }, getTooltipContent())
-      }
-      )  
-    }
+    key: 'quantity',
+    title: '采购订单总量',
+    width: 100,
+    align: 'right',
+    hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT || !showPurchaseNo.value,
+    cellRenderer: ({ rowData }) => rowData.quantity
+  },
+  {
+    key: 'shortageQuantity',
+    title: '采购订单欠货',
+    width: 100,
+    align: 'right',
+    hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT || !showPurchaseNo.value,
+    cellRenderer: ({ rowData }) => rowData.shortageQuantity
   },
   {
     key: 'skuName',
@@ -982,6 +890,57 @@ const columns = computed(() => [
           ])
         }
       }))
+    }
+  },
+  {
+    key: 'productCode',
+    title: '商品编码',
+    width: 180,
+    align: 'left',
+    cellRenderer: ({ rowData, rowIndex }) => {
+      const inputId = getInputId(rowIndex, 'productCode')
+      const getTooltipContent = () => { return rowData.productSkuVo?.productCode || ''; }
+      if (form.value.receiptsStatus === OrderStatusEnum.EDIT) {
+        return h(ElAutocomplete, {
+          id: inputId,
+          modelValue: rowData.productSkuVo?.productCode || '',
+          'onUpdate:modelValue': (value) => {
+            form.value.details[rowIndex].productSkuVo.productCode = value
+          },
+          fetchSuggestions: queryProducts,
+          placeholder: '输入商品编码或名称',
+          highlightFirstItem: true,
+          onSelect: (item) => handleProductSelect(item, rowIndex),
+          onBlur: () => handleProductOnBlur(rowIndex),
+          onChange: () => handleProductChange(rowIndex),
+          onKeydown: (e) => handleAutocompleteKeydown(e, rowIndex, 'productCode'),
+          onFocus: () => {
+            currentFocus.value = { rowIndex, columnKey: 'productCode' };
+            isAutocompleteEdit.value = true;
+          },
+        }, {
+          default: ({ item }) => h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }, [
+            h('div', `${item.skuCode} - ${item.skuName}`),
+            h('small', { style: { color: '#909399', marginLeft: '5px' } }, `库存: ${item.averageCostBySkuVo?.currentStock || '--'}`)
+          ])
+        })
+      }
+      // 非编辑状态，显示商品编码
+
+      return h(ElTooltip, {
+        content: getTooltipContent(),
+        placement: 'top'
+      }, {
+        default: () => h('div', {
+          style: {
+            overflow: 'hidden',       // 隐藏溢出部分
+            textOverflow: 'ellipsis', // 使用省略号
+            whiteSpace: 'nowrap',     // 禁止换行
+            cursor: 'pointer'         // 鼠标变成指针，增加交互提示
+          }
+        }, getTooltipContent())
+      }
+      )
     }
   },
   {
@@ -1204,22 +1163,6 @@ const columns = computed(() => [
         style:{width:'100%'},
       }))
     }
-  },
-  {
-    key: 'quantity',
-    title: '采购订单数量',
-    width: 100,
-    align: 'right',
-    hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
-    cellRenderer: ({ rowData }) => rowData.quantity
-  },
-  {
-    key: 'shortageQuantity',
-    title: '采购订单缺货',
-    width: 100,
-    align: 'right',
-    hidden: form.value.receiptsStatus !== OrderStatusEnum.EDIT,
-    cellRenderer: ({ rowData }) => rowData.shortageQuantity
   }
 ])
 
@@ -1469,53 +1412,6 @@ onBeforeUnmount(() => {
 
 const userStore = useUserStore();
 
-
-// 订单状态枚举
-const OrderStatusEnum = {
-  EDIT: '1',
-  SAVE: '2',
-  WAIT_FOR_RECEIVED: '3',
-  RECEIVED: '4',
-  WAIT_FOR_INVOICED: '5',
-  INVOICED: '6',
-  DELETE: '7',
-}
-
-// 订单状态颜色
-const OrderStatusColor = {
-  '1':'info',
-  '2':'primary',
-  '3':'warning',
-  '4':'success',
-  '5':'warning',
-  '6':'success',
-  '7':'danger',
-}
-
-// 订单状态描述
-const OrderStatusName = {
-  '1':'草稿',
-  '2':'保存',
-  '3':'待入库',
-  '4':'已入库',
-  '5':'待生成发票',
-  '6':'已生成发票',
-  '7':'已作废',
-}
-
-// 订单操作类型
-const OrderOperateType = {
-  EDIT: 'edit',
-  SAVE: 'save',
-  SUBMIT: 'submit',
-  REJECT: 'reject',
-  RECEIVED: 'received',
-  UN_RECEIVED: 'unReceived',
-  INVOICED: 'invoiced',
-  UN_INVOICED: 'unInvoiced',
-  DELETE: 'delete'
-}
-
 /** 获取时间线项目类型 */ 
 const getTimelineItemType = (receiptsStatus) => {
   const typeMap = {
@@ -1525,8 +1421,8 @@ const getTimelineItemType = (receiptsStatus) => {
     reject: 'danger',
     received: 'success',
     unReceived: 'danger',
-    invoiced: 'success',
-    unInvoiced: 'danger',
+    bindInvoiced: 'success',
+    unBindInvoiced: 'danger',
   }
   return typeMap[receiptsStatus] || 'info'
 }
@@ -1534,10 +1430,10 @@ const getTimelineItemType = (receiptsStatus) => {
 /** 根据操作返回提示信息 */
 function getRemarkMessage(action) {
   const messages = {
-    [OrderOperateType.RECEIVED]: '入库情况',
+    [OrderOperateType.RECEIVED]: '入库备注',
     [OrderOperateType.UN_RECEIVED]: '反入库原因',
-    [OrderOperateType.INVOICED]: '开发票情况',
-    [OrderOperateType.UN_INVOICED]: '反开发票原因'
+    [OrderOperateType.BIND_INVOICED]: '绑定发票备注',
+    [OrderOperateType.UN_BIND_INVOICED]: '解绑发票原因'
   };
   return messages[action] || '备注';
 }
@@ -1877,13 +1773,15 @@ const handleUnReceived = () => {
 }
 
 /** 生成发票 */ 
-const handleInvoiced = () => {
-  openApprovalDialog('生成发票', OrderOperateType.INVOICED)
+const handleBindInvoiced = () => {
+  // 提出提示框，请输入发票号
+  getPurchaseInvoiceList()
+  openApprovalDialog('绑定发票', OrderOperateType.BIND_INVOICED)
 }
 
 /** 反生成发票 */ 
-const handleUnInvoiced = () => {
-  openApprovalDialog('反生成发票', OrderOperateType.UN_INVOICED)
+const handleUnBindInvoiced = () => {
+  openApprovalDialog('解绑发票', OrderOperateType.UN_BIND_INVOICED)
 }
 
 
@@ -1972,12 +1870,16 @@ const handleError = (message = "操作失败") => {
 };
 
 /** 采购订单提交操作 */ 
-const actionRequiresRemark = [ OrderOperateType.REJECT, OrderOperateType.RECEIVED, OrderOperateType.UN_RECEIVED, OrderOperateType.INVOICED, OrderOperateType.UN_INVOICED];
+const actionRequiresRemark = [ OrderOperateType.REJECT, OrderOperateType.RECEIVED, OrderOperateType.UN_RECEIVED, OrderOperateType.BIND_INVOICED, OrderOperateType.UN_BIND_INVOICED];
 const actionRequiresNoRemark = [ OrderOperateType.EDIT, OrderOperateType.SAVE, OrderOperateType.DELETE, OrderOperateType.SUBMIT];
 const submitApproval = async () => {
   // 1 强制输入描述信息 检查
-  if (actionRequiresRemark.includes(currentAction.value) && !approvalForm.value.remark) {
+  if (actionRequiresRemark.includes(currentAction.value) && !approvalForm.value.remark ) {
     ElMessage.warning(`请输入${getRemarkMessage(currentAction.value)}`);
+    return;
+  }
+  if (actionRequiresRemark.includes(currentAction.value)  &&  !form.value.invoiceId && currentAction.value == OrderOperateType.BIND_INVOICED) {
+    ElMessage.warning(`请选择发票号！`);
     return;
   }
 
@@ -2008,20 +1910,20 @@ const submitApproval = async () => {
       message: '入库成功 成功!',
       actionValue: OrderOperateType.RECEIVED
     },
-    [OrderOperateType.INVOICED]: {
-      status: OrderStatusEnum.INVOICED,
-      message: '已生成发票!',
-      actionValue: OrderOperateType.INVOICED
+    [OrderOperateType.BIND_INVOICED]: {
+      status: OrderStatusEnum.BIND_INVOICED,
+      message: '已绑定发票!',
+      actionValue: OrderOperateType.BIND_INVOICED
     },
     [OrderOperateType.UN_RECEIVED]: {
       status: OrderStatusEnum.SAVE,
       message: '反入库 成功!',
       actionValue: OrderOperateType.UN_RECEIVED
     },
-    [OrderOperateType.UN_INVOICED]: {
+    [OrderOperateType.UN_BIND_INVOICED]: {
       status: OrderStatusEnum.RECEIVED,
-      message: '反生成发票 成功!',
-      actionValue: OrderOperateType.UN_INVOICED
+      message: '解绑发票成功!',
+      actionValue: OrderOperateType.UN_BIND_INVOICED
     },
   }
 
@@ -2037,7 +1939,7 @@ const submitApproval = async () => {
     // 4 后端 API调用
     if (currentAction.value === OrderOperateType.SAVE) {
       form.value.showPurchaseNo = showPurchaseNo.value
-      if (!form.value.receiptsId) {
+      if (form.value.receiptsId == null) {
         // 新增操作
         await addReceipts(form.value)
           .then( (res) => {
@@ -2133,9 +2035,9 @@ const submitApproval = async () => {
             handleError("反入库 操作失败");
             form.value.receiptsStatus = OrderStatusEnum.RECEIVED
           });
-    }else if (currentAction.value === OrderOperateType.INVOICED) {
-      // 生成发票操作
-      await invoiced(form.value)
+    }else if (currentAction.value === OrderOperateType.BIND_INVOICED) {
+      // 绑定发票操作
+      await bindInvoiced(form.value)
         // 修改状态更新操作日志
           .then( () => {
             parseJson();
@@ -2143,12 +2045,12 @@ const submitApproval = async () => {
             RefreshTab()
           })
           .catch(() => {
-            handleError("生成发票 操作失败");
-            form.value.receiptsStatus = OrderStatusEnum.WAIT_FOR_INVOICED
+            handleError("绑定发票 操作失败");
+            form.value.receiptsStatus = OrderStatusEnum.WAIT_FOR_BIND_INVOICED
           });
-    } else if (currentAction.value === OrderOperateType.UN_INVOICED) {
-      // 反生成发票操作
-      await unInvoiced(form.value)
+    } else if (currentAction.value === OrderOperateType.UN_BIND_INVOICED) {
+      // 解绑发票操作
+      await unBindInvoiced(form.value)
         // 修改状态更新操作日志
           .then( () => {
             parseJson();
@@ -2156,8 +2058,8 @@ const submitApproval = async () => {
             RefreshTab()
           })
           .catch(() => {
-            handleError("反生成发票 操作失败");
-            form.value.receiptsStatus = OrderStatusEnum.INVOICED
+            handleError("解绑发票 操作失败");
+            form.value.receiptsStatus = OrderStatusEnum.BIND_INVOICED
           });
     }
   } catch (error) {
@@ -2217,12 +2119,7 @@ const getInfoById = () => {
 }
 
 onMounted(() => {
-  getInfoById()
   addItem()
-  // 组件挂载后设置初始焦点
-  // if (tableData.value.length > 0) {
-  //   moveFocus(0, 'productCode')
-  // }
 });
 
 // ************************** 审核记录 + 提示弹窗 end ******************

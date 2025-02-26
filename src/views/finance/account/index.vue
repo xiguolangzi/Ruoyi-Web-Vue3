@@ -16,7 +16,7 @@
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
-    
+
 
       <el-row :gutter="10" class="mb8">
         <el-col :span="1.5">
@@ -29,13 +29,12 @@
         <el-col :span="1.5">
           <el-form-item label="科目类型:" prop="accountType">
             <el-radio-group v-model="queryParams.accountType">
-              <el-radio-button 
-                v-for="dict in erp_finance_account_style" :key="dict.value" :label="dict.label" :value="dict.value" @change="handleQuery" 
-              />
+              <el-radio-button v-for="dict in erp_finance_account_style" :key="dict.value" :label="dict.label"
+                :value="dict.value" @change="handleQuery" />
             </el-radio-group>
           </el-form-item>
         </el-col>
-        
+
         <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>
     </el-form>
@@ -44,7 +43,8 @@
       :default-expand-all="isExpandAll" :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
       ref="accountTable" @cell-click="handleCellClick">
       <el-table-column label="科目编码" prop="accountCode" min-width="100" show-overflow-tooltip />
-      <el-table-column label="科目名称" align="left" header-align="center" prop="accountName" min-width="100" show-overflow-tooltip />
+      <el-table-column label="科目名称" align="left" header-align="center" prop="accountName" min-width="100"
+        show-overflow-tooltip />
       <el-table-column label="科目类型" align="center" prop="accountType">
         <template #default="scope">
           <dict-tag :options="erp_finance_account_style" :value="scope.row.accountType" />
@@ -66,6 +66,12 @@
             <dict-tag :options="finance_assist_type" v-for="item in scope.row.assistTypes" :key="item" :value="item" />
           </div>
           <span v-if="scope.row.assistTypes.length == 0">--</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="是否末级科目" align="center" prop="isLeaf">
+        <template #default="scope">
+          <el-tag type="info" v-if="scope.row.isLeaf == IsLeafAccountEnum.YES">末级</el-tag>
+          <el-tag type="danger" v-else>非末级</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="status">
@@ -135,7 +141,8 @@
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio v-for="dict in project_general_status" :key="dict.value" :value="dict.value">{{dict.label}}</el-radio>
+            <el-radio v-for="dict in project_general_status" :key="dict.value"
+              :value="dict.value">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
@@ -157,12 +164,14 @@ import { listAccount, getAccount, delAccount, addAccount, updateAccount } from "
 import useUserStore from "@/store/modules/user";
 import { ElMessage } from "element-plus";
 import { ref } from "vue";
+import { IsLeafAccountEnum } from "./accountEnum.js"
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
 const { erp_finance_account_style, project_general_status, finance_assist_type, finance_account_direction } = proxy.useDict('erp_finance_account_style', 'project_general_status', 'finance_assist_type', 'finance_account_direction');
+console.log("*********",erp_finance_account_style);
 
 const accountList = ref([]);
 const accountOptions = ref([]);

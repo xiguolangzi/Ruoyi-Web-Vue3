@@ -2,127 +2,74 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="发票类型:" prop="invoiceType">
-        <el-select v-model="queryParams.invoiceType" placeholder="请选择发票类型" clearable>
-          <el-option
-            v-for="dict in erp_purchase_invoice_type"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+        <el-select v-model="queryParams.invoiceType" placeholder="请选择发票类型" @change="handleQuery" clearable>
+          <el-option v-for="dict in erp_cost_invoice_type" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="发票状态:" prop="invoiceStatus">
-        <el-select v-model="queryParams.invoiceStatus" placeholder="请选择发票状态" clearable>
-          <el-option
-            v-for="dict in erp_purchase_invoice_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+        <el-select v-model="queryParams.invoiceStatus" placeholder="请选择发票状态" @change="handleQuery" clearable>
+          <el-option v-for="dict in erp_cost_invoice_status" :key="dict.value" :label="dict.label"
+            :value="dict.value" />
         </el-select>
       </el-form-item>
-      
+
       <el-form-item label="辅助类型:" prop="assistType">
-        <el-select v-model="queryParams.assistType" placeholder="请选择客户类型"  @keyup.enter="handleQuery" @change="changeQueryParamsAssistType" clearable>
-          <el-option
-            v-for="dict in finance_assist_type"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          ></el-option>
+        <el-select v-model="queryParams.assistType" placeholder="请选择客户类型" @keyup.enter="handleQuery"
+          @change="changeQueryParamsAssistType" clearable>
+          <el-option v-for="dict in finance_assist_type" :key="dict.value" :label="dict.label"
+            :value="dict.value"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="选择客户:" prop="assistId" v-if="queryParams.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER">
         <!-- 客户 -->
-        <el-select v-model="queryParams.assistId" placeholder="请选择客户" clearable  filterable>
-          <el-option
-            v-for="customer in customerList"
-            :key="customer.customerId"
-            :label="customer.customerName"
-            :value="customer.customerId"
-            :disabled="customer.customerStatus !== '0'"
-          >
+        <el-select v-model="queryParams.assistId" placeholder="请选择客户" @change="handleQuery" clearable filterable>
+          <el-option v-for="customer in customerList" :key="customer.customerId" :label="customer.customerName"
+            :value="customer.customerId" :disabled="customer.customerStatus !== '0'">
             <span>{{ `客户名称：${customer.customerName} ---- 客户编码：${customer.customerCode}` }}</span>
           </el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="选择供应商:" prop="assistId" v-if="queryParams.assistType == AssistTypeEnum.ASSIST_TYPE_SUPPLIER">
         <!-- 供应商 -->
-        <el-select v-model="queryParams.assistId" placeholder="请选择供应商" clearable  filterable >
-          <el-option
-            v-for="supplier in supplierList"
-            :key="supplier.supplierId"
-            :label="supplier.supplierName"
-            :value="supplier.supplierId"
-            :disabled="supplier.supplierStatus !== '0'"
-          >
+        <el-select v-model="queryParams.assistId" placeholder="请选择供应商" @change="handleQuery" clearable filterable>
+          <el-option v-for="supplier in supplierList" :key="supplier.supplierId" :label="supplier.supplierName"
+            :value="supplier.supplierId" :disabled="supplier.supplierStatus !== '0'">
             <span>{{ `供应商名称：${supplier.supplierName} ---- 供应商编码：${supplier.supplierCode}` }}</span>
           </el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="选择员工:" prop="assistId" v-if="queryParams.assistType == AssistTypeEnum.ASSIST_TYPE_EMPLOYEE">
         <!-- 员工 -->
-        <el-select v-model="queryParams.assistId" placeholder="请选择员工" clearable  filterable >
-          <el-option
-            v-for="user in userList"
-            :key="user.userId"
-            :label="user.userName"
-            :value="user.userId"
-            :disabled="user.status !== '0'"
-          >
+        <el-select v-model="queryParams.assistId" placeholder="请选择员工" @change="handleQuery" clearable filterable>
+          <el-option v-for="user in userList" :key="user.userId" :label="user.userName" :value="user.userId"
+            :disabled="user.status !== '0'">
             <span>{{ `员工名称：${user.userName} ---- 员工昵称：${ user.nickName}` }}</span>
           </el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="流水号/发票号/订单号:" prop="invoiceNo" class="query-invoiceNo">
-        <el-input
-          v-model.trim="queryParams.invoiceNo"
-          placeholder="请输入流水号/发票号/订单号"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model.trim="queryParams.invoiceNo" placeholder="请输入流水号/发票号/订单号" clearable
+          @keyup.enter="handleQuery" />
       </el-form-item>
-      
+
     </el-form>
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['finance:costInvoice:add']"
-        >新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd"
+          v-hasPermi="['finance:costInvoice:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['finance:costInvoice:edit']"
-        >修改</el-button>
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
+          v-hasPermi="['finance:costInvoice:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['finance:costInvoice:remove']"
-        >删除</el-button>
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete"
+          v-hasPermi="['finance:costInvoice:remove']">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['finance:costInvoice:export']"
-        >导出</el-button>
+        <el-button type="warning" plain icon="Download" @click="handleExport"
+          v-hasPermi="['finance:costInvoice:export']">导出</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="primary" icon="Search" @click="handleQuery" style="margin-left: 50px;">搜索</el-button>
@@ -133,23 +80,23 @@
       <el-col :span="1.5">
         <el-button type="danger" icon="Search" @click="queryOverdue">搜索逾期未付</el-button>
       </el-col>
-      
-        
-        
+
+
+
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="costInvoiceList" @selection-change="handleSelectionChange" >
+    <el-table v-loading="loading" :data="costInvoiceList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="流水号码" align="left" header-align="center" prop="invoiceFlowNo" min-width="160" show-overflow-tooltip >
+      <el-table-column label="流水号码" align="left" header-align="center" prop="invoiceFlowNo" min-width="160"
+        show-overflow-tooltip>
         <template #default="scope">
           <div style="display: flex; align-items: center; width: 100%;">
-            <el-link :underline="false" type="primary" @click="handleUpdate(scope.row)">{{ scope.row.invoiceFlowNo }}</el-link>
+            <el-link :underline="false" type="primary" @click="handleUpdate(scope.row)">{{ scope.row.invoiceFlowNo
+              }}</el-link>
             <el-tooltip content="点击复制" placement="top" v-if="scope.row.invoiceFlowNo">
-              <el-icon
-                style="margin-left: 5px; cursor: pointer; color: #409EFF;"
-                @click="copyText(scope.row.invoiceFlowNo)" 
-              >
+              <el-icon style="margin-left: 5px; cursor: pointer; color: #409EFF;"
+                @click="copyText(scope.row.invoiceFlowNo)">
                 <CopyDocument />
               </el-icon>
             </el-tooltip>
@@ -158,32 +105,36 @@
       </el-table-column>
       <el-table-column label="发票类型" align="center" prop="invoiceType">
         <template #default="scope">
-          <dict-tag :options="erp_purchase_invoice_type" :value="scope.row.invoiceType"/>
+          <dict-tag :options="erp_cost_invoice_type" :value="scope.row.invoiceType" />
         </template>
       </el-table-column>
-      <el-table-column label="辅助类型" align="center" prop="assistType" >
+      <el-table-column label="辅助类型" align="center" prop="assistType">
         <template #default="scope">
-          <dict-tag :options="finance_assist_type" :value="scope.row.assistType"/>
+          <dict-tag :options="finance_assist_type" :value="scope.row.assistType" />
         </template>
       </el-table-column>
-      <el-table-column label="辅助项值" align="left" header-align="center" prop="assistId" min-width="150" show-overflow-tooltip>
+      <el-table-column label="辅助项值" align="left" header-align="center" prop="assistId" min-width="150"
+        show-overflow-tooltip>
         <template #default="scope">
           <span> {{ getAssistNameByAssistId(scope.row) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="发票号码" align="left" header-align="center" prop="invoiceNo"  min-width="150" show-overflow-tooltip >
+      <el-table-column label="发票号码" align="left" header-align="center" prop="invoiceNo" min-width="150"
+        show-overflow-tooltip>
         <template #default="scope">
-          <el-link :underline="false" type="primary" @click="handleUpdate(scope.row)">{{ scope.row.invoiceNo }}</el-link>
+          <el-link :underline="false" type="primary" @click="handleUpdate(scope.row)">{{ scope.row.invoiceNo
+            }}</el-link>
         </template>
       </el-table-column>
-      <el-table-column label="订单号码" align="left" header-align="center" prop="orderNo"  min-width="150" show-overflow-tooltip >
+      <el-table-column label="订单号码" align="left" header-align="center" prop="orderNo" min-width="150"
+        show-overflow-tooltip>
         <template #default="scope">
           <el-link :underline="false" type="danger" @click="handleUpdate(scope.row)">{{ scope.row.orderNo }}</el-link>
         </template>
       </el-table-column>
       <el-table-column label="发票状态" align="center" prop="invoiceStatus">
         <template #default="scope">
-          <dict-tag :options="erp_purchase_invoice_status" :value="scope.row.invoiceStatus"/>
+          <dict-tag :options="erp_cost_invoice_status" :value="scope.row.invoiceStatus" />
         </template>
       </el-table-column>
       <el-table-column label="发票金额" align="center" prop="invoiceTotalBaseAmount" min-width="90">
@@ -196,17 +147,17 @@
           <span> {{ formatTwo(scope.row.invoiceTotalDiscountAmount) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="发票税额" align="center" prop="invoiceTotalTaxAmount" min-width="90" >
+      <el-table-column label="发票税额" align="center" prop="invoiceTotalTaxAmount" min-width="90">
         <template v-slot="scope">
           <span> {{ formatTwo(scope.row.invoiceTotalTaxAmount) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="应付金额" align="center" prop="invoiceTotalNetAmount" min-width="90" >
+      <el-table-column label="应付金额" align="center" prop="invoiceTotalNetAmount" min-width="90">
         <template v-slot="scope">
           <span> {{ formatTwo(scope.row.invoiceTotalNetAmount) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="开票日期" align="center" prop="invoiceDate"  min-width="100" show-overflow-tooltip>
+      <el-table-column label="开票日期" align="center" prop="invoiceDate" min-width="100" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.invoiceDate, '{y}-{m}-{d}') }}</span>
         </template>
@@ -216,7 +167,8 @@
           <span>{{ parseTime(scope.row.paymentDueDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注信息" align="left" header-align="center" prop="remark" min-width="130" show-overflow-tooltip/>
+      <el-table-column label="备注信息" align="left" header-align="center" prop="remark" min-width="130"
+        show-overflow-tooltip />
       <el-table-column label="未核销金额" align="center" prop="remainAmount" min-width="90">
         <template v-slot="scope">
           <span> {{ formatTwo(scope.row.remainAmount) }} €</span>
@@ -227,89 +179,81 @@
           <span> {{ formatTwo(scope.row.verifiedAmount) }} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="实际入库金额" align="center" prop="accountsPayable" min-width="120" >
+      <el-table-column label="实际入库金额" align="center" prop="accountsPayable" min-width="120">
         <template v-slot="scope">
           <span> {{ formatTwo(scope.row.accountsPayable) }} €</span>
         </template>
       </el-table-column>
-      
-      <el-table-column label="上传附件" align="left" header-align="center" prop="uploadedFile" min-width="150" show-overflow-tooltip>
+
+      <el-table-column label="上传附件" align="left" header-align="center" prop="uploadedFile" min-width="150"
+        show-overflow-tooltip>
         <template v-slot="scope">
           <el-text class="el-icon-document" truncated type="primary">{{ getFileName(scope.row.uploadedFile) }}</el-text>
         </template>
       </el-table-column>
-      <el-table-column label="创建者" align="center" prop="createBy" show-overflow-tooltip/>
+      <el-table-column label="创建者" align="center" prop="createBy" show-overflow-tooltip />
       <el-table-column label="创建时间" align="center" prop="createTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="更新者" align="center" prop="updateBy" show-overflow-tooltip/>
+      <el-table-column label="更新者" align="center" prop="updateBy" show-overflow-tooltip />
       <el-table-column label="更新时间" align="center" prop="updateTime" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
     </el-table>
-    
-    <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+
+    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+      @pagination="getList" />
 
     <!-- 添加或修改费用登记对话框 -->
-    <el-dialog v-model="open" width="70%" :show-close="false" :close-on-click-modal="false" >
+    <el-dialog v-model="open" width="70%" :show-close="false" :close-on-click-modal="false">
       <template #header="{ titleId, titleClass }">
         <div class="header-content">
           <div class="header-title">
             <h4 :id="titleId" :class="titleClass">{{ title }}</h4>
-            <dict-tag :options="erp_purchase_invoice_status" :value="form.invoiceStatus" />
+            <dict-tag :options="erp_cost_invoice_status" :value="form.invoiceStatus" />
           </div>
           <div class="header-actions">
             <!-- 根据不同状态显示不同的操作按钮 -->
             <el-button-group class="mr-4">
               <!-- 草稿状态 -->
               <el-button type="primary" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_DRAFT"
-                @click="handleSave" :loading="loading" 
-                v-hasPermi="['finance:costInvoice:edit']"
-              >
+                @click="handleSave" :loading="loading" v-hasPermi="['finance:costInvoice:edit']">
                 保存
               </el-button>
-              <el-button type="success" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_DRAFT && insertStatus == false"
-                @click="handleSubmitAudited" :loading="loading" 
-                v-hasPermi="['finance:costInvoice:edit']"
-              >
-                提交审核
-              </el-button>
-              <el-button type="danger" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_DRAFT && insertStatus == false"
-                @click="handleRemove" :loading="loading" 
-                v-hasPermi="['finance:costInvoice:remove']"
-              >
+              <el-button type="danger"
+                v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_DRAFT && insertStatus == false"
+                @click="handleRemove" :loading="loading" v-hasPermi="['finance:costInvoice:remove']">
                 删除
               </el-button>
 
-              <!-- 待审核状态 -->
-               <el-button type="primary" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED"
-                @click="handleAudited" :loading="loading" 
-                v-hasPermi="['finance:costInvoice:audited']"
-              >
-                审核
+              <!-- 保存状态 -->
+              <el-button type="success" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_SAVED "
+                @click="handleSubmitAudited" :loading="loading" v-hasPermi="['finance:costInvoice:edit']">
+                提交审核
               </el-button>
-              <el-button type="warning" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED"
-                @click="handleContinueEdit" :loading="loading" 
-                v-hasPermi="['finance:costInvoice:edit']"
-              >
+              <el-button type="warning" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_SAVED"
+                @click="handleContinueEdit" :loading="loading" v-hasPermi="['finance:costInvoice:edit']">
                 继续编辑
               </el-button>
 
+              <!-- 待审核状态 -->
+              <el-button type="primary" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED"
+                @click="handleAudited" :loading="loading" v-hasPermi="['finance:costInvoice:audited']">
+                审核
+              </el-button>
+              <el-button type="primary" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED"
+                @click="handleReject" :loading="loading" v-hasPermi="['finance:costInvoice:audited']">
+                驳回提交审核
+              </el-button>
+
+
               <!-- 审核状态 -->
               <el-button type="warning" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_AUDITED"
-                @click="handleUnAudited" :loading="loading" 
-                v-hasPermi="['finance:costInvoice:audited']"
-              >
+                @click="handleUnAudited" :loading="loading" v-hasPermi="['finance:costInvoice:audited']">
                 反审核
               </el-button>
 
@@ -333,69 +277,47 @@
       <el-form ref="costInvoiceRef" :model="form" :rules="rules" label-width="80px">
         <el-row :gutter="20">
           <el-col :span="6">
-             <el-form-item label="发票类型:" prop="invoiceType">
+            <el-form-item label="发票类型:" prop="invoiceType">
               <el-select v-model="form.invoiceType" placeholder="请选择发票类型" @change="changeInvoiceType">
-                <el-option
-                  v-for="dict in erp_purchase_invoice_type"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                ></el-option>
+                <el-option v-for="dict in erp_cost_invoice_type" :key="dict.value" :label="dict.label"
+                  :value="dict.value"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="辅助项类型:" prop="assistType">
-              <el-select v-model="form.assistType" placeholder="请选择客户类型" @change="changeAssistType" :disabled="form.invoiceType == InvoiceTypeEnum.INVOICE_TYPE_PURCHASE">
-                <el-option
-                  v-for="dict in finance_assist_type"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                ></el-option>
+              <el-select v-model="form.assistType" placeholder="请选择客户类型" @change="changeAssistType"
+                :disabled="form.invoiceType == InvoiceTypeEnum.INVOICE_TYPE_PURCHASE">
+                <el-option v-for="dict in finance_assist_type" :key="dict.value" :label="dict.label"
+                  :value="dict.value"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
 
-          <el-col :span="6" >
+          <el-col :span="6">
             <el-form-item label="选择客户:" prop="assistId" v-if="form.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER">
               <!-- 客户 -->
               <el-select v-model="form.assistId" placeholder="请选择客户" clearable style="width: 100%;" filterable>
-                <el-option
-                  v-for="customer in customerList"
-                  :key="customer.customerId"
-                  :label="customer.customerName"
-                  :value="customer.customerId"
-                  :disabled="customer.customerStatus !== '0'"
-                >
+                <el-option v-for="customer in customerList" :key="customer.customerId" :label="customer.customerName"
+                  :value="customer.customerId" :disabled="customer.customerStatus !== '0'">
                   <span>{{ '客户名称：' + customer.customerName + ' ---- ' + '客户编码：' + customer.customerCode }}</span>
                 </el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="选择供应商:" prop="assistId" v-if="form.assistType == AssistTypeEnum.ASSIST_TYPE_SUPPLIER">
-               <!-- 供应商 -->
-              <el-select v-model="form.assistId" placeholder="请选择供应商" clearable style="width: 100%;" filterable >
-                <el-option
-                  v-for="supplier in supplierList"
-                  :key="supplier.supplierId"
-                  :label="supplier.supplierName"
-                  :value="supplier.supplierId"
-                  :disabled="supplier.supplierStatus !== '0'"
-                >
+              <!-- 供应商 -->
+              <el-select v-model="form.assistId" placeholder="请选择供应商" clearable style="width: 100%;" filterable>
+                <el-option v-for="supplier in supplierList" :key="supplier.supplierId" :label="supplier.supplierName"
+                  :value="supplier.supplierId" :disabled="supplier.supplierStatus !== '0'">
                   <span>{{ '供应商名称：' + supplier.supplierName + ' ---- ' + '供应商编码：' + supplier.supplierCode }}</span>
                 </el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="选择员工:" prop="assistId" v-if="form.assistType == AssistTypeEnum.ASSIST_TYPE_EMPLOYEE">
-            <!-- 员工 -->
-              <el-select v-model="form.assistId" placeholder="请选择员工" clearable style="width: 100%;" filterable >
-                <el-option
-                  v-for="user in userList"
-                  :key="user.userId"
-                  :label="user.userName"
-                  :value="user.userId"
-                  :disabled="user.status !== '0'"
-                >
+              <!-- 员工 -->
+              <el-select v-model="form.assistId" placeholder="请选择员工" clearable style="width: 100%;" filterable>
+                <el-option v-for="user in userList" :key="user.userId" :label="user.userName" :value="user.userId"
+                  :disabled="user.status !== '0'">
                   <span>{{ '员工名称：' + user.userName + ' ---- ' + '员工昵称：' + user.nickName }}</span>
                 </el-option>
               </el-select>
@@ -403,14 +325,12 @@
           </el-col>
           <el-col :span="6">
             <el-form-item label="会计科目:" prop="mainFinanceAccountId">
-              <el-tree-select 
-                v-model="form.mainFinanceAccountId" :data="accountTree" :props="treeProps" value-key="accountId"
-                placeholder="会计科目" style="width: 100%;"  filterable :disabled="true"
-              >
+              <el-tree-select v-model="form.mainFinanceAccountId" :data="accountTree" :props="treeProps"
+                value-key="accountId" placeholder="会计科目" style="width: 100%;" filterable :accordion="true">
               </el-tree-select>
             </el-form-item>
           </el-col>
-          
+
         </el-row>
         <el-row :gutter="20">
           <el-col :span="6">
@@ -425,20 +345,14 @@
           </el-col>
           <el-col :span="6">
             <el-form-item label="开票日期:" prop="invoiceDate">
-              <el-date-picker clearable
-                v-model="form.invoiceDate"
-                type="date"
-                value-format="YYYY-MM-DD"
+              <el-date-picker clearable v-model="form.invoiceDate" type="date" value-format="YYYY-MM-DD"
                 placeholder="请选择开票日期">
               </el-date-picker>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="付款到期日:" prop="paymentDueDate">
-              <el-date-picker clearable
-                v-model="form.paymentDueDate"
-                type="date"
-                value-format="YYYY-MM-DD"
+              <el-date-picker clearable v-model="form.paymentDueDate" type="date" value-format="YYYY-MM-DD"
                 placeholder="请选择付款到期日">
               </el-date-picker>
             </el-form-item>
@@ -447,14 +361,9 @@
         <el-row :gutter="20">
           <el-col :span="6">
             <el-form-item label="发票总额:" prop="invoiceTotalNetAmount">
-              <el-input-number 
-                v-model="form.invoiceTotalNetAmount" 
-                placeholder="请输入交易金额" 
-                :max='99999999' 
-                :min='-99999999' 
-                :precision='2' :step='0' :controls="false"  ref="inputNumber" @focus="handleFocus" 
-                :class="form.invoiceTotalNetAmount < 0 ? 'negative-input' : ''"
-              >
+              <el-input-number v-model="form.invoiceTotalNetAmount" placeholder="请输入交易金额" :max='99999999'
+                :min='-99999999' :precision='2' :step='0' :controls="false" ref="inputNumber" @focus="handleFocus"
+                :class="form.invoiceTotalNetAmount < 0 ? 'negative-input' : ''">
                 <template #suffix>
                   <span>€</span>
                 </template>
@@ -463,25 +372,30 @@
           </el-col>
           <el-col :span="6">
             <el-form-item label="未核销金额:" prop="remainAmount">
-              <span :style="{ color: form.remainAmount < 0 ? 'red' : 'black' }" >{{ formatTwo(form.remainAmount) }} € </span>
+              <span :style="{ color: form.remainAmount < 0 ? 'red' : 'black' }">{{ formatTwo(form.remainAmount) }} €
+              </span>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="已核销金额:" prop="verifiedAmount">
-              <span :style="{ color: form.verifiedAmount < 0 ? 'red' : 'black' }" >{{ formatTwo(form.verifiedAmount) }} € </span>
+              <span :style="{ color: form.verifiedAmount < 0 ? 'red' : 'black' }">{{ formatTwo(form.verifiedAmount) }} €
+              </span>
             </el-form-item>
           </el-col>
           <el-col :span="6">
-            <el-form-item label="入库单金额:" prop="accountsPayable" v-if="form.invoiceType == InvoiceTypeEnum.INVOICE_TYPE_PURCHASE">
-              <span :style="{ color: form.accountsPayable < 0 ? 'red' : 'black' }" >{{ formatTwo(form.accountsPayable) }} € </span>
+            <el-form-item label="入库单金额:" prop="accountsPayable"
+              v-if="form.invoiceType == InvoiceTypeEnum.INVOICE_TYPE_PURCHASE">
+              <span :style="{ color: form.accountsPayable < 0 ? 'red' : 'black' }">{{ formatTwo(form.accountsPayable) }}
+                € </span>
             </el-form-item>
           </el-col>
         </el-row>
         <el-form-item label="备注/摘要:" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" :rows="1" :maxlength="30" show-word-limit />
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" :rows="1" :maxlength="30"
+            show-word-limit />
         </el-form-item>
         <el-form-item label="上传附件:" prop="uploadedFile">
-          <file-upload v-model="form.uploadedFile"/>
+          <file-upload v-model="form.uploadedFile" />
         </el-form-item>
 
         <el-divider content-position="left">费用登记明细信息</el-divider>
@@ -495,29 +409,23 @@
           </el-col>
         </el-row>
 
-        <el-table :data="form.purchaseInvoiceDetailList" 
-          :row-class-name="rowPurchaseInvoiceDetailIndex" 
-          @selection-change="handlePurchaseInvoiceDetailSelectionChange" 
-          ref="purchaseInvoiceDetail"
-          :summary-method="getSummaryRow" show-summary
-        >
+        <el-table :data="form.costInvoiceDetailList" :row-class-name="rowPurchaseInvoiceDetailIndex"
+          @selection-change="handlePurchaseInvoiceDetailSelectionChange" ref="purchaseInvoiceDetail"
+          :summary-method="getSummaryRow" show-summary>
           <el-table-column type="selection" :width="50" align="center" />
           <el-table-column label="会计项目" prop="projectId" :width="130" align="center">
             <template #default="scope">
-              <el-tree-select 
-                v-model="scope.row.projectId" :data="projectTree" :props="treeProps2" value-key="projectId"
-                placeholder="会计项目" style="width: 100%;"  filterable
-                @change="handleProjectId(scope.row)"
-              >
+              <el-tree-select v-model="scope.row.projectId" :data="projectTree" :props="treeProps2"
+                value-key="projectId" placeholder="会计项目" style="width: 100%;" filterable
+                @change="handleProjectId(scope.row)">
               </el-tree-select>
             </template>
           </el-table-column>
           <el-table-column label="会计科目" prop="financeAccountId" :width="200" align="center">
             <template #default="scope">
-              <el-tree-select 
-                v-model="scope.row.financeAccountId" :data="accountTree" :props="treeProps" value-key="accountId"
-                placeholder="会计科目" style="width: 100%;"  filterable @change="handleChangeAccountId(scope.row)"
-              >
+              <el-tree-select v-model="scope.row.financeAccountId" :data="accountTree" :props="treeProps"
+                value-key="accountId" placeholder="会计科目" style="width: 100%;" filterable
+                @change="handleChangeAccountId(scope.row)">
               </el-tree-select>
             </template>
           </el-table-column>
@@ -525,11 +433,9 @@
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'baseAmount')" v-model="scope.row.baseAmount"
                 placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false"
-                @change="calculateNetAmount(scope.row)" style="width: 100%;" 
-                @focus="handleFocus2(scope.$index, 'baseAmount')"
-                @click="handleFocus2(scope.$index, 'baseAmount')"
-                :class="scope.row.baseAmount < 0 ? 'negative-input' : ''"
-              >
+                @change="calculateNetAmount(scope.row)" style="width: 100%;"
+                @focus="handleFocus2(scope.$index, 'baseAmount')" @click="handleFocus2(scope.$index, 'baseAmount')"
+                :class="scope.row.baseAmount < 0 ? 'negative-input' : ''">
                 <template #suffix>
                   <span>€</span>
                 </template>
@@ -538,13 +444,11 @@
           </el-table-column>
           <el-table-column label="折扣率" prop="discountRate" align="center" :min-width="95">
             <template #default="scope">
-              <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'discountRate')" v-model="scope.row.discountRate"
-                placeholder="发生额" :max='100' :min='0' :precision='1' :step='0' :controls="false"
-                @change="calculateNetAmount(scope.row)" style="width: 100%;" 
-                @focus="handleFocus2(scope.$index, 'discountRate')"
-                @click="handleFocus2(scope.$index, 'discountRate')"
-                :class="scope.row.discountRate < 0 ? 'negative-input' : ''"
-              >
+              <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'discountRate')"
+                v-model="scope.row.discountRate" placeholder="发生额" :max='100' :min='0' :precision='1' :step='0'
+                :controls="false" @change="calculateNetAmount(scope.row)" style="width: 100%;"
+                @focus="handleFocus2(scope.$index, 'discountRate')" @click="handleFocus2(scope.$index, 'discountRate')"
+                :class="scope.row.discountRate < 0 ? 'negative-input' : ''">
                 <template #suffix>
                   <span>%</span>
                 </template>
@@ -553,13 +457,12 @@
           </el-table-column>
           <el-table-column label="折扣额" prop="discountAmount" align="center" :min-width="130">
             <template #default="scope">
-              <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'discountAmount')" v-model="scope.row.discountAmount"
-                placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false"
-                @change="calculateDiscountAmount(scope.row)" style="width: 100%;" 
+              <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'discountAmount')"
+                v-model="scope.row.discountAmount" placeholder="发生额" :max='99999999' :min='-99999999' :precision='2'
+                :step='0' :controls="false" @change="calculateDiscountAmount(scope.row)" style="width: 100%;"
                 @focus="handleFocus2(scope.$index, 'discountAmount')"
                 @click="handleFocus2(scope.$index, 'discountAmount')"
-                :class="scope.row.discountAmount < 0 ? 'negative-input' : ''"
-              >
+                :class="scope.row.discountAmount < 0 ? 'negative-input' : ''">
                 <template #suffix>
                   <span>€</span>
                 </template>
@@ -570,11 +473,9 @@
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'taxRate')" v-model="scope.row.taxRate"
                 placeholder="发生额" :max='100' :min='0' :precision='0' :step='0' :controls="false"
-                @change="calculateNetAmount(scope.row)" style="width: 100%;" 
-                @focus="handleFocus2(scope.$index, 'taxRate')"
-                @click="handleFocus2(scope.$index, 'taxRate')"
-                :class="scope.row.taxRate < 0 ? 'negative-input' : ''"
-              >
+                @change="calculateNetAmount(scope.row)" style="width: 100%;"
+                @focus="handleFocus2(scope.$index, 'taxRate')" @click="handleFocus2(scope.$index, 'taxRate')"
+                :class="scope.row.taxRate < 0 ? 'negative-input' : ''">
                 <template #suffix>
                   <span>%</span>
                 </template>
@@ -584,11 +485,10 @@
           <el-table-column label="税额" prop="taxAmount" align="center" :min-width="130">
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'taxAmount')" v-model="scope.row.taxAmount"
-                placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false" style="width: 100%;" disabled
-                @focus="handleFocus2(scope.$index, 'taxAmount')"
+                placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false"
+                style="width: 100%;" disabled @focus="handleFocus2(scope.$index, 'taxAmount')"
                 @click="handleFocus2(scope.$index, 'taxAmount')"
-                :class="scope.row.taxAmount < 0 ? 'negative-input' : ''"
-              >
+                :class="scope.row.taxAmount < 0 ? 'negative-input' : ''">
                 <template #suffix>
                   <span>€</span>
                 </template>
@@ -599,19 +499,16 @@
             <template #default="scope">
               <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'netAmount')" v-model="scope.row.netAmount"
                 placeholder="发生额" :max='99999999' :min='-99999999' :precision='2' :step='0' :controls="false" disabled
-                @change="calculateNetAmount(scope.row)" style="width: 100%;" 
-                @focus="handleFocus2(scope.$index, 'netAmount')"
-                @click="handleFocus2(scope.$index, 'netAmount')"
-                :class="scope.row.netAmount < 0 ? 'negative-input' : ''"
-                
-              >
+                @change="calculateNetAmount(scope.row)" style="width: 100%;"
+                @focus="handleFocus2(scope.$index, 'netAmount')" @click="handleFocus2(scope.$index, 'netAmount')"
+                :class="scope.row.netAmount < 0 ? 'negative-input' : ''">
                 <template #suffix>
                   <span>€</span>
                 </template>
               </el-input-number>
             </template>
           </el-table-column>
-         
+
         </el-table>
       </el-form>
 
@@ -624,8 +521,7 @@
         </template>
         <el-timeline>
           <el-timeline-item v-for="(activity, index) in orderOperateLog" :key="index"
-            :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top"
-          >
+            :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top">
             {{ activity.operator }} - {{ activity.action }}
             <span v-if="activity.remark"> - - 描述 : </span>
             <span class="remark">{{ activity.remark }}</span>
@@ -638,8 +534,7 @@
         <!-- 强制填写备注 -->
         <el-form :model="approvalForm" :label-width="80">
           <el-form-item :label="getRemarkMessage(currentAction) + ':'"
-            v-if="actionRequiresRemark.includes(currentAction)"
-          >
+            v-if="actionRequiresRemark.includes(currentAction)">
             <el-input v-model="approvalForm.remark" type="textarea" show-word-limit :maxlength="20"
               :placeholder="'请输入' + getRemarkMessage(currentAction)" />
           </el-form-item>
@@ -661,7 +556,7 @@
 
 <script setup name="CostInvoice">
 import { listCostInvoice, getCostInvoice, delCostInvoice, addCostInvoice, updateCostInvoice } from "@/api/finance/costInvoice";
-import {  continueEditInvoice, submitAuditInvoice, auditedInvoice, unAuditedInvoice} from "@/api/finance/costInvoice";
+import { continueEditInvoice, submitAuditInvoice, rejectInvoice, auditedInvoice, unAuditedInvoice} from "@/api/finance/costInvoice";
 import useUserStore from "@/store/modules/user";
 import { listAccount } from "@/api/finance/account";
 import { listFinanceProject } from "@/api/finance/financeProject";
@@ -670,12 +565,14 @@ import { listCustomer} from "@/api/order/customer";
 import { listUser } from "@/api/system/user";
 import { onBeforeMount, ref } from "vue";
 import { ElMessage } from "element-plus";
+import { InvoiceTypeEnum, InvoiceStatusEnum, AssistTypeEnum, OperateType, AccountCodeEnum } from "./costInvoiceEnum.js"
+import { values } from "lodash";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
-const { erp_purchase_invoice_status, finance_assist_type, erp_purchase_invoice_type } = proxy.useDict('erp_purchase_invoice_status', 'finance_assist_type', 'erp_purchase_invoice_type');
+const { erp_cost_invoice_status, finance_assist_type, erp_cost_invoice_type, finance_cost_invoice_account } = proxy.useDict('erp_cost_invoice_status', 'finance_assist_type', 'erp_cost_invoice_type', 'finance_cost_invoice_account');
 
 const costInvoiceList = ref([]);
 const open = ref(false);
@@ -700,26 +597,6 @@ const copyText = async (text) => {
   } catch (err) {
     ElMessage.error('复制失败，请手动复制')
   }
-}
-
-/** 发票类型 */
-const InvoiceTypeEnum = {
-  // 采购发票
-  INVOICE_TYPE_PURCHASE: '1',
-  // 费用发票
-  INVOICE_TYPE_COST: '2',
-}
-
-/** 发票状态 */ 
-const InvoiceStatusEnum = {
-  // 草稿
-  INVOICE_STATUS_DRAFT: '1',
-  // 待审核
-  INVOICE_STATUS_WAIT_AUDITED: '2',
-  // 已审核
-  INVOICE_STATUS_AUDITED: '3',
-  // 已过账
-  INVOICE_STATUS_POSTED: '4',
 }
 
 /** 合计行 */
@@ -858,7 +735,7 @@ const calculateDiscountAmount = (row) => {
 /** 计算发票总额 */
 const calculateTotalAmount = () => {
   // 计算基础总明细金额
-  const totalBaseAmount = form.value.purchaseInvoiceDetailList.reduce((sum, item) => {
+  const totalBaseAmount = form.value.costInvoiceDetailList.reduce((sum, item) => {
     const value = Number(item.baseAmount)
     if (!isNaN(value)) {
       return sum + value
@@ -867,7 +744,7 @@ const calculateTotalAmount = () => {
   }, 0)
 
   // 计算总折扣额
-  const totalDiscountAmount = form.value.purchaseInvoiceDetailList.reduce((sum, item) => {
+  const totalDiscountAmount = form.value.costInvoiceDetailList.reduce((sum, item) => {
     const value = Number(item.discountAmount)
     if (!isNaN(value)) {
       return sum + value
@@ -876,7 +753,7 @@ const calculateTotalAmount = () => {
   }, 0)
 
   // 计算总税额
-  const totalTaxAmount = form.value.purchaseInvoiceDetailList.reduce((sum, item) => {
+  const totalTaxAmount = form.value.costInvoiceDetailList.reduce((sum, item) => {
     const value = Number(item.taxAmount)
     if (!isNaN(value)) {
       return sum + value
@@ -885,7 +762,7 @@ const calculateTotalAmount = () => {
   }, 0)
 
   // 计算总净额
-  const totalNetAmount = form.value.purchaseInvoiceDetailList.reduce((sum, item) => {
+  const totalNetAmount = form.value.costInvoiceDetailList.reduce((sum, item) => {
     const value = Number(item.netAmount)
     if (!isNaN(value)) {
       return sum + value
@@ -1043,15 +920,6 @@ const handleFocus2 = (rowIndex, column) => {
 // --------------------------------- 5 表格 输入框聚焦选中 start --------------------------------
 
 // ******************************** 6 获取辅助项  start  *****************************************
-/** 辅助项类型 */
-const  AssistTypeEnum = {
-  // 客户
-  ASSIST_TYPE_CUSTOMER: '1',
-  // 供应商
-  ASSIST_TYPE_SUPPLIER: '2',
-  // 员工
-  ASSIST_TYPE_EMPLOYEE: '3'
-}
 
 const supplierList = ref([])
 const customerList = ref([])
@@ -1071,8 +939,7 @@ const getAssistList = () => {
         customerList.value = response.rows
         console.log("获取客户列表customerList:",customerList.value)
       
-      }
-      
+      } 
     )
     .catch(
       error => {ElMessage.error("获取客户列表时出错:",error)}
@@ -1088,36 +955,34 @@ const getAssistList = () => {
 }
 
 
-/** 发票表头会计科目限制 */
-const  MainAccountId = {
-  // 应付账款
-  ACCOUNTS_PAYABLE: '2202',
-  // 其他应付款-员工
-  OTHER_PAYABLE: '2241',
 
-}
-/** 修改辅助项类型 */
+/** 费用发票类型 - 修改辅助项类型 */
 const changeAssistType = () => {
-  form.value.assistId = null ;  // 清空辅助项ID
-  if(form.value.assistType === AssistTypeEnum.ASSIST_TYPE_SUPPLIER){
-    form.value.mainFinanceAccountId = accountList.value.find(item => item.accountCode === MainAccountId.ACCOUNTS_PAYABLE)?.accountId
-  } else {
-    form.value.mainFinanceAccountId = accountList.value.find(item => item.accountCode === MainAccountId.OTHER_PAYABLE)?.accountId
-  }
+  console.log("修改辅助项类型:", form.value.assistType)
+  form.value.assistId = null;  // 清空辅助项ID
+  // 如果发票类型是采购发票，则辅助项类型为供应商
+  // 根据辅助项类型获取对应的会计科目编码(使用字典维护)
+  const mainAccountCode = finance_cost_invoice_account.value.find(item => item.value === form.value.assistType)?.label || '';
+  // 更新主会计科目ID
+  form.value.mainFinanceAccountId = accountList.value.find(item => item.accountCode === mainAccountCode)?.accountId || null;
 }
 
 /** 修改发票类型， 清空辅助项ID */
 const changeInvoiceType = () => {
-  // 采购发票特殊处理 ->  指定辅助项类型 指定会计科目 
+  // 采购发票特殊处理 
   if(form.value.invoiceType === InvoiceTypeEnum.INVOICE_TYPE_PURCHASE){
+    // 指定辅助项类型: 供应商 2
     form.value.assistType = AssistTypeEnum.ASSIST_TYPE_SUPPLIER
-    changeAssistType()
+    // 指定会计科目：应付账款 2202
+    const mainAccountCode = AccountCodeEnum.ACCOUNTS_PAYABLE
+    // 更新主会计科目ID
+    form.value.mainFinanceAccountId = accountList.value.find(item => item.accountCode === mainAccountCode)?.accountId || null;
   } else {
     form.value.assistType = null ;
     changeAssistType()
   }
   // 切换发票类型清空明细
-  form.value.purchaseInvoiceDetailList = [] ;
+  form.value.costInvoiceDetailList = [] ;
   // 更新会计项目要展示的内容
   updateAccountTree()
   
@@ -1241,7 +1106,7 @@ function reset() {
     tenantId: null,
     uploadedFile: null,
     operateLog: null,
-    purchaseInvoiceDetailList: [],
+    costInvoiceDetailList: [],
   };
   orderOperateLog.value = [];
   proxy.resetForm("costInvoiceRef");
@@ -1330,7 +1195,7 @@ function handleAddPurchaseInvoiceDetail() {
   obj.taxRate = 0;
   obj.taxAmount = 0;
   obj.netAmount = 0;
-  form.value.purchaseInvoiceDetailList.push(obj);
+  form.value.costInvoiceDetailList.push(obj);
 }
 
 /** 费用登记明细删除按钮操作 */
@@ -1338,9 +1203,9 @@ function handleDeletePurchaseInvoiceDetail() {
   if (checkedPurchaseInvoiceDetail.value.length == 0) {
     proxy.$modal.msgError("请先选择要删除的费用登记明细数据");
   } else {
-    const purchaseInvoiceDetails = form.value.purchaseInvoiceDetailList;
+    const purchaseInvoiceDetails = form.value.costInvoiceDetailList;
     const checkedPurchaseInvoiceDetails = checkedPurchaseInvoiceDetail.value;
-    form.value.purchaseInvoiceDetailList = purchaseInvoiceDetails.filter(function(item) {
+    form.value.costInvoiceDetailList = purchaseInvoiceDetails.filter(function(item) {
       return checkedPurchaseInvoiceDetails.indexOf(item.index) == -1
     });
   }
@@ -1372,37 +1237,28 @@ const handleExportFlow = () => {
 
 
 // -------------------------------- 9 操作 start --------------------------------------
-// 订单操作类型
-const OperateType = {
-  // 保存
-  SAVE: 'save',
-  // 提交审核
-  SUBMIT_AUDITED: 'submitAudited',
-  // 继续编辑
-  CONTINUE_EDIT: 'continueEdit',
-  // 审核
-  AUDITED: 'audited',
-  // 反审核
-  UN_AUDITED: 'unAudited',
-}
 
+// 保存按钮操作
 const handleSave = () => {
   // 0 表单预校验提交校验 
   proxy.$refs["costInvoiceRef"].validate().then(() => {
     // 1 过滤空数据
-    form.value.purchaseInvoiceDetailList = form.value.purchaseInvoiceDetailList.filter(item => item.financeAccountId !== null) ;
+    if (form.value.costInvoiceDetailList.length > 0){
+      form.value.costInvoiceDetailList = form.value.costInvoiceDetailList.filter(item => item.financeAccountId !== null);
+    }
+    
     // 2 检查存在分录
-    if(form.value.purchaseInvoiceDetailList.length <= 0){
+    if (form.value.costInvoiceDetailList.length <= 0){
       proxy.$modal.msgError("请添加明细内容！")
       return;
     }
     // 2.1 维护摘要信息
-    form.value.purchaseInvoiceDetailList.forEach(item => {
+    form.value.costInvoiceDetailList.forEach(item => {
       item.summary = form.value.remark || '';
     });
 
     // 3 检查试算平衡
-    const totalDetailAmount = form.value.purchaseInvoiceDetailList.reduce((total, item) => total + item.netAmount, 0);
+    const totalDetailAmount = form.value.costInvoiceDetailList.reduce((total, item) => total + item.netAmount, 0);
     if(form.value.invoiceTotalNetAmount !== totalDetailAmount){
       proxy.$modal.msgError("交易金额 与 发生额合计 不一致，请检查！")
       return;
@@ -1417,98 +1273,57 @@ const handleSave = () => {
     // 6 交易额 及 所有明细 正负值保持一致，交易额是正或者负，对应的所有明细也必须是正或者负
     if(form.value.invoiceTotalNetAmount < 0){
       // 所有明细都必须是小于0的数值
-      if(form.value.purchaseInvoiceDetailList.some(item => item.baseAmount > 0 )){
+      if (form.value.costInvoiceDetailList.some(item => item.baseAmount > 0 )){
         proxy.$modal.msgError("明细正负数需要保持一致, 应都为负数, 请检查!")
         return;
       }
     }
     if(form.value.invoiceTotalNetAmount > 0){
       // 所有明细都必须是大于0的数值
-      if(form.value.purchaseInvoiceDetailList.some(item => item.baseAmount < 0 )){
+      if (form.value.costInvoiceDetailList.some(item => item.baseAmount < 0 )){
         proxy.$modal.msgError("明细正负数需要保持一致, 应都为正数, 请检查!")
         return;
       }
     }
 
     // 7 明细不可以有0值的存在
-    if(form.value.purchaseInvoiceDetailList.some(item => item.baseAmount == 0)){
+    if (form.value.costInvoiceDetailList.some(item => item.baseAmount == 0)){
       proxy.$modal.msgError("明细金额不能为 0 ,请检查!")
       return;
     }
 
     // 8 保存操作
-    openApprovalDialog('保存日记账', OperateType.SAVE)
+    openApprovalDialog('保存', OperateType.SAVE)
 
   })  
 }
 
+// 提交审核按钮操作
 const handleSubmitAudited = () => {
-  // 0 表单预校验提交校验 
-  proxy.$refs["costInvoiceRef"].validate().then(() => {
-    // 1 过滤空数据
-    form.value.purchaseInvoiceDetailList = form.value.purchaseInvoiceDetailList.filter(item => item.financeAccountId !== null) ;
-    // 2 检查存在分录
-    if(form.value.purchaseInvoiceDetailList.length <= 0){
-      proxy.$modal.msgError("请添加明细内容！")
-      return;
-    }
-    // 2.1 维护摘要信息
-    form.value.purchaseInvoiceDetailList.forEach(item => {
-      item.summary = form.value.remark || '';
-    });
-
-    // 3 检查试算平衡
-    const totalDetailAmount = form.value.purchaseInvoiceDetailList.reduce((total, item) => total + item.netAmount, 0);
-    if(form.value.invoiceTotalNetAmount !== totalDetailAmount){
-      proxy.$modal.msgError("交易金额 与 发生额合计 不一致，请检查！")
-      return;
-    }
-
-    // 4 收款类型检查，收款 交易金额大于0、付款 交易金额小于0
-    if(form.value.invoiceTotalNetAmount == 0){
-      proxy.$modal.msgError("发票总额不能为 0 ,请检查!")
-      return;
-    }
-
-    // 6 交易额 及 所有明细 正负值保持一致，交易额是正或者负，对应的所有明细也必须是正或者负
-    if(form.value.invoiceTotalNetAmount < 0){
-      // 所有明细都必须是小于0的数值
-      if(form.value.purchaseInvoiceDetailList.some(item => item.baseAmount > 0 )){
-        proxy.$modal.msgError("明细正负数需要保持一致, 应都为负数, 请检查!")
-        return;
-      }
-    }
-    if(form.value.invoiceTotalNetAmount > 0){
-      // 所有明细都必须是大于0的数值
-      if(form.value.purchaseInvoiceDetailList.some(item => item.baseAmount < 0 )){
-        proxy.$modal.msgError("明细正负数需要保持一致, 应都为正数, 请检查!")
-        return;
-      }
-    }
-
-    // 7 明细不可以有0值的存在
-    if(form.value.purchaseInvoiceDetailList.some(item => item.baseAmount == 0)){
-      proxy.$modal.msgError("明细金额不能为 0 ,请检查!")
-      return;
-    }
-
-    // 8 提交审核操作
-    openApprovalDialog('提交审核日记账', OperateType.SUBMIT_AUDITED)
-  })
+  openApprovalDialog('提交审核', OperateType.SUBMIT_AUDITED)
 }
 
+// 驳回操作
+const handleReject = () => {
+  openApprovalDialog('驳回提交审核', OperateType.REJECT)
+}
+
+// 继续编辑操作
 const handleContinueEdit = () => {
-  openApprovalDialog('继续编辑日记账', OperateType.CONTINUE_EDIT)
+  openApprovalDialog('继续编辑', OperateType.CONTINUE_EDIT)
 }
 
+// 审核操作
 const handleAudited = () => {
-  openApprovalDialog('审核日记账', OperateType.AUDITED)
+  openApprovalDialog('审核', OperateType.AUDITED)
 }
 
+// 反审核操作
 const handleUnAudited = () => {
-  openApprovalDialog('反审核日记账', OperateType.UN_AUDITED)
+  openApprovalDialog('反审核', OperateType.UN_AUDITED)
 }
 
+// 删除操作
 const handleRemove = () => {
   proxy.$modal.confirm('是否确认删除现金银行日记账的数据项?').then(function() {
     return delCostInvoice(form.value.invoiceId);
@@ -1541,6 +1356,7 @@ function getRemarkMessage(action) {
   const messages = {
     [OperateType.SAVE]: '保存原因',
     [OperateType.CONTINUE_EDIT]: '继续编辑原因',
+    [OperateType.REJECT]: '驳回原因',
     [OperateType.AUDITED]: '审核通过原因',
     [OperateType.UN_AUDITED]: '反审核原因',
   };
@@ -1586,9 +1402,10 @@ const addApprovalLog = (action, status, remark, actionValue) => {
 // 获取时间线项目类型
 const getTimelineItemType = (actionValue) => {
   const typeMap = {
-    save: 'info',
+    save: 'primary',
     continueEdit: 'warning',
-    submitAudited: 'primary',
+    submitAudited: 'warning',
+    reject: 'danger',
     audited: 'success',
     unAudited: 'danger',
     posted: 'success',
@@ -1617,8 +1434,8 @@ const handleError = (message = "操作失败") => {
   dialogVisible.value = false;
 };
 
-// 强制输入描述信息: 反审核 
-const actionRequiresRemark = [OperateType.UN_AUDITED];
+// 强制输入描述信息: 反审核 驳回
+const actionRequiresRemark = [OperateType.REJECT ,OperateType.UN_AUDITED];
 // 不需要输入描述信息: 保存 审核 继续编辑 提交审核
 const actionRequiresNoRemark = [OperateType.SAVE, OperateType.AUDITED, OperateType.CONTINUE_EDIT, OperateType.SUBMIT_AUDITED];
 
@@ -1629,10 +1446,10 @@ const submitApproval = async () => {
     return;
   }
 
-  // 2 定义动作及相应状态
+  // 2 定义动作及相应状态 status是操作后展示的状态
   const actions = {
     [OperateType.SAVE]: {
-      status: InvoiceStatusEnum.INVOICE_STATUS_DRAFT,
+      status: InvoiceStatusEnum.INVOICE_STATUS_SAVED,
       message: '保存成功',
       actionValue: OperateType.SAVE
     },
@@ -1640,6 +1457,11 @@ const submitApproval = async () => {
       status: InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED,
       message: '提交审核成功',
       actionValue: OperateType.SUBMIT_AUDITED
+    },
+    [OperateType.REJECT]: {
+      status: InvoiceStatusEnum.INVOICE_STATUS_SAVED,
+      message: '驳回提交审核成功',
+      actionValue: OperateType.REJECT
     },
     [OperateType.CONTINUE_EDIT]: {
       status: InvoiceStatusEnum.INVOICE_STATUS_DRAFT,
@@ -1712,14 +1534,27 @@ const submitApproval = async () => {
           getList();
         })
         .catch(error => {
-          form.value.invoiceStatus = InvoiceStatusEnum.INVOICE_STATUS_DRAFT;
+          form.value.invoiceStatus = InvoiceStatusEnum.INVOICE_STATUS_SAVED;
         })
     }
     if(currentAction.value === OperateType.CONTINUE_EDIT){
       // 继续编辑
       continueEditInvoice(form.value)
         .then(response => {
-          ElMessage.success("继续编辑凭证成功")
+          ElMessage.success("继续编辑成功")
+          parseJson();
+          getList();
+        })
+        .catch(error => {
+          form.value.invoiceStatus = InvoiceStatusEnum.INVOICE_STATUS_SAVED;
+          handleError(error.message);
+        });
+    }
+    if (currentAction.value === OperateType.REJECT) {
+      // 继续编辑
+      rejectInvoice(form.value)
+        .then(response => {
+          ElMessage.success("驳回成功")
           parseJson();
           getList();
         })

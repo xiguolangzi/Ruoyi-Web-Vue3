@@ -15,6 +15,11 @@
           <el-option v-for="dict in product_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
+      <el-form-item label="sku类型:" prop="skuType">
+        <el-select v-model="queryParams.skuType" placeholder="请选择sku类型" clearable>
+          <el-option v-for="dict in erp_product_sku_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+        </el-select>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -62,7 +67,16 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="suk编号" align="left" prop="skuCode" :min-width="120" show-overflow-tooltip />
+      <el-table-column label="suk编号" align="left"  :min-width="120" show-overflow-tooltip >
+        <template #default="scope">
+          <div>
+            <dict-tag :options="erp_product_sku_type" :value="scope.row.skuType"/>
+          </div>
+          <div>
+            <span>{{ scope.row.skuCode }}</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="suk属性值" align="left" prop="skuValue" show-overflow-tooltip>
         <template #default="scope">
           <div v-if="getSkuValue(scope.row.skuValue) === 'default'">
@@ -85,7 +99,7 @@
             <div style="margin-right: 5px;">
               <div class="price">
                 <strong> sku单价: </strong>
-                <span> {{ formatTwo(scope.row.skuPrice1) }} €</span>
+                <span> {{ formatTwo(scope.row.skuPrice) }} €</span>
               </div>
               <div class="price">
                 <strong> sku单价2: </strong>
@@ -167,8 +181,8 @@
         <el-form-item label="sku图片" prop="skuImage">
           <image-upload v-model="form.skuImage" />
         </el-form-item>
-        <el-form-item label="销售价格1" prop="skuPrice1">
-          <el-input v-model="form.skuPrice1" placeholder="请输入销售价格1" />
+        <el-form-item label="销售价格" prop="skuPrice">
+          <el-input v-model="form.skuPrice" placeholder="请输入销售价格1" />
         </el-form-item>
         <el-form-item label="销售价格2" prop="skuPrice2">
           <el-input v-model="form.skuPrice2" placeholder="请输入销售价格2" />
@@ -201,8 +215,9 @@
       <div v-if="currentRow">
         <el-card shadow="hover">
           <template #header>
-            <div class="clearfix">
-              <span>SKU基础数据</span>
+            <div class="clearfix" style="display: flex;">
+              <span style="margin-right: 20px;">SKU基础数据</span>
+              <dict-tag :options="erp_product_sku_type" :value="currentRow.skuType"/>
             </div>
           </template>
           <el-descriptions direction="vertical" :column="4" size="small" border>
@@ -312,7 +327,7 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
-const { product_status } = proxy.useDict('product_status');
+const { product_status,erp_product_sku_type } = proxy.useDict('product_status','erp_product_sku_type');
 
 const skuList = ref([]);
 const open = ref(false);

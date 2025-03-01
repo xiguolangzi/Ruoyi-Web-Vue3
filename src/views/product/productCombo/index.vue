@@ -166,7 +166,7 @@
               <el-form-item label="套餐税率:" prop="rateId">
                 <el-select v-model="form.rateId" placeholder="请选择套餐税率" clearable>
                   <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
-                    :value="items.rateId" />
+                    :value="items.rateId" :disabled="items.rateStatus != RateStatusEnum.ENABLE" />
                 </el-select>
               </el-form-item>
               <el-form-item label="套餐状态:" prop="comboStatus">
@@ -294,6 +294,7 @@ import useUserStore from "@/store/modules/user";
 import { computed } from "vue";
 import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
 import { listProductRate } from "@/api/product/productRate";
+import { RateStatusEnum} from "./productComboEnum.js"
 
 const { proxy } = getCurrentInstance();
 const { sys_tenant_status, erp_product_combo_optional } = proxy.useDict('sys_tenant_status', 'erp_product_combo_optional');

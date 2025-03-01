@@ -74,7 +74,7 @@
                 <el-form-item label="税率:" prop="rateId">
                   <el-select v-model="form.rateId" placeholder="请选择税率" @change="handleProductChanged">
                     <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
-                      :value="items.rateId" :disabled="items.rateStatus != '0'" />
+                      :value="items.rateId" :disabled="items.rateStatus != RateStatusEnum.ENABLE" />
                   </el-select>
                 </el-form-item>
               </el-col>
@@ -479,6 +479,7 @@ import useTagsViewStore from '@/store/modules/tagsView';
 import { ElMessage } from "element-plus";
 import { cloneDeep } from "lodash";
 import { toRefs } from "vue";
+import {RateStatusEnum} from "./productEnum.js"
 
 const router = useRouter();
 const route = useRoute();

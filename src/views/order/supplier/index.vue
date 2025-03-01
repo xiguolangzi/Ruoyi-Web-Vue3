@@ -113,7 +113,7 @@
           <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
         </el-row>
 
-        <el-table v-loading="loading" :data="supplierList" @selection-change="handleSelectionChange" ref="supplierTable" @expand-change="handleExpandChange2" row-key="supplierId">
+        <el-table class="table-container" v-loading="loading" :data="supplierList" @selection-change="handleSelectionChange" ref="supplierTable" @expand-change="handleExpandChange2" row-key="supplierId">
           <el-table-column type="expand">
             <template #default="props">
               <div style="padding: 10px 50px;">
@@ -597,3 +597,26 @@ function handleExport() {
 
 getList();
 </script>
+
+<style lang="scss" scoped>
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+</style>

@@ -220,6 +220,20 @@ export const dynamicRoutes = [
       }
     ]
   },
+  {
+    path: '/cashier',
+    component: Layout,
+    hidden: true,
+    permissions: ['sales:cashier:add'],
+    children: [
+      {
+        path: '/cashier/cashOperation',
+        component: () => import('@/views/sales/salesOrder/cashOperation'),
+        name: 'cashOperation',
+        meta: { title: '收银台' }
+      }
+    ]
+  },
 
 ]
 

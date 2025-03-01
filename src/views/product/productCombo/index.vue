@@ -44,7 +44,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="productComboList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="productComboList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="套餐图片" align="center" :width="88" show-overflow-tooltip>
         <template #default="scope">
@@ -708,5 +708,25 @@ getList();
 </script>
 
 <style lang="scss" scoped>
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
 
 </style>

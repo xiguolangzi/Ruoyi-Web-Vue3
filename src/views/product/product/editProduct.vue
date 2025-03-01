@@ -274,7 +274,7 @@
                   <template #default="scope">
                     <div class="spec-values">
                       <el-input v-for="(value, index) in scope.row.values" :key="index"
-                        v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)"
+                        v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)" type="textarea" :maxlength="10" show-word-limit :rows="1"
                         style="width: auto;">
                         <!----scope.$index 当前行数； index 在scope.row.values中的索引 可以用过 v-if="!exist(scope.row,index)" 控制删除初始化的规格值 -->
                         <template #append v-if="!exist(scope.row, index)">
@@ -325,7 +325,7 @@
 
                 <el-table-column label="规格编码" prop="skuCode" align="center" :min-width="150">
                   <template #default="scope">
-                    <el-input v-model="scope.row.skuCode" style="width: 100%;"></el-input>
+                    <el-input v-model="scope.row.skuCode" style="width: 100%;" type="textarea" :maxlength="20" show-word-limit :rows="1" />
                   </template>
                 </el-table-column>
 

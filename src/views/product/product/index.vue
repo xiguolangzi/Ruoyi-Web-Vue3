@@ -62,87 +62,93 @@
 
     <!-------------------- 数据展示列表区域 ----------------------->
 
-    <el-table v-loading="loading" :data="productList" @selection-change="handleSelectionChange" fit>
-      <el-table-column type="selection" :width="50" align="center" fixed="left" />
-      <el-table-column label="商品主图" align="center" prop="productImage" :width="100">
-        <template #default="scope">
-          <image-preview :src="scope.row.productImage" :width="75" :height="75" />
-        </template>
-      </el-table-column>
-      <el-table-column label="商品编码/名称" header-align="center" :min-width="200" show-overflow-tooltip>
-        <template #default="scope">
-          <div>
-            <strong> 编码：</strong>
-            <span>{{ scope.row.productCode }}</span>
-          </div>
-          <div>
-            <strong> 名称：</strong>
-            <span>{{ scope.row.productName }}</span>
-          </div>
-          <div>
-            <strong> 辅助名：</strong>
-            <span>{{ scope.row.assistName }}</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="sku规格" :min-width="80" show-overflow-tooltip>
-        <template #default="scope">
-          <div v-for="(item, index) in scope.row.skuSelected" :key="index">
-            <strong v-if="item.name">{{ item.name }} : </strong>
-            <span>{{ item.values.join(" 、 ") }}</span>
-            <span v-if="!item.name"> -- </span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="计量单位" align="center" prop="unitVo.unitCode" :width="80">
-        <template #default="scope">
-          <span>{{ scope.row.unitVo?.unitCode || '--' }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="商品价格" header-align="center" align="right" prop="productPrice" :width="80">
-        <template #default="scope">
-          <span>{{ formatTwo(scope.row.productPrice) }} €</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="税率" align="center" prop="productRateVo.rateValue" :width="80">
-        <template #default="scope">
-          <span>{{ scope.row.productRateVo?.rateValue || '--' }} %</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="状态" align="center" prop="productStatus" :width="80">
-        <template #default="scope">
-          <dict-tag :options="product_status" :value="scope.row.productStatus" />
-        </template>
-      </el-table-column>
+      <el-table class="table-container" v-loading="loading" :data="productList" @selection-change="handleSelectionChange" fit>
+        <el-table-column type="selection" :width="50" align="center" fixed="left" />
+        <el-table-column label="商品主图" align="center" prop="productImage" :width="100">
+          <template #default="scope">
+            <image-preview :src="scope.row.productImage" :width="75" :height="75" />
+          </template>
+        </el-table-column>
+        <el-table-column label="商品编码/名称" header-align="center" :min-width="200" show-overflow-tooltip>
+          <template #default="scope">
+            <div>
+              <strong> 编码：</strong>
+              <span>{{ scope.row.productCode }}</span>
+            </div>
+            <div>
+              <strong> 名称：</strong>
+              <span>{{ scope.row.productName }}</span>
+            </div>
+            <div>
+              <strong> 辅助名：</strong>
+              <span>{{ scope.row.assistName }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="sku规格" :min-width="80" show-overflow-tooltip>
+          <template #default="scope">
+            <div v-for="(item, index) in scope.row.skuSelected" :key="index">
+              <strong v-if="item.name">{{ item.name }} : </strong>
+              <span>{{ item.values.join(" 、 ") }}</span>
+              <span v-if="!item.name"> -- </span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="计量单位" align="center" prop="unitVo.unitCode" :width="80">
+          <template #default="scope">
+            <span>{{ scope.row.unitVo?.unitCode || '--' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="商品价格" header-align="center" align="right" prop="productPrice" :width="80">
+          <template #default="scope">
+            <span>{{ formatTwo(scope.row.productPrice) }} €</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="税率" align="center" prop="productRateVo.rateValue" :width="80">
+          <template #default="scope">
+            <span>{{ scope.row.productRateVo?.rateValue || '--' }} %</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" align="center" prop="productStatus" :width="80">
+          <template #default="scope">
+            <dict-tag :options="product_status" :value="scope.row.productStatus" />
+          </template>
+        </el-table-column>
 
 
-      <el-table-column label="商品分类/品牌" header-align="center" show-overflow-tooltip>
-        <template #default="scope">
-          <div>
-            <strong>分类：</strong>
-            <span>{{ scope.row.productCategoryVo?.categoryName || '--' }} </span>
-          </div>
-          <div>
-            <strong>品牌：</strong>
-            <span>{{ scope.row.brandForProductVo?.brandName || '--' }}</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip :width="200" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" :width="200">
-        <template #default="scope">
-          <div>
-            <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
-              v-hasPermi="['product:product:edit']">修改</el-button>
-            <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
-              v-hasPermi="['product:product:remove']">删除</el-button>
-          </div>
-          <div>
-            <el-button link type="success" icon="MoreFilled" @click="lookDetails(scope.row)">查看更多详情</el-button>
-          </div>
-        </template>
-      </el-table-column>
-    </el-table>
+        <el-table-column label="商品分类/品牌" header-align="center" show-overflow-tooltip>
+          <template #default="scope">
+            <div>
+              <strong>分类：</strong>
+              <span>{{ scope.row.productCategoryVo?.categoryName || '--' }} </span>
+            </div>
+            <div>
+              <strong>品牌：</strong>
+              <span>{{ scope.row.brandForProductVo?.brandName || '--' }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="备注" align="center" prop="remark" show-overflow-tooltip :width="200" />
+        <el-table-column label="操作" align="center" class-name="small-padding fixed-width" :width="200">
+          <template #default="scope">
+            <div>
+              <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+                v-hasPermi="['product:product:edit']">修改</el-button>
+              <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
+                v-hasPermi="['product:product:remove']">删除</el-button>
+            </div>
+            <div>
+              <el-button link type="success" icon="MoreFilled" @click="lookDetails(scope.row)">查看更多详情</el-button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 分页查询页脚 -->
+      <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize" @pagination="getList" />
+
+    
 
     <!-------------------- 商品详情查看 dialog ----------------------->
 
@@ -305,9 +311,7 @@
       </template>
     </el-dialog>
 
-    <!-- 分页查询页脚 -->
-    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize" @pagination="getList" />
+    
   </div>
 </template>
 
@@ -572,13 +576,30 @@ getList(); // 获取商品列表
 </script>
 
 <style scoped lang="scss">
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+
 .compact-form-item {
   margin-bottom: 0;
   /* 根据需要调整其他样式 */
-}
-.spec-row {
-  display: flex;
-  align-items: center;
 }
 
 .el-form-item {

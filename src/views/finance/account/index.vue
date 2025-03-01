@@ -39,7 +39,7 @@
       </el-row>
     </el-form>
 
-    <el-table v-if="refreshTable" v-loading="loading" border :data="accountList" row-key="accountId"
+    <el-table class="table-container" v-if="refreshTable" v-loading="loading" border :data="accountList" row-key="accountId"
       :default-expand-all="isExpandAll" :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
       ref="accountTable" @cell-click="handleCellClick">
       <el-table-column label="科目编码" prop="accountCode" min-width="100" show-overflow-tooltip />
@@ -428,3 +428,26 @@ function handleDelete(row) {
 
 getList();
 </script>
+
+<style lang="scss" scoped>
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+</style>

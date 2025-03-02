@@ -3,8 +3,24 @@
     <!-- 锁屏 -->
     <div v-if="isLocked" class="lock-screen-overlay">
       <div class="lock-screen-content">
-        <el-input v-model="password" type="password" placeholder="请输入密码"></el-input>
-        <el-button @click="unlockScreen">解锁</el-button>
+        <!-- 时间显示 -->
+        <div class="time-display">
+          <span class="digit">{{ hours }}</span>
+          <span class="colon">:</span>
+          <span class="digit">{{ minutes }}</span>
+          <span class="colon">:</span>
+          <span class="digit">{{ seconds }}</span>
+        </div>
+        <!-- 解锁输入框和按钮 -->
+        <div class="unlock-section">
+          <input
+            v-model="password"
+            type="password"
+            placeholder="请输入密码"
+            class="unlock-input"
+          />
+          <button @click="unlockScreen" class="unlock-button">解锁</button>
+        </div>
       </div>
     </div>
 
@@ -12,7 +28,7 @@
     <el-container class="cash-body">
       <!-- 头部 -->
       <el-header class="header">
-        <el-card class="header-card" shadow="hover" >
+        <el-card class="header-card" shadow="hover">
           <div class="header-container">
             <div class="left-row">
               <el-form-item label="订单：">销售订单</el-form-item>
@@ -22,8 +38,8 @@
             <div class="right-row">
               <el-row class="right-top">
                 <span class="time">{{ currentTime }}</span>
-                <span class="cashier">收银：QH007</span>
-                <span class="version">仓库：主仓库</span>
+                <span class="cashier">值班人员：QH007</span>
+                <span class="version">收银台：1234567890abcdefghijklmn</span>
               </el-row>
               <el-row>
                 <el-form-item label="是否含税：">含税/不含税</el-form-item>
@@ -33,7 +49,6 @@
             </div>
           </div>
         </el-card>
-    
       </el-header>
 
       <!-- 主体部分 -->
@@ -54,9 +69,9 @@
           >
             {{ action.label }}
           </el-button>
-        
         </el-aside>
       </el-container>
+
       <!-- 尾部 -->
       <el-footer class="footer">
         <el-card shadow="always" class="footer-card">
@@ -89,25 +104,21 @@
               <div>应交金额</div>
             </el-col>
             <el-col :span="1.5">
-              <el-button>确认</el-button>
-              <el-button>支付</el-button>
+              <el-button class="footer-button">确认</el-button>
+              <el-button class="footer-button">支付</el-button>
             </el-col>
           </el-row>
           <TouchKeyboard ref="keyboardRef" />
-          
-          
-          
         </el-card>
-        
       </el-footer>
     </el-container>
-
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import TouchKeyboard from '@/components/TouchKeyboard/index.vue';
+import { set } from 'lodash';
 
 const actions = [
   { label: "全屏", action: "toggleFullScreen" },
@@ -140,9 +151,7 @@ const handleAction = (action) => {
     case "pay":
       console.log("支付");
   }
-  // 根据 action.action 执行对应的逻辑
 };
-
 
 // -------------------------     1 全屏锁屏 start     -------------------------
 const cashierContainer = ref(null);
@@ -155,17 +164,17 @@ const toggleFullScreen = () => {
     cashierContainer.value.requestFullscreen();
   }
   isFullScreen.value = !isFullScreen.value;
-}
+};
 
 // -------------------------     1 全屏锁屏 end     -------------------------
 
 // --------------------------     2 锁屏 start     -------------------------
-
 const isLocked = ref(false);
 const password = ref('');
+
 const lockScreen = () => {
   isLocked.value = true;
-}
+};
 
 const unlockScreen = () => {
   if (password.value === '123456') {
@@ -174,22 +183,36 @@ const unlockScreen = () => {
   } else {
     alert('密码错误,请重新输入！');
   }
-}
+};
 // --------------------------     2 锁屏 end     -------------------------
 
 // --------------------------     3 时间 start     -------------------------
-// 当前时间
-const currentTime = ref("");
-/** 更新当前时间 */
+const hours = ref('00');
+const minutes = ref('00');
+const seconds = ref('00');
+
+// 更新时间
 const updateTime = () => {
   const now = new Date();
-  currentTime.value = now.toLocaleString();
+  hours.value = String(now.getHours()).padStart(2, '0');
+  minutes.value = String(now.getMinutes()).padStart(2, '0');
+  seconds.value = String(now.getSeconds()).padStart(2, '0');
 };
 
+// 每秒更新时间
 onMounted(() => {
   updateTime();
-  setInterval(updateTime, 1000); // 每秒更新时间
+  setInterval(updateTime, 1000);
+  setInterval(getCurrentLocalTime, 1000);
 });
+
+// 获取当前本地时间
+const currentTime = ref(null);
+const getCurrentLocalTime = () => {
+  // 返回当前日期+时间
+  currentTime.value = new Date().toLocaleString();
+};
+
 // -------------------------     3 时间 end     -------------------------
 
 const price = ref("");
@@ -205,197 +228,268 @@ const setActiveInput = (inputEl) => {
 onMounted(() => {
   setActiveInput(priceRef.value.$el.querySelector("input"));
 });
-
-
-
-
-
 </script>
 
 <style lang="scss" scoped>
 .cashier-container {
   width: 100%;
-  height: 100%; /* 让整个页面撑满窗口 */
+  height: 100%;
   display: flex;
-  flex-direction: column; /* 纵向排列 header、main-container 和 footer */
-  background: linear-gradient(145deg, #f0f0f0, #e0e0e0); /* 整体背景渐变 */
-  padding: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 容器阴影 */
-
-  .lock-screen-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color:rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-
-    .lock-screen-content {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 5px;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 锁屏弹窗阴影 */
-    }
-  }
-
-  .cash-body{
-    display: flex;
-    flex-direction: column; /* 让 header、main-container 和 footer 纵向排列 */
-    height: 100%;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 内容区域阴影 */
-    overflow: hidden;
-
-    .header{
-      flex-shrink: 0; /* 固定头部，不被挤压 */
-      height: 80px;
-      display: flex;
-      align-items: center;
-      padding: 0px;
-      margin: 0px;
-
-      .header-card{
-        width: 100%;
-        height: 100%;
-        margin: 5px 0px;
-        background: linear-gradient(145deg, #007aff, #005bb5); /* 头部渐变背景 */
-        color: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* 头部阴影 */
-
-        .header-container{
-          display: flex;
-          justify-content: space-between; /* 左右分布 */
-          align-items: center;
-          gap: 20px;
-
-          .left-row {
-            //左悬浮
-            display: flex;
-            gap: 20px;
-          }
-          .right-row {
-            display: flex;
-            flex-direction: column;
-            // 右对齐
-            justify-content: flex-end;
-            align-items: center;
-            gap: 10px;
-
-            .right-top{
-              // 右对齐
-              justify-content: flex-end;
-              gap: 20px;
-              font-size: 12px;
-            }
-            .right-bottom{
-              // 右对齐
-              justify-content: flex-end;
-              gap: 10px;
-            }
-          }
-        }
-
-      }
-    }
-
-    .main-data{
-      flex: 1; /* 填充 header 和 footer 之间的所有空间 */
-      display: flex; /* 确保 main 和 aside 横向排列 */
-      overflow: hidden; /* 避免 main 或 aside 撑大影响 footer */
-      padding: 0px;
-      margin: 0px;
-
-      .main{
-        flex: 1; /* 填充剩余空间 */
-        overflow-y: auto; /* 超出时滚动 */
-        padding: 10px;
-        background: #f9f9f9; /* 主体背景色 */
-        border-radius: 10px;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1); /* 内阴影 */
-      }
-
-      .aside{
-        width: 100px;
-        overflow-y: auto; /* 确保数据超出时滚动 */
-        padding: 5px 4px 4px 5px;
-        margin: 0px;
-        display: flex;
-        flex-direction: column; /* 垂直排列 */
-        align-items: center; /* 水平居中 */
-        gap: 10px; /* 按钮之间的间距 */
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 侧边栏阴影 */
-
-        .action-button {
-          width: 100%;
-          height: 40px;
-          padding: 0px;
-          margin: 0px;
-          font-size: 14px;
-          color: white;
-          background: linear-gradient(145deg, #007aff, #005bb5); /* 渐变背景 */
-          border: none;
-          border-radius: 10px;
-          cursor: pointer;
-          user-select: none;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* 按钮阴影 */
-          transition: all 0.2s ease; /* 平滑过渡 */
-
-          &:hover {
-            background: linear-gradient(145deg, #005bb5, #007aff); /* 悬浮时反转渐变 */
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3); /* 悬浮时阴影加深 */
-            transform: translateY(-2px); /* 悬浮时轻微上移 */
-          }
-
-          &:active {
-            background: linear-gradient(145deg, #004080, #007aff); /* 点击时颜色加深 */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* 点击时阴影减小 */
-            transform: translateY(0); /* 点击时恢复原位 */
-          }
-        }
-
-        
-      }
-
-      
-    }
-
-    .footer{
-      flex-shrink: 0; /* 确保 footer 不被挤压 */
-      height: 200px;
-      background: #fff;
-      padding: 0px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-radius: 10px;
-      box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1); /* 尾部阴影 */
-
-      .footer-card{
-        width: 100%;
-        height: 100%;
-        margin: 5px 0px;
-        background: #f9f9f9; /* 尾部背景色 */
-        border-radius: 10px;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1); /* 内阴影 */
-      }
-    }
-  }
-
+  flex-direction: column;
+  background: linear-gradient(145deg, #f5f7fa, #e6e9ef); /* 浅灰色渐变 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+.lock-screen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, #001f3f, #000); /* 科技感背景 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
 
+  .time-display {
+    font-family: 'Digital-7', monospace; /* 使用电子表字体 */
+    font-size: 10rem;
+    font-weight: bold;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
+    .digit {
+      background: rgba(255, 255, 255, 0.1); /* 半透明背景 */
+      padding: 10px 20px;
+      margin: 0 5px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.6), 0 0 30px rgba(0, 255, 255, 0.4); /* 发光效果 */
+      animation: glow 1.5s infinite alternate;
+    }
 
+    .colon {
+      margin: 0 10px;
+      animation: blink 1s infinite;
+    }
+  }
 
+  .unlock-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 40px;
 
+    .unlock-input {
+      width: 200px;
+      padding: 10px;
+      font-size: 16px;
+      color: white;
+      background: rgba(255, 255, 255, 0.1); /* 半透明背景 */
+      border: none;
+      border-radius: 5px;
+      outline: none;
+      text-align: center;
 
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.5); /* 半透明占位符 */
+      }
+    }
+
+    .unlock-button {
+      width: 200px;
+      padding: 10px;
+      font-size: 16px;
+      color: white;
+      background: rgba(0, 255, 255, 0.2); /* 半透明背景 */
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+
+      &:hover {
+        background: rgba(0, 255, 255, 0.4); /* 悬浮时背景变亮 */
+      }
+
+      &:active {
+        background: rgba(0, 255, 255, 0.6); /* 点击时背景更亮 */
+      }
+    }
+  }
+}
+
+.cash-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #ffffff; /* 白色背景 */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.header {
+  flex-shrink: 0;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  padding: 0px;
+  margin: 0px;
+
+  .header-card {
+    width: 100%;
+    height: 100%;
+    margin: 5px 0px;
+    background: #ffffff; /* 白色背景 */
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+
+      .left-row {
+        display: flex;
+        gap: 20px;
+      }
+
+      .right-row {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+
+        .right-top {
+          justify-content: flex-end;
+          gap: 20px;
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+.main-data {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  padding: 0px;
+  margin: 0px;
+
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background: #ffffff; /* 白色背景 */
+    border-radius: 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .aside {
+    width: 100px;
+    overflow-y: auto;
+    padding: 5px 4px 4px 5px;
+    margin: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff; /* 白色背景 */
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    .action-button {
+      width: 100%;
+      height: 40px;
+      padding: 0px;
+      margin: 0px;
+      font-size: 14px;
+      color: white;
+      background: #007aff; /* 蓝色 */
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #005bb5; /* 深蓝色 */
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        background: #004080; /* 更深蓝色 */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+.footer {
+  flex-shrink: 0;
+  height: 200px;
+  background: #ffffff; /* 白色背景 */
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 10px;
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+
+  .footer-card {
+    width: 100%;
+    height: 100%;
+    margin: 5px 0px;
+    background: #ffffff; /* 白色背景 */
+    border-radius: 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    .footer-button {
+      width: 100%;
+      height: 40px;
+      padding: 0px;
+      margin: 0px;
+      font-size: 14px;
+      color: white;
+      background: #007aff; /* 蓝色 */
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #005bb5; /* 深蓝色 */
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        background: #004080; /* 更深蓝色 */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
 </style>

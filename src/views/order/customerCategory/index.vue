@@ -35,8 +35,10 @@
       <el-table-column label="备注描述" align="center" prop="remark" />
       <el-table-column label="分类状态" align="center" prop="categoryStatus" width="80">
         <template #default="scope">
-          <el-switch v-model="scope.row.categoryStatus" :active-value="sys_tenant_status[0].value"
-            :inactive-value="sys_tenant_status[1].value" inline-prompt active-text="启用" inactive-text="禁用"
+          <el-switch v-model="scope.row.categoryStatus" 
+            :active-value="sys_tenant_status[0].value"
+            :inactive-value="sys_tenant_status[1].value" 
+            inline-prompt active-text="启用" inactive-text="禁用"
             style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
             @change="handleChangeStatus(scope.row)" />
         </template>
@@ -276,26 +278,3 @@ function handleDelete(row) {
 
 getList();
 </script>
-
-<style lang="scss" scoped>
-.app-container {
-  height: 100%; /* 确保父容器高度充满 */
-  display: flex;
-  flex-direction: column;
-}
-
-.table-container {
-  flex-grow: 1; /* 表格区域充满剩余空间 */
-  display: flex;
-  flex-direction: column;
-}
-
-.el-table {
-  flex-grow: 1; /* 表格充满剩余空间 */
-}
-
-.pagination {
-  flex-shrink: 0; /* 分页栏固定在底部 */
-  margin-top: auto; /* 将分页栏推到容器底部 */
-}
-</style>

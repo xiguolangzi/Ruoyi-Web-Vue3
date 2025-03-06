@@ -19,7 +19,7 @@
       </el-form-item>
       <el-form-item label="设备状态" prop="cajaStatus">
         <el-select v-model="queryParams.cajaStatus" placeholder="请选择设备状态" clearable>
-          <el-option v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -70,7 +70,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="salesCajaList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="salesCajaList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" width="50" />
       <el-table-column label="收银机名称" align="center" prop="cajaName" />
@@ -78,8 +78,8 @@
       <el-table-column label="注册人" align="center" prop="createBy" />
       <el-table-column label="设备状态" align="center" prop="cajaStatus" width="80">
         <template #default="scope">
-          <el-switch v-model="scope.row.cajaStatus" :active-value="sys_tenant_status[0].value"
-            :inactive-value="sys_tenant_status[1].value" inline-prompt active-text="启用" inactive-text="禁用"
+          <el-switch v-model="scope.row.cajaStatus" :active-value="Number(sys_tenant_status[0].value)"
+            :inactive-value="Number(sys_tenant_status[1].value)" inline-prompt active-text="启用" inactive-text="禁用"
             style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
             @change="handleChangeStatus(scope.row)"></el-switch>
         </template>
@@ -123,7 +123,7 @@
         </el-form-item>
         <el-form-item label="设备状态" prop="cajaStatus">
           <el-radio-group v-model="form.cajaStatus">
-            <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :value="dict.value">{{dict.label}}</el-radio>
+            <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :value="Number(dict.value)">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注描述" prop="remark" >

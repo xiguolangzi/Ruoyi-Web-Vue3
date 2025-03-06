@@ -19,12 +19,7 @@
       </el-form-item>
       <el-form-item label="佣金状态" prop="commissionStatus">
         <el-select v-model="queryParams.commissionStatus" placeholder="请选择佣金状态" clearable>
-          <el-option
-            v-for="dict in sys_tenant_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+          <el-option v-for="dict in sys_tenant_status"  :key="dict.value"  :label="dict.label"  :value="Number(dict.value)"/>
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -75,10 +70,10 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="salesCommissionList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="salesCommissionList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="编号" align="center" type="index" min-width="50"/>
-      <el-table-column label="佣金名称" align="center" prop="commissionName" />
+      <el-table-column label="佣金名称" align="center" prop="commissionName" min-width="120" show-overflow-tooltip/>
       <el-table-column label="业务员" align="center" prop="salesmanId" min-width="120" show-overflow-tooltip>
         <template #default="scope">
           <span>{{ getUserName(scope.row.salesmanId) }}</span>
@@ -91,8 +86,8 @@
       </el-table-column>
       <el-table-column label="佣金状态" align="center" prop="commissionStatus">
         <template #default="scope">
-          <el-switch v-model="scope.row.commissionStatus" :active-value="sys_tenant_status[0].value"
-            :inactive-value="sys_tenant_status[1].value" inline-prompt active-text="启用" inactive-text="禁用"
+          <el-switch v-model="scope.row.commissionStatus" :active-value="Number(sys_tenant_status[0].value)"
+            :inactive-value="Number(sys_tenant_status[1].value)" inline-prompt active-text="启用" inactive-text="禁用"
             style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
             @change="handleChangeStatus(scope.row)"></el-switch>
         </template>
@@ -169,22 +164,12 @@
         </el-form-item>
         <el-form-item label="佣金状态" prop="commissionStatus">
           <el-radio-group v-model="form.commissionStatus">
-            <el-radio
-              v-for="dict in sys_tenant_status"
-              :key="dict.value"
-              :label="dict.value"
-              :value="dict.value"
-            >{{dict.label}}</el-radio>
+            <el-radio  v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="是否默认" prop="commissionIsDefault">
           <el-radio-group v-model="form.commissionIsDefault">
-            <el-radio
-              v-for="dict in sys_yes_or_no"
-              :key="dict.value"
-              :label="dict.value"
-              :value="dict.value"
-            >{{dict.label}}</el-radio>
+            <el-radio v-for="dict in sys_yes_or_no"  :key="dict.value"  :label="dict.label" :value="Number(dict.value)">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注说明" prop="remark">
@@ -294,14 +279,14 @@ const handleFocus = () => {
 // ------------------------------------- 3 修改状态 start ------------------------------------
 /** 修改状态  */
 function handleChangeStatus(row) {
-  let text = row.commissionStatus === "0" ? "启用" : "禁用";
+  let text = row.commissionStatus === 0 ? "启用" : "禁用";
   proxy.$modal.confirm('确认要"' + text + '" 佣金名称为："' + row.commissionName + '" 的佣金吗?').then(function () {
     return changeStatus(row);
   }).then(() => {
     proxy.$modal.msgSuccess(text + "成功");
     getList();
   }).catch(function () {
-    row.commissionStatus = row.commissionStatus === "0" ? "1" : "0";
+    row.commissionStatus = row.commissionStatus === 0 ? 1 : 0;
   });
 };
 // ------------------------------------- 3 修改状态 end ------------------------------------
@@ -320,8 +305,8 @@ function reset() {
     salesmanId: null,
     commissionName: null,
     commissionRate: null,
-    commissionStatus: '0',
-    commissionIsDefault: '1',
+    commissionStatus: 0,
+    commissionIsDefault: 1,
     remark: null,
     createTime: null,
     createBy: null,

@@ -413,7 +413,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加销售活动 ";
+  title.value = "添加业务活动 ";
 }
 
 /** 修改按钮操作 */
@@ -424,7 +424,7 @@ function handleUpdate(row) {
     form.value = response.data;
     form.value.timeRange = [form.value.startTime, form.value.endTime];
     open.value = true;
-    title.value = "修改销售活动 ";
+    title.value = "修改业务活动 ";
   });
 }
 

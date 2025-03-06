@@ -137,8 +137,8 @@
       </el-table-column>
       <el-table-column label="sku状态" align="center" prop="skuStatus" width="80">
         <template #default="scope">
-          <el-switch v-model="scope.row.skuStatus" :active-value="product_status[0].value"
-            :inactive-value="product_status[1].value" inline-prompt active-text="启用" inactive-text="禁用"
+          <el-switch v-model="scope.row.skuStatus" :active-value= 'StatusEnum.ENABLE'
+            :inactive-value= 'StatusEnum.DISABLE' inline-prompt active-text="启用" inactive-text="禁用"
             style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
             @change="handleStatusChange(scope.row)"></el-switch>
         </template>
@@ -339,12 +339,18 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 
+const StatusEnum = {
+  DISABLE: 1,
+  ENABLE: 0
+}
+
 
 /** SKU状态修改  */
 function handleStatusChange(row) {
   let text = row.status === "0" ? "启用" : "停用";
   proxy.$modal.confirm('确认要"' + text + '" 编码为："' + row.skuCode + '" 的SKU吗?').then(function () {
-    return changeSkuStatus(row.skuId, row.skuStatus, row.tenantId);
+    console.log(row);
+    return changeSkuStatus(row);
   }).then(() => {
     proxy.$modal.msgSuccess(text + "成功");
   }).catch(function () {

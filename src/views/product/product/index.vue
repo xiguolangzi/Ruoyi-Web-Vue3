@@ -25,15 +25,11 @@
           <el-option v-for="items in brandList" :key="items.brandId" :label="items.brandName" :value="items.brandId" />
         </el-select>
       </el-form-item>
-      <el-form-item label="税率:" prop="rateId">
+      <el-form-item label="商品税率:" prop="rateId">
         <el-select v-model="queryParams.rateId" placeholder="请选择税率" clearable>
           <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
             :value="items.rateId" />
         </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -56,12 +52,16 @@
         <el-button type="warning" plain icon="Download" @click="handleExport"
           v-hasPermi="['product:product:export']">导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <!-------------------- 数据展示列表区域 ----------------------->
 
-    <el-table class="table-container" v-loading="loading" :data="productList" @selection-change="handleSelectionChange" fit>
+    <el-table class="table-container" size="small" v-loading="loading" :data="productList" @selection-change="handleSelectionChange" fit>
       <el-table-column type="selection" :width="50" align="center" fixed="left" />
       <el-table-column label="商品主图" align="center" prop="productImage" :width="100">
         <template #default="scope">

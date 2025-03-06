@@ -92,7 +92,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="stockInDetailList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="stockInDetailList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" width="50"/>
       <el-table-column label="入库单号" align="center" prop="inNo"  min-width="150" show-overflow-tooltip />

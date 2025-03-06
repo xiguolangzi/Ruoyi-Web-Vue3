@@ -162,12 +162,6 @@
       </el-col>
     </el-row>
 
-
-        
-
-
-
-
     <!-- 添加或修改客户对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="customerRef" :model="form" :rules="rules" label-width="80px">

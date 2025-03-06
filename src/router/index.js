@@ -228,7 +228,7 @@ export const dynamicRoutes = [
     children: [
       {
         path: '/cashier/cashOperation',
-        component: () => import('@/views/sales/salesOrder/cashOperation'),
+        component: () => import('@/views/sales/salesOrder/cashOperation/cashOperation'),
         name: 'cashOperation',
         meta: { title: '收银台' }
       }

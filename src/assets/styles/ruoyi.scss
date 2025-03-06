@@ -89,19 +89,23 @@ h6 {
 .el-form .el-form-item__label {
 	font-weight: 700;
 	width: 98px !important;
+	font-size: 12px;
 
 }
 
 .el-form .el-form-item {
 	margin-right: 5px;
+	font-size: 12px;
 }
 
 .el-select {
 	width: 160px;
+	font-size: 12px;
 }
 
 // .el-input {
 // 	width: 160px;
+// 	font-size: 11px;
 // }
 
 .el-input__inner {
@@ -127,7 +131,7 @@ h6 {
 	overflow: auto;
 	overflow-x: hidden;
 	max-height: 70vh;
-	padding: 10px 20px 0;
+	padding: 10px 10px 0;
 }
 
 .el-table {
@@ -138,8 +142,8 @@ h6 {
 			word-break: break-word;
 			background-color: #f8f8f9 !important;
 			color: #565e70;
-			height: 40px !important;
-			font-size: 13px;
+			height: 20px !important;
+			font-size: 12px;
 		}
 	}
 
@@ -152,7 +156,7 @@ h6 {
 
 /** 表单布局 **/
 .form-header {
-	font-size: 15px;
+	font-size: 12px;
 	color: #6379bb;
 	border-bottom: 1px solid #ddd;
 	margin: 8px 10px 25px 10px;

@@ -15,6 +15,8 @@
           :index="index"
           :type="item.elTagType"
           :class="item.elTagClass"
+          :size= size
+          
         >{{ item.label + " " }}</el-tag>
       </template>
     </template>
@@ -46,6 +48,10 @@ const props = defineProps({
   separator: {
     type: String,
     default: ",",
+  },
+  size: {
+    type: String,
+    default: "default",
   }
 });
 

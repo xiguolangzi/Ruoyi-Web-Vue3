@@ -1,8 +1,9 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询仓库列表
 export function listWarehouse(query = {}) {
-  const pageSize = query.pageSize || 1000;
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/product/warehouse/list',
     method: 'get',

@@ -1,6 +1,6 @@
 <template>
   <el-card v-if="giftScopeType" shadow="hover">
-    <!-- 添加 slot，让父组件能够传递 el-form-item 进来 -->
+    <!-- 添加 slot 钩子，让父组件能够传递 el-form-item 进来 -->
     <slot name="gift-scope-label"></slot>
 
     <el-divider content-position="left">
@@ -26,30 +26,28 @@
         <el-table-column label="SKU 条码" prop="skuId" align="center" min-width="120px">
           <template #default="scope">
             <el-select-v2 v-model="scope.row.skuId" filterable :options="formattedSkuList"
-              placeholder="请输入 SKU Code" style="width: 100%" @change="handleSkuChange(scope.row)" />
+              placeholder="请输入 SKU Code" style="width: 100%" @change="handleSkuChange(scope.row)" :fit-input-width="false"/>
           </template>
         </el-table-column>
         <el-table-column label="SKU 名称" align="left" header-align="center" show-overflow-tooltip>
           <template #default="scope">
-            <span>{{ scope.row.productSkuVo?.productName }}</span>
+            <span>{{ scope.row.productSkuVo?.skuName || '--' }}</span>
           </template>
         </el-table-column>
         <el-table-column label="SKU 规格" align="left" header-align="center" show-overflow-tooltip>
           <template #default="scope">
-            <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
-              <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
-                {{ item[0] }}:
-              </strong>
-              <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
-                {{ item[1] }}
-              </span>
-              <span v-if="item[0] == '' || item[0] == 'skuName'"> -- -- </span>
+            <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) === 'default'">
+              --  <!-- 直接显示默认 SKU -->
+            </div>
+            <div v-else v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
+              <strong>{{ item[0] }}:</strong>
+              <span>{{ item[1] }}</span>
             </div>
           </template>
         </el-table-column>
         <el-table-column label="单价" prop="detailPrice" align="right" header-align="center" min-width="60px" show-overflow-tooltip>
           <template #default="scope">
-            <span>{{ formatTwo(scope.row.productSkuVo?.skuPrice1) }} € </span>
+            <span>{{ formatTwo(scope.row.productSkuVo?.skuPrice) }} € </span>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="75" align="center">
@@ -91,7 +89,7 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-  giftScopeType: String,
+  giftScopeType: [String, Number],
   salesPromotionScopeGiftList: Array,
   formattedSkuList: Array,
   categoryList: Array,
@@ -99,9 +97,9 @@ const props = defineProps({
   StatusEnum: Object
 });
 
-const isSkuScopeGift = computed(() => props.giftScopeType === props.ScopeTypeEnum.SKU);
-const isCategoryScopeGift = computed(() => props.giftScopeType === props.ScopeTypeEnum.CATEGORY);
-const isAllScopeGift = computed(() => props.giftScopeType === props.ScopeTypeEnum.ALL);
+const isSkuScopeGift = computed(() => props.giftScopeType == props.ScopeTypeEnum.SKU);
+const isCategoryScopeGift = computed(() => props.giftScopeType == props.ScopeTypeEnum.CATEGORY);
+const isAllScopeGift = computed(() => props.giftScopeType == props.ScopeTypeEnum.ALL);
 
 const emit = defineEmits(['handleSkuChange', 'removePromotionScopeGiftDetail', 'addPromotionScopeGiftDetail']);
 

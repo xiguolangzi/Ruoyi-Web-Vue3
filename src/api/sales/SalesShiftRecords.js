@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询交班记录列表
-export function listSalesShiftRecords(query) {
+export function listSalesShiftRecords(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/sales/SalesShiftRecords/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

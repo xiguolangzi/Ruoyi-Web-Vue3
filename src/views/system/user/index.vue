@@ -1,27 +1,26 @@
 <template>
   <div class="app-container">
-    <el-row :gutter="20">
-      <splitpanes :horizontal="appStore.device === 'mobile'" class="default-theme">
+      <splitpanes  :horizontal="appStore.device === 'mobile'" class="default-theme">
         <!--部门数据-->
         <pane size="16">
-          <el-col>
+
             <div class="head-container">
               <el-input v-model="deptName" placeholder="请输入部门名称" clearable prefix-icon="Search" style="margin-bottom: 20px" />
             </div>
             <div class="head-container">
               <el-tree :data="deptOptions" :props="{ label: 'label', children: 'children' }" :expand-on-click-node="false" :filter-node-method="filterNode" ref="deptTreeRef" node-key="id" highlight-current default-expand-all @node-click="handleNodeClick" />
             </div>
-          </el-col>
+
         </pane>
         <!--用户数据-->
-        <pane size="84">
-          <el-col>
+        <pane size="84" class="pane-container">
+
             <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
               <el-form-item label="用户名称" prop="userName">
                 <el-input v-model="queryParams.userName" placeholder="请输入用户名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
               </el-form-item>
-              <el-form-item label="手机号码" prop="phonenumber">
-                <el-input v-model="queryParams.phonenumber" placeholder="请输入手机号码" clearable style="width: 240px" @keyup.enter="handleQuery" />
+              <el-form-item label="手机号码" prop="phoneNumber">
+                <el-input v-model="queryParams.phoneNumber" placeholder="请输入手机号码" clearable style="width: 240px" @keyup.enter="handleQuery" />
               </el-form-item>
               <el-form-item label="状态" prop="status">
                 <el-select v-model="queryParams.status" placeholder="用户状态" clearable style="width: 240px">
@@ -56,13 +55,13 @@
               <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
             </el-row>
 
-            <el-table v-loading="loading" :data="userList" @selection-change="handleSelectionChange">
+            <el-table class="table-container" v-loading="loading" :data="userList" @selection-change="handleSelectionChange">
               <el-table-column type="selection" width="50" align="center" />
               <el-table-column label="用户编号" align="center" key="userId" prop="userId" v-if="columns[0].visible" />
               <el-table-column label="用户名称" align="center" key="userName" prop="userName" v-if="columns[1].visible" :show-overflow-tooltip="true" />
               <el-table-column label="用户昵称" align="center" key="nickName" prop="nickName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
               <el-table-column label="部门" align="center" key="deptName" prop="dept.deptName" v-if="columns[3].visible" :show-overflow-tooltip="true" />
-              <el-table-column label="手机号码" align="center" key="phonenumber" prop="phonenumber" v-if="columns[4].visible" width="120" />
+              <el-table-column label="手机号码" align="center" key="phoneNumber" prop="phoneNumber" v-if="columns[4].visible" width="120" />
               <el-table-column label="状态" align="center" key="status" v-if="columns[5].visible">
                 <template #default="scope">
                   <el-switch
@@ -95,11 +94,12 @@
                 </template>
               </el-table-column>
             </el-table>
+
             <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
-          </el-col>
+
         </pane>
       </splitpanes>
-    </el-row>
+
 
     <!-- 添加或修改用户配置对话框 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
@@ -112,14 +112,14 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="归属部门" prop="deptId">
-              <el-tree-select v-model="form.deptId" :data="enabledDeptOptions" :props="{ value: 'id', label: 'label', children: 'children' }" value-key="id" placeholder="请选择归属部门" check-strictly />
+              <el-tree-select v-model="form.deptId" :data="enabledDeptOptions" :props="{ value: 'id', label: 'label', children: 'children' }" value-key="id" placeholder="请选择归属部门" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="手机号码" prop="phonenumber">
-              <el-input v-model="form.phonenumber" placeholder="请输入手机号码" maxlength="11" />
+            <el-form-item label="手机号码" prop="phoneNumber">
+              <el-input v-model="form.phoneNumber" placeholder="请输入手机号码" maxlength="11" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -227,11 +227,12 @@ import { getToken } from "@/utils/auth";
 import useAppStore from '@/store/modules/app'
 import { changeUserStatus, listUser, resetUserPwd, delUser, getUser, updateUser, addUser, deptTreeSelect } from "@/api/system/user";
 import useUserStore from "@/store/modules/user";
+import { Splitpanes, Pane } from "splitpanes"
+import "splitpanes/dist/splitpanes.css"
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
-import { Splitpanes, Pane } from "splitpanes"
-import "splitpanes/dist/splitpanes.css"
+
 
 const router = useRouter();
 const appStore = useAppStore()
@@ -285,17 +286,17 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    userName: undefined,
-    phonenumber: undefined,
-    status: undefined,
-    deptId: undefined
+    userName: null,
+    phoneNumber: null,
+    status: null,
+    deptId: null
   },
   rules: {
     userName: [{ required: true, message: "用户名称不能为空", trigger: "blur" }, { min: 2, max: 20, message: "用户名称长度必须介于 2 和 20 之间", trigger: "blur" }],
     nickName: [{ required: true, message: "用户昵称不能为空", trigger: "blur" }],
     password: [{ required: true, message: "用户密码不能为空", trigger: "blur" }, { min: 5, max: 20, message: "用户密码长度必须介于 5 和 20 之间", trigger: "blur" }, { pattern: /^[^<>"'|\\]+$/, message: "不能包含非法字符：< > \" ' \\\ |", trigger: "blur" }],
     email: [{ type: "email", message: "请输入正确的邮箱地址", trigger: ["blur", "change"] }],
-    phonenumber: [{ required: true, message: "手机号不能为空", trigger: "blur" }],
+    phoneNumber: [{ required: true, message: "手机号不能为空", trigger: "blur" }],
     deptId: [{ required: true, message: "请选择部门", trigger: "blur" }]
   }
 });
@@ -478,16 +479,16 @@ function submitFileForm() {
 /** 重置操作表单 */
 function reset() {
   form.value = {
-    userId: undefined,
-    deptId: undefined,
-    userName: undefined,
-    nickName: undefined,
-    password: undefined,
-    phonenumber: undefined,
-    email: undefined,
-    sex: undefined,
+    userId: null,
+    deptId: null,
+    userName: null,
+    nickName: null,
+    password: null,
+    phoneNumber: null,
+    email: null,
+    sex: null,
     status: "0",
-    remark: undefined,
+    remark: null,
     postIds: [],
     roleIds: [],
     businessTypeIds: []
@@ -557,17 +558,43 @@ getList();
 
 <style scoped lang="scss">
 .app-container{
-   .el-form-item {
-         margin-right: 0px;
-         flex-shrink: 0;
-   
-         .el-input,
-         .el-select,
-         .el-tree-select {
-            width: 150px;
-         }
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  margin: 0px;
+  padding: 10px;
+
+
+
+  .default-theme{
+    width: 100%;
+    height: 100%;
+
+    .pane-container{
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+
+      .table-container {
+        flex-grow: 1; /* 表格区域充满剩余空间 */
+        display: flex;
+        flex-direction: column;
       }
-   
+
+      .el-table {
+        flex-grow: 1; /* 表格充满剩余空间 */
+      }
+
+      .pagination {
+        flex-shrink: 0; /* 分页栏固定在底部 */
+        margin-top: auto; /* 将分页栏推到容器底部 */
+      }
+    }
+  }
+
+
 }
    
 </style>

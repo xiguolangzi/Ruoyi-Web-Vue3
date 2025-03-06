@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询物流公司列表
-export function listLogisticsCompanies(query) {
+export function listLogisticsCompanies(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/order/logisticsCompanies/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

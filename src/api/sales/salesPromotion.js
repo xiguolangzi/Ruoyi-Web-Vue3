@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询促销活动列表
-export function listSalesPromotion(query) {
+export function listSalesPromotion(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/sales/salesPromotion/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

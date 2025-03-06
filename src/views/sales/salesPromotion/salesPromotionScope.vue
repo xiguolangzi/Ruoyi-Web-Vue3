@@ -32,25 +32,23 @@
         </el-table-column>
         <el-table-column label="SKU 名称" align="left" header-align="center" show-overflow-tooltip>
           <template #default="scope">
-            <span>{{ scope.row.productSkuVo?.productName }}</span>
+            <span>{{ scope.row.productSkuVo?.skuName }}</span>
           </template>
         </el-table-column>
         <el-table-column label="SKU 规格" align="left" header-align="center" show-overflow-tooltip>
           <template #default="scope">
-            <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
-              <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
-                {{ item[0] }}:
-              </strong>
-              <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
-                {{ item[1] }}
-              </span>
-              <span v-if="item[0] == '' || item[0] == 'skuName'"> -- -- </span>
+            <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) == 'default'">
+              --  <!-- 直接显示默认 SKU -->
+            </div>
+            <div v-else v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
+              <strong>{{ item[0] }}:</strong>
+              <span>{{ item[1] }}</span>
             </div>
           </template>
         </el-table-column>
         <el-table-column label="单价" prop="detailPrice" align="right" header-align="center" min-width="60px" show-overflow-tooltip>
           <template #default="scope">
-            <span>{{ formatTwo(scope.row.productSkuVo?.skuPrice1) }} € </span>
+            <span>{{ formatTwo(scope.row.productSkuVo?.skuPrice) }} € </span>
           </template>
         </el-table-column>
 
@@ -102,7 +100,7 @@
 import { computed, getCurrentInstance } from 'vue';
 
 const props = defineProps({
-  promotionScopeType: String,
+  promotionScopeType: [String, Number],
   salesPromotionScopeList: Array,
   formattedSkuList: Array,
   categoryList: Array,
@@ -110,9 +108,9 @@ const props = defineProps({
   StatusEnum: Object
 });
 
-const isSkuScope = computed(() => props.promotionScopeType === props.ScopeTypeEnum.SKU);
-const isCategoryScope = computed(() => props.promotionScopeType === props.ScopeTypeEnum.CATEGORY);
-const isAllScope = computed(() => props.promotionScopeType === props.ScopeTypeEnum.ALL);
+const isSkuScope = computed(() => props.promotionScopeType == props.ScopeTypeEnum.SKU);
+const isCategoryScope = computed(() => props.promotionScopeType == props.ScopeTypeEnum.CATEGORY);
+const isAllScope = computed(() => props.promotionScopeType == props.ScopeTypeEnum.ALL);
 
 const emit = defineEmits(['handleSkuChange', 'removePromotionScopeDetail', 'addPromotionScopeDetail']);
 

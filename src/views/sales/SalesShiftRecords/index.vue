@@ -43,7 +43,7 @@
       </el-form-item>
       <el-form-item label="交班状态" prop="shiftStatus">
         <el-select v-model="queryParams.shiftStatus" placeholder="请选择交班状态" clearable>
-          <el-option v-for="dict in erp_sales_shift_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in erp_sales_shift_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="交班开始时间" prop="shiftStartTime" style="width: 350px;">
@@ -99,7 +99,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="SalesShiftRecordsList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="SalesShiftRecordsList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="交班编号" align="center" prop="shiftNo" />
       <el-table-column label="设备名称" align="center" prop="cajaId" min-width="150" show-overflow-tooltip/>
@@ -597,3 +597,26 @@ function handleExport() {
 
 getList();
 </script>
+
+<style lang="scss" scoped>
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+</style>

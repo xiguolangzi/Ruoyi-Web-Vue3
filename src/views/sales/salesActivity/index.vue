@@ -15,7 +15,7 @@
             v-for="dict in sys_tenant_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -67,7 +67,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="salesActivityList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="salesActivityList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" :width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" :width="50" />
       <el-table-column label="活动名称" align="center" prop="activityName" :min-width="150" show-overflow-tooltip/>
@@ -84,7 +84,7 @@
           </el-tooltip>
         </template>
         <template #default="scope">
-          <dict-tag :options="erp_sales_is_calculate" :value="scope.row.salesmanHasCommission"/>
+          <dict-tag :options="erp_sales_is_calculate" :value="scope.row.salesmanHasCommission" />
         </template>
       </el-table-column>
       <el-table-column label="累加佣金点数" align="center" prop="salesmanAddCommissionRate" :min-width="110" show-overflow-tooltip>
@@ -189,7 +189,7 @@
               v-for="dict in sys_tenant_status"
               :key="dict.value"
               :label="dict.value"
-              :value="dict.value"
+              :value="Number(dict.value)"
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -203,7 +203,7 @@
               v-for="dict in erp_sales_is_calculate"
               :key="dict.value"
               :label="dict.value"
-              :value="dict.value"
+              :value="Number(dict.value)"
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -232,7 +232,7 @@
               v-for="dict in erp_sales_is_calculate"
               :key="dict.value"
               :label="dict.value"
-              :value="dict.value"
+              :value="Number(dict.value)"
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -261,7 +261,7 @@
               v-for="dict in erp_sales_is_calculate"
               :key="dict.value"
               :label="dict.value"
-              :value="dict.value"
+              :value="Number(dict.value)"
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -413,7 +413,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加销售活动 ";
+  title.value = "添加业务活动 ";
 }
 
 /** 修改按钮操作 */
@@ -424,7 +424,7 @@ function handleUpdate(row) {
     form.value = response.data;
     form.value.timeRange = [form.value.startTime, form.value.endTime];
     open.value = true;
-    title.value = "修改销售活动 ";
+    title.value = "修改业务活动 ";
   });
 }
 
@@ -469,3 +469,26 @@ function handleExport() {
 
 getList();
 </script>
+
+<style lang="scss" scoped>
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+</style>

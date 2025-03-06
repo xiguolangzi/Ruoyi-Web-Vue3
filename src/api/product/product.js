@@ -1,8 +1,9 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询商品列表
 export function listProduct(query = {}) {
-  const pageSize = query.pageSize || 5000;
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/product/product/list',
     method: 'get',

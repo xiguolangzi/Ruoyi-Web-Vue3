@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
-    <el-row :gutter="20">
-      <el-col :span="4" :xs="24">
+    <el-row class="row-container">
+      <el-col :span="4" :xs="24" class="col-category-container">
         <div class="head-container">
           <el-input v-model="categoryName" placeholder="请输入分类名称" clearable prefix-icon="Search"
             style="margin-bottom: 20px" />
@@ -12,7 +12,7 @@
             highlight-current default-expand-all @node-click="handleNodeClick" />
         </div>
       </el-col>
-      <el-col :span="20" :xs="24">
+      <el-col :span="20" :xs="24" class="col-data-container">
         <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
           <el-form-item label="客户编码: " prop="customerCode">
             <el-input v-model="queryParams.customerCode" placeholder="请输入客户编码" clearable @keyup.enter="handleQuery" />
@@ -29,7 +29,7 @@
           <el-form-item label="客户类型: " prop="customerType">
             <el-select v-model="queryParams.customerType" placeholder="请选择客户类型" clearable>
               <el-option v-for="dict in order_customer_type" :key="dict.value" :label="dict.label"
-                :value="dict.value" />
+                :value="Number(dict.value)" />
             </el-select>
           </el-form-item>
           <el-form-item label="客户等级: " prop="levelId">
@@ -46,10 +46,6 @@
           <el-form-item label="发掘客户者: " prop="findBy">
             <el-input v-model="queryParams.findBy" placeholder="请输发掘客户者名称" clearable @keyup.enter="handleQuery"
               maxlength="50" />
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-            <el-button type="info" icon="Refresh" @click="resetQuery">重置</el-button>
           </el-form-item>
         </el-form>
 
@@ -70,97 +66,101 @@
             <el-button type="warning" plain icon="Download" @click="handleExport"
               v-hasPermi="['order:customer:export']">导出</el-button>
           </el-col>
+          <el-col :span="1.5">
+            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+            <el-button type="info" icon="Refresh" @click="resetQuery">重置</el-button>
+          </el-col>
           <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
         </el-row>
 
-        <el-table v-loading="loading" :data="customerList" @selection-change="handleSelectionChange" resizable  ref="customerTable" @expand-change="handleExpandChange2" row-key="customerId">
-          <el-table-column type="expand">
-            <template #default="props">
-              <div style="padding: 10px 50px;">
-                <el-descriptions title=">>> 发票信息: " :column="5" size="small">
-                  <el-descriptions-item label="纳税人税号:">{{ props.row.invoiceTax }}</el-descriptions-item>
-                  <el-descriptions-item label="纳税人名称:">{{ props.row.invoiceName }}</el-descriptions-item>
-                  <el-descriptions-item label="纳税人电话:">{{ props.row.invoicePhone }}</el-descriptions-item>
-                  <el-descriptions-item label="纳税人邮编:">{{ props.row.invoicePostcode }}</el-descriptions-item>
-                  <el-descriptions-item label="纳税人地址:">{{ props.row.invoiceAddress }}</el-descriptions-item>
-                </el-descriptions>
-                <el-descriptions title=">>> 联系人信息: " :column="5" size="small">
-                  <el-descriptions-item label="联系人名称:">{{ props.row.contactName }}</el-descriptions-item>
-                  <el-descriptions-item label="联系人电话:">{{ props.row.contactPhone }}</el-descriptions-item>
-                  <el-descriptions-item label="联系人邮箱:">{{ props.row.contactEmail }}</el-descriptions-item>
-                  <el-descriptions-item label="联系人地址:" :span="2">{{ props.row.contactAddress }}</el-descriptions-item>
-                </el-descriptions>
-                <el-descriptions title=">>> 银行账户信息: " :column="6" size="small">
-                  <template v-for="(bank, index) in props.row.bankAccountList" :key="index">
-                    <el-descriptions-item label="银行名称:">{{ bank.bankName || '--' }}</el-descriptions-item>
-                    <el-descriptions-item label="账户账号:">{{ bank.accountNo || '--' }}</el-descriptions-item>
-                    <el-descriptions-item label="账户名称:">{{ bank.accountName || '--' }}</el-descriptions-item>
-                    <el-descriptions-item label="swiftCode:">{{ bank.swiftCode || '--' }}</el-descriptions-item>
-                    <el-descriptions-item label="是否默认:">
-                      <dict-tag :options="sys_yes_or_no" :value="bank.isDefault" style="display: inline-block;"/>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="备注信息:" >{{ bank.remark || '--' }}</el-descriptions-item>
-                  </template>
-                </el-descriptions>
-                <el-descriptions title=">>> 更新信息: " :column="5" size="small">
-                  <el-descriptions-item label="创建人:">{{ props.row.createBy }}</el-descriptions-item>
-                  <el-descriptions-item label="创建时间:">{{ parseTime(props.row.createTime, '{y}-{m}-{d}')
-                    }}</el-descriptions-item>
-                  <el-descriptions-item label="修改人:">{{ props.row.updateBy }}</el-descriptions-item>
-                  <el-descriptions-item label="修改时间:">{{ parseTime(props.row.updateTime, '{y}-{m}-{d}')
-                    }}</el-descriptions-item>
-                  <el-descriptions-item label="备注:">{{ props.row.remark }}</el-descriptions-item>
-                </el-descriptions>
-              </div>
 
-            </template>
-          </el-table-column>
-          <el-table-column type="selection" width="55" align="center" />
-          <el-table-column label="客户分类" align="center" prop="categoryVo.categoryName" min-width="120"
-            show-overflow-tooltip />
-          <el-table-column label="客户编码" align="center" prop="customerCode" show-overflow-tooltip />
-          <el-table-column label="客户名称" align="center" prop="customerName" show-overflow-tooltip />
-          <el-table-column label="客户类型" align="center" prop="customerType" show-overflow-tooltip>
-            <template #default="scope">
-              <dict-tag :options="order_customer_type" :value="scope.row.customerType" />
-            </template>
-          </el-table-column>
-          <el-table-column label="客户等级" align="center" prop="leverId">
-            <template #default="scope">
-              <span>{{ scope.row.customerLevel ? scope.row.customerLevel.levelName : '--' }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="客户状态" align="center" prop="customerStatus">
-            <template #default="scope">
-              <dict-tag :options="project_general_status" :value="scope.row.customerStatus" />
-            </template>
-          </el-table-column>
-          <el-table-column label="绑定业务员" align="center" prop="salesmanId" show-overflow-tooltip>
-            <template #default="scope">
-              <span>{{ scope.row.salesmanVo ? scope.row.salesmanVo.userName : '--' }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="发掘客户者" align="center" prop="findBy" show-overflow-tooltip>
-            <template #default="scope">
-              <span>{{ scope.row.findBy ? scope.row.findBy : '--' }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-            <template #default="scope">
-              <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
-                v-hasPermi="['order:customer:edit']">修改</el-button>
-              <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
-                v-hasPermi="['order:customer:remove']">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+          <el-table class="table-container" v-loading="loading" :data="customerList" @selection-change="handleSelectionChange" resizable  ref="customerTable" @expand-change="handleExpandChange2" row-key="customerId">
+            <el-table-column type="expand">
+              <template #default="props">
+                <div style="padding: 10px 50px;">
+                  <el-descriptions title=">>> 发票信息: " :column="5" size="small">
+                    <el-descriptions-item label="纳税人税号:">{{ props.row.invoiceTax }}</el-descriptions-item>
+                    <el-descriptions-item label="纳税人名称:">{{ props.row.invoiceName }}</el-descriptions-item>
+                    <el-descriptions-item label="纳税人电话:">{{ props.row.invoicePhone }}</el-descriptions-item>
+                    <el-descriptions-item label="纳税人邮编:">{{ props.row.invoicePostcode }}</el-descriptions-item>
+                    <el-descriptions-item label="纳税人地址:">{{ props.row.invoiceAddress }}</el-descriptions-item>
+                  </el-descriptions>
+                  <el-descriptions title=">>> 联系人信息: " :column="5" size="small">
+                    <el-descriptions-item label="联系人名称:">{{ props.row.contactName }}</el-descriptions-item>
+                    <el-descriptions-item label="联系人电话:">{{ props.row.contactPhone }}</el-descriptions-item>
+                    <el-descriptions-item label="联系人邮箱:">{{ props.row.contactEmail }}</el-descriptions-item>
+                    <el-descriptions-item label="联系人地址:" :span="2">{{ props.row.contactAddress }}</el-descriptions-item>
+                  </el-descriptions>
+                  <el-descriptions title=">>> 银行账户信息: " :column="6" size="small">
+                    <template v-for="(bank, index) in props.row.bankAccountList" :key="index">
+                      <el-descriptions-item label="银行名称:">{{ bank.bankName || '--' }}</el-descriptions-item>
+                      <el-descriptions-item label="账户账号:">{{ bank.accountNo || '--' }}</el-descriptions-item>
+                      <el-descriptions-item label="账户名称:">{{ bank.accountName || '--' }}</el-descriptions-item>
+                      <el-descriptions-item label="swiftCode:">{{ bank.swiftCode || '--' }}</el-descriptions-item>
+                      <el-descriptions-item label="是否默认:">
+                        <dict-tag :options="sys_yes_or_no" :value="bank.isDefault" style="display: inline-block;"/>
+                      </el-descriptions-item>
+                      <el-descriptions-item label="备注信息:" >{{ bank.remark || '--' }}</el-descriptions-item>
+                    </template>
+                  </el-descriptions>
+                  <el-descriptions title=">>> 更新信息: " :column="5" size="small">
+                    <el-descriptions-item label="创建人:">{{ props.row.createBy }}</el-descriptions-item>
+                    <el-descriptions-item label="创建时间:">{{ parseTime(props.row.createTime, '{y}-{m}-{d}')
+                      }}</el-descriptions-item>
+                    <el-descriptions-item label="修改人:">{{ props.row.updateBy }}</el-descriptions-item>
+                    <el-descriptions-item label="修改时间:">{{ parseTime(props.row.updateTime, '{y}-{m}-{d}')
+                      }}</el-descriptions-item>
+                    <el-descriptions-item label="备注:">{{ props.row.remark }}</el-descriptions-item>
+                  </el-descriptions>
+                </div>
 
-        <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum"
-          v-model:limit="queryParams.pageSize" @pagination="getList" />
+              </template>
+            </el-table-column>
+            <el-table-column type="selection" width="55" align="center" />
+            <el-table-column label="客户分类" align="center" prop="categoryVo.categoryName" min-width="120"
+              show-overflow-tooltip />
+            <el-table-column label="客户编码" align="center" prop="customerCode" show-overflow-tooltip />
+            <el-table-column label="客户名称" align="center" prop="customerName" show-overflow-tooltip />
+            <el-table-column label="客户类型" align="center" prop="customerType" show-overflow-tooltip>
+              <template #default="scope">
+                <dict-tag :options="order_customer_type" :value="scope.row.customerType" />
+              </template>
+            </el-table-column>
+            <el-table-column label="客户等级" align="center" prop="leverId">
+              <template #default="scope">
+                <span>{{ scope.row.customerLevel ? scope.row.customerLevel.levelName : '--' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="客户状态" align="center" prop="customerStatus">
+              <template #default="scope">
+                <dict-tag :options="project_general_status" :value="scope.row.customerStatus" />
+              </template>
+            </el-table-column>
+            <el-table-column label="绑定业务员" align="center" prop="salesmanId" show-overflow-tooltip>
+              <template #default="scope">
+                <span>{{ scope.row.salesmanVo ? scope.row.salesmanVo.userName : '--' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="发掘客户者" align="center" prop="findBy" show-overflow-tooltip>
+              <template #default="scope">
+                <span>{{ scope.row.findBy ? scope.row.findBy : '--' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+              <template #default="scope">
+                <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+                  v-hasPermi="['order:customer:edit']">修改</el-button>
+                <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
+                  v-hasPermi="['order:customer:remove']">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum"
+            v-model:limit="queryParams.pageSize" @pagination="getList" />
 
       </el-col>
     </el-row>
-
 
     <!-- 添加或修改客户对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
@@ -184,7 +184,7 @@
             <el-form-item label="客户类型: " prop="customerType">
               <el-select v-model="form.customerType" placeholder="请选择客户类型">
                 <el-option v-for="dict in order_customer_type" :key="dict.value" :label="dict.label"
-                  :value="dict.value"></el-option>
+                  :value="Number(dict.value)"></el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="客户等级: " prop="levelId">
@@ -195,7 +195,7 @@
             </el-form-item>
             <el-form-item label="客户状态" prop="customerStatus">
               <el-radio-group v-model="form.customerStatus">
-                <el-radio v-for="dict in project_general_status" :key="dict.value" :value="dict.value">{{ dict.label
+                <el-radio v-for="dict in project_general_status" :key="dict.value" :value="Number(dict.value)">{{ dict.label
                   }}</el-radio>
               </el-radio-group>
             </el-form-item>
@@ -233,6 +233,10 @@
               <el-input v-model="form.invoicePostcode" placeholder="请输入纳税人邮编" type="textarea" maxlength="10"
                 show-word-limit :rows="1" />
             </el-form-item>
+            <el-form-item label="发票邮箱: " prop="contactEmail">
+              <el-input v-model="form.contactEmail" placeholder="请输入联系人邮箱" type="textarea" maxlength="50"
+                show-word-limit :rows="1" />
+            </el-form-item>
             <el-form-item label="发票地址: " prop="invoiceAddress">
               <el-input v-model="form.invoiceAddress" placeholder="请输入纳税人地址" type="textarea" maxlength="100"
                 show-word-limit :rows="2" />
@@ -246,10 +250,6 @@
             </el-form-item>
             <el-form-item label="联系人电话: " prop="contactPhone">
               <el-input v-model="form.contactPhone" placeholder="请输入联系人电话" type="textarea" maxlength="20"
-                show-word-limit :rows="1" />
-            </el-form-item>
-            <el-form-item label="联系人邮箱: " prop="contactEmail">
-              <el-input v-model="form.contactEmail" placeholder="请输入联系人邮箱" type="textarea" maxlength="50"
                 show-word-limit :rows="1" />
             </el-form-item>
             <el-form-item label="联系人地址: " prop="contactAddress">
@@ -554,7 +554,7 @@ function reset() {
     customerId: null,
     customerCode: null,
     customerName: null,
-    customerStatus: '0',
+    customerStatus: 0,
     contactName: null,
     contactPhone: null,
     contactEmail: null,
@@ -623,11 +623,16 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["customerRef"].validate(valid => {
     // 银行账户数据 - 去除没有银行账号的数据
-    form.value.bankAccountList = form.value.bankAccountList.filter(item => item.accountNo);
+    form.value.bankAccountList = form.value.bankAccountList.filter(item => item.accountNo) || [];
     // 银行账户数据 - 将账户ID预制的ID值清空
-    form.value.bankAccountList.forEach(item => {
-      item.accountId = null;
-    });
+    if (form.value.bankAccountList.length === 0) {
+      form.value.bankAccountList = [];
+    } else {
+      form.value.bankAccountList.forEach(item => {
+        item.accountId = null;
+      });
+    }
+    
     if (valid) {
       if (form.value.customerId != null) {
         updateCustomer(form.value).then(response => {
@@ -668,3 +673,60 @@ function handleExport() {
 
 getList();
 </script>
+
+<style lang="scss" scoped>
+.app-container {
+  width: 100%;
+  height: 100%; /* 确保父容器高度充满视口 */
+  display: flex;
+  flex-direction: row;
+  margin: 0px;
+  padding: 10px;
+
+  .row-container{
+    height: 100%;
+    width: 100%;
+
+    // 客户分类
+    .col-category-container {
+      height: 100%;
+      .head-container{
+        width: 100%;
+        .el-input{
+          width: 100%;
+          margin-right: 5px;
+        }
+      }
+
+    }
+
+    .col-data-container {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+
+      .table-container {
+        flex-grow: 1; /* 表格区域充满剩余空间 */
+        display: flex;
+        flex-direction: column;
+      }
+
+      .el-table {
+        flex-grow: 1; /* 表格充满剩余空间 */
+      }
+
+      .pagination {
+        flex-shrink: 0; /* 分页栏固定在底部 */
+        margin-top: auto; /* 将分页栏推到容器底部 */
+      }
+
+    }
+
+  }
+
+
+}
+
+
+</style>

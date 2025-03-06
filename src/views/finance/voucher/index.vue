@@ -1,25 +1,25 @@
 <template>
   <div class="app-container">
     <!-- 过滤条件 -->
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" :label-width="68">
       <el-form-item label="会计年度" prop="periodYear">
         <el-select v-model="queryParams.periodYear" placeholder="请选择会计年度" >
-          <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="会计月份" prop="periodMonth">
         <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份" >
-          <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="凭证类型" prop="voucherType">
         <el-select v-model="queryParams.voucherType" placeholder="请选择凭证类型" clearable>
-          <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="凭证状态" prop="voucherStatus">
         <el-select v-model="queryParams.voucherStatus" placeholder="请选择凭证状态" clearable>
-          <el-option v-for="dict in finance_voucher_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in finance_voucher_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item style="margin-left: 20px;">
@@ -46,19 +46,19 @@
     </el-row>
 
     <!-- 数据展示 -->
-    <el-table v-loading="loading" :data="voucherList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="会计年度" align="center" prop="periodYear" width="80">
+    <el-table class="table-container" v-loading="loading" :data="voucherList" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" :width="55" align="center" />
+      <el-table-column label="会计年度" align="center" prop="periodYear" width="80px">
         <template #default="scope">
           <dict-tag :options="finance_period_year" :value="scope.row.periodYear" />
         </template>
       </el-table-column>
-      <el-table-column label="会计月份" align="center" prop="periodMonth" width="80">
+      <el-table-column label="会计月份" align="center" prop="periodMonth" width="80px">
         <template #default="scope">
           <dict-tag :options="finance_period_month" :value="scope.row.periodMonth" />
         </template>
       </el-table-column>
-      <el-table-column label="凭证编号" align="center" prop="voucherNo" min-width="100">
+      <el-table-column label="凭证编号" align="center" prop="voucherNo" min-width="100px">
         <template #default="scope">
           <span class="link-type" @click="handleUpdate(scope.row)">{{ scope.row.voucherNo }}</span>
         </template>
@@ -68,12 +68,12 @@
           <dict-tag :options="finance_voucher_type" :value="scope.row.voucherType" />
         </template>
       </el-table-column>
-      <el-table-column label="凭证日期" align="center" prop="voucherDate" width="180">
+      <el-table-column label="凭证日期" align="center" prop="voucherDate" width="180px">
         <template #default="scope">
           <span>{{ parseTime(scope.row.voucherDate, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="总金额" align="center" prop="totalAmount" min-width="100">
+      <el-table-column label="总金额" align="center" prop="totalAmount" min-width="100px">
         <template #default="scope">
           <span>{{ formatTwo(scope.row.totalAmount) }} € </span>
         </template>
@@ -83,7 +83,7 @@
           <dict-tag :options="finance_voucher_status" :value="scope.row.voucherStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="凭证备注" align="left" header-align="center" prop="remark" min-width="150" show-overflow-tooltip />
+      <el-table-column label="凭证备注" align="left" header-align="center" prop="remark" min-width="150px" show-overflow-tooltip />
       <el-table-column label="制单人" align="center" prop="createBy" show-overflow-tooltip />
       <el-table-column label="制单时间" align="center" prop="createTime" show-overflow-tooltip>
         <template #default="scope">
@@ -195,14 +195,14 @@
           </el-col>
           <el-col :span="7">
             <el-form-item label="凭证编号" prop="voucherNo">
-              <el-input v-model="form.voucherNo" placeholder="系统自动生成" style="width: 100%" disabled="false" />
+              <el-input v-model="form.voucherNo" placeholder="系统自动生成" style="width: 100%" disabled />
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="凭证类型" prop="voucherType">
               <el-select v-model="form.voucherType" placeholder="凭证类型" clearable style="width: 100%">
                 <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label"
-                  :value="dict.value" :disabled="isDisabledSelectType(dict.value)" ></el-option>
+                  :value="Number(dict.value)" :disabled="isDisabledSelectType(Number(dict.value))" ></el-option>
               </el-select>
             </el-form-item>
           </el-col>
@@ -217,7 +217,7 @@
         <el-row :gutter="20">
           <el-col :span="23">
             <el-form-item label="凭证备注" prop="remark">
-              <el-input v-model="form.remark" placeholder="凭证备注" type="text" maxlength="30" show-word-limit></el-input>
+              <el-input v-model="form.remark" placeholder="凭证备注" type="text" maxlength="30px" show-word-limit></el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -321,7 +321,7 @@
                 <el-select v-model="assistForm.assistType" placeholder="请选择辅助项类型" @change="getAssistValueList"
                   style="width: 100%;">
                   <el-option v-for="dict in currentAssistTypesDict" :key="dict.value" :label="dict.label"
-                    :value="dict.value" />
+                    :value="Number(dict.value)" />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -420,6 +420,7 @@ import { computed, nextTick, ref } from "vue";
 import { listSupplier} from "@/api/order/supplier";
 import { listCustomer} from "@/api/order/customer";
 import { listUser } from "@/api/system/user";
+import { VoucherTypeEnum, VoucherStatusEnum, VoucherOperateType, AssistTypeEnum } from "./voucherEnum.js"
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -462,28 +463,6 @@ const insertStatus = ref(false);
 let totalDebitAmount = 0;
 let totalCreditAmount = 0;
 
-/** 凭证类型 */
-const VoucherTypeEnum = {
-  // 记账凭证
-  VOUCHER_TYPE_ACCOUNTING: '1',
-  // 收款凭证
-  VOUCHER_TYPE_RECEIVABLE: '2',
-  // 付款凭证
-  VOUCHER_TYPE_PAYABLE: '3',
-  // 转账
-  VOUCHER_TYPE_TRANSFER: '4',
-  // 存现
-  VOUCHER_TYPE_CASH: '5',
-  // 采购凭证
-  VOUCHER_TYPE_PURCHASE: '6',
-  // 日记账凭证
-  VOUCHER_TYPE_FUND_FLOW: '7',
-  // 销售凭证
-  VOUCHER_TYPE_SALES: '8',
-  // 费用凭证
-  VOUCHER_TYPE_COST: '9',
-}
-
 // 禁止编辑的类型
 const disabledType = [ VoucherTypeEnum.VOUCHER_TYPE_PURCHASE, VoucherTypeEnum.VOUCHER_TYPE_FUND_FLOW, VoucherTypeEnum.VOUCHER_TYPE_SALES, VoucherTypeEnum.VOUCHER_TYPE_COST];
 // 禁止编辑的状态
@@ -494,47 +473,6 @@ const isDisabledSelectType = (value) => {
   return disabledType.includes(value);
 }
 
-/** 凭证状态 */ 
-const VoucherStatusEnum = {
-  // 草稿
-  VOUCHER_STATUS_DRAFT: '1',
-  // 待审核
-  VOUCHER_STATUS_WAIT_AUDITED: '2',
-  // 已审核
-  VOUCHER_STATUS_AUDITED: '3',
-  // 已过账
-  VOUCHER_STATUS_POSTED: '4',
-  // 已作废
-  VOUCHER_STATUS_VOIDED: '5',
-}
-
-// 订单操作类型
-const VoucherOperateType = {
-  // 保存
-  SAVE: 'save',
-  // 继续编辑
-  CONTINUE_EDIT: 'continueEdit',
-  // 审核
-  AUDITED: 'audited',
-  // 反审核
-  UN_AUDITED: 'unAudited',
-  // 过账
-  POSTED: 'posted',
-  // 反过账
-  UN_POSTED: 'unPosted',
-  // 作废
-  VOIDED: 'voided'
-}
-
-/** 辅助项类型 */
-const  AssistTypeEnum = {
-  // 客户
-  ASSIST_TYPE_CUSTOMER: '1',
-  // 供应商
-  ASSIST_TYPE_SUPPLIER: '2',
-  // 员工
-  ASSIST_TYPE_EMPLOYEE: '3'
-}
 
 const data = reactive({
   form: {voucherDetailList: []},
@@ -989,6 +927,7 @@ const handleSave = () => {
     // 2 检查存在分录
     if(form.value.voucherDetailList.length <= 0){
       proxy.$modal.msgError("请添加分录！")
+      return;
     }
     // 3 检查试算平衡
     if(totalDebitAmount !== totalCreditAmount){
@@ -1366,6 +1305,27 @@ getList();
 </script>
 
 <style lang="scss" scoped>
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+
 /* 头部样式 */
 .header-content {
   display: flex;

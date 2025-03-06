@@ -12,7 +12,12 @@
       </el-form-item>
       <el-form-item label="sku状态:" prop="skuStatus">
         <el-select v-model="queryParams.skuStatus" placeholder="请选择sku状态" clearable>
-          <el-option v-for="dict in product_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in product_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="sku类型:" prop="skuType">
+        <el-select v-model="queryParams.skuType" placeholder="请选择sku类型" clearable>
+          <el-option v-for="dict in erp_product_sku_type" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -41,7 +46,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="skuList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="skuList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" v-if="controlUpdateAndDeleteSwitch" />
       <el-table-column type="index" label="序号" width="50" align="center" />
       <el-table-column label="sku图片" align="center" prop="skuImage" :width="100">
@@ -62,7 +67,16 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="suk编号" align="left" prop="skuCode" :min-width="120" show-overflow-tooltip />
+      <el-table-column label="suk编号" align="left"  :min-width="120" show-overflow-tooltip >
+        <template #default="scope">
+          <div>
+            <dict-tag :options="erp_product_sku_type" :value="scope.row.skuType"/>
+          </div>
+          <div>
+            <span>{{ scope.row.skuCode }}</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="suk属性值" align="left" prop="skuValue" show-overflow-tooltip>
         <template #default="scope">
           <div v-if="getSkuValue(scope.row.skuValue) === 'default'">
@@ -85,7 +99,7 @@
             <div style="margin-right: 5px;">
               <div class="price">
                 <strong> sku单价: </strong>
-                <span> {{ formatTwo(scope.row.skuPrice1) }} €</span>
+                <span> {{ formatTwo(scope.row.skuPrice) }} €</span>
               </div>
               <div class="price">
                 <strong> sku单价2: </strong>
@@ -123,8 +137,8 @@
       </el-table-column>
       <el-table-column label="sku状态" align="center" prop="skuStatus" width="80">
         <template #default="scope">
-          <el-switch v-model="scope.row.skuStatus" :active-value="product_status[0].value"
-            :inactive-value="product_status[1].value" inline-prompt active-text="启用" inactive-text="禁用"
+          <el-switch v-model="scope.row.skuStatus" :active-value= 'StatusEnum.ENABLE'
+            :inactive-value= 'StatusEnum.DISABLE' inline-prompt active-text="启用" inactive-text="禁用"
             style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
             @change="handleStatusChange(scope.row)"></el-switch>
         </template>
@@ -167,8 +181,8 @@
         <el-form-item label="sku图片" prop="skuImage">
           <image-upload v-model="form.skuImage" />
         </el-form-item>
-        <el-form-item label="销售价格1" prop="skuPrice1">
-          <el-input v-model="form.skuPrice1" placeholder="请输入销售价格1" />
+        <el-form-item label="销售价格" prop="skuPrice">
+          <el-input v-model="form.skuPrice" placeholder="请输入销售价格1" />
         </el-form-item>
         <el-form-item label="销售价格2" prop="skuPrice2">
           <el-input v-model="form.skuPrice2" placeholder="请输入销售价格2" />
@@ -181,7 +195,7 @@
         </el-form-item>
         <el-form-item label="sku状态" prop="skuStatus">
           <el-radio-group v-model="form.skuStatus">
-            <el-radio v-for="dict in product_status" :key="dict.value" :value="dict.value">{{dict.label}}</el-radio>
+            <el-radio v-for="dict in product_status" :key="dict.value" :value="Number(dict.value)">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -201,8 +215,9 @@
       <div v-if="currentRow">
         <el-card shadow="hover">
           <template #header>
-            <div class="clearfix">
-              <span>SKU基础数据</span>
+            <div class="clearfix" style="display: flex;">
+              <span style="margin-right: 20px;">SKU基础数据</span>
+              <dict-tag :options="erp_product_sku_type" :value="currentRow.skuType"/>
             </div>
           </template>
           <el-descriptions direction="vertical" :column="4" size="small" border>
@@ -312,7 +327,7 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
-const { product_status } = proxy.useDict('product_status');
+const { product_status,erp_product_sku_type } = proxy.useDict('product_status','erp_product_sku_type');
 
 const skuList = ref([]);
 const open = ref(false);
@@ -324,12 +339,18 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 
+const StatusEnum = {
+  DISABLE: 1,
+  ENABLE: 0
+}
+
 
 /** SKU状态修改  */
 function handleStatusChange(row) {
   let text = row.status === "0" ? "启用" : "停用";
   proxy.$modal.confirm('确认要"' + text + '" 编码为："' + row.skuCode + '" 的SKU吗?').then(function () {
-    return changeSkuStatus(row.skuId, row.skuStatus, row.tenantId);
+    console.log(row);
+    return changeSkuStatus(row);
   }).then(() => {
     proxy.$modal.msgSuccess(text + "成功");
   }).catch(function () {
@@ -495,5 +516,26 @@ getList();
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
 }
 </style>

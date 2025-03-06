@@ -23,7 +23,7 @@
             v-for="dict in project_general_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -75,7 +75,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="currencyList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="currencyList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" type="index" align="center" prop="currencyId" width="50" />
       <el-table-column label="币种名称" align="center" prop="currencyName" />
@@ -161,13 +161,13 @@
           </template>
           <el-radio-group v-model="form.isBase" >
             <el-radio
-              v-for="dict in sys_yes_or_no" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
+              v-for="dict in sys_yes_or_no" :key="dict.value" :value="Number(dict.value)" >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio
-              v-for="dict in project_general_status" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
+              v-for="dict in project_general_status" :key="dict.value" :value="Number(dict.value)" >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="币种描述" prop="remark">
@@ -345,3 +345,26 @@ function handleExport() {
 
 getList();
 </script>
+
+<style lang="scss" scoped>
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+</style>

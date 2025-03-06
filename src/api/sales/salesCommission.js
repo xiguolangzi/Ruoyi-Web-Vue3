@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询业务员佣金管理列表
-export function listSalesCommission(query) {
+export function listSalesCommission(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/sales/salesCommission/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

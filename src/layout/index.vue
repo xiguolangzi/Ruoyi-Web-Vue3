@@ -111,4 +111,8 @@ function setLayout() {
 .mobile .fixed-header {
   width: 100%;
 }
+
+.main-container{
+  height: 100%;
+}
 </style>

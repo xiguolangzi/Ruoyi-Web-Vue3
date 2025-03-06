@@ -22,7 +22,7 @@
             v-for="dict in project_general_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -53,7 +53,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table
+    <el-table class="table-container"
       v-if="refreshTable"
       v-loading="loading"
       :data="financeProjectList"
@@ -124,7 +124,7 @@
         </el-form-item>
         <el-form-item label="项目状态:" prop="projectStatus">
           <el-radio-group v-model="form.projectStatus">
-            <el-radio v-for="dict in project_general_status" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
+            <el-radio v-for="dict in project_general_status" :key="dict.value" :value="Number(dict.value)" >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注描述:" prop="remark">
@@ -352,3 +352,26 @@ function handleDelete(row) {
 
 getList();
 </script>
+
+<style lang="scss" scoped>
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+</style>

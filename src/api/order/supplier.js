@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询供应商列表
-export function listSupplier(query) {
+export function listSupplier(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/order/supplier/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

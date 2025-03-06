@@ -1,8 +1,9 @@
 import request from '@/utils/request'
+import { MaxLengthEnum } from '@/api/constants/commonConstants'
 
 // 查询品牌管理列表
 export function listBrand(query = {}) {
-  const pageSize = query.pageSize || 1000;
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/product/brand/list',
     method: 'get',

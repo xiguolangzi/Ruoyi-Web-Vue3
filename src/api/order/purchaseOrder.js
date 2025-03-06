@@ -1,12 +1,14 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 
 // 入库单引入 - 采购入库单列表
-export function listPurchaseOrderByStatus(data) {
+export function listPurchaseOrderByStatus(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/order/purchaseOrder/listByStatusAndSupplier',
     method: 'post',
-    data: data
+    params: { pageSize, ...query }
   })
 }
 

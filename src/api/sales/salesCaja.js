@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询caja注册列表
-export function listSalesCaja(query) {
+export function listSalesCaja(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/sales/salesCaja/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

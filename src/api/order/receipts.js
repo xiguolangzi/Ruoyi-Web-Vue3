@@ -20,18 +20,18 @@ export function unReceived(data) {
 }
 
 /** 生成发票 */
-export function invoiced(data) {
+export function bindInvoiced(data) {
   return request({
-    url: '/order/receipts/invoiced',
+    url: '/order/receipts/bindInvoiced',
     method: 'post',
     data: data
   })
 }
 
 /** 反生成发票 */
-export function unInvoiced(data) {
+export function unBindInvoiced(data) {
   return request({
-    url: '/order/receipts/unInvoiced',
+    url: '/order/receipts/unBindInvoiced',
     method: 'post',
     data: data
   })
@@ -48,11 +48,12 @@ export function updateReceiptsStatus(data) {
 
 
 // 查询采购入库单列表
-export function listReceipts(query) {
+export function listReceipts(query = {}) {
+  const pageSize = query.pageSize || 1000;
   return request({
     url: '/order/receipts/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

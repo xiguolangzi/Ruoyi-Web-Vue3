@@ -65,7 +65,7 @@
               <el-col :span="6">
                 <el-form-item label="商品状态:" prop="productStatus">
                   <el-radio-group v-model="form.productStatus" @change="handleProductChanged">
-                    <el-radio v-for="dict in product_status" :key="dict.value" :value="dict.value">{{ dict.label
+                    <el-radio v-for="dict in product_status" :key="dict.value" :value="Number(dict.value)">{{ dict.label
                       }}</el-radio>
                   </el-radio-group>
                 </el-form-item>
@@ -74,7 +74,7 @@
                 <el-form-item label="税率:" prop="rateId">
                   <el-select v-model="form.rateId" placeholder="请选择税率" @change="handleProductChanged">
                     <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
-                      :value="items.rateId" :disabled="items.rateStatus != '0'" />
+                      :value="items.rateId" :disabled="items.rateStatus != RateStatusEnum.ENABLE" />
                   </el-select>
                 </el-form-item>
               </el-col>
@@ -90,7 +90,7 @@
                 <el-form-item label="成本计算:" prop="costMethod">
                   <el-select v-model="form.costMethod" placeholder="请选择成本计算" style="width: 200px" disabled>
                     <el-option v-for="dict in product_cost_method" :key="dict.value" :label="dict.label"
-                      :value="dict.value"></el-option>
+                      :value="Number(dict.value)"></el-option>
                   </el-select>
                 </el-form-item>
               </el-col>
@@ -274,7 +274,7 @@
                   <template #default="scope">
                     <div class="spec-values">
                       <el-input v-for="(value, index) in scope.row.values" :key="index"
-                        v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)"
+                        v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)" type="textarea" :maxlength="10" show-word-limit :rows="1"
                         style="width: auto;">
                         <!----scope.$index 当前行数； index 在scope.row.values中的索引 可以用过 v-if="!exist(scope.row,index)" 控制删除初始化的规格值 -->
                         <template #append v-if="!exist(scope.row, index)">
@@ -325,7 +325,7 @@
 
                 <el-table-column label="规格编码" prop="skuCode" align="center" :min-width="150">
                   <template #default="scope">
-                    <el-input v-model="scope.row.skuCode" style="width: 100%;"></el-input>
+                    <el-input v-model="scope.row.skuCode" style="width: 100%;" type="textarea" :maxlength="20" show-word-limit :rows="1" />
                   </template>
                 </el-table-column>
 
@@ -348,8 +348,8 @@
                 <el-table-column label="状态" prop="skuStatus" align="center" :width="90">
                   <template #default="scope">
                     <el-switch v-model="scope.row.skuStatus" size="small"
-                      style="--el-switch-on-color: #13ce66;--el-switch-off-color: #ff4949;" active-value="0"
-                      inactive-value="1" />
+                      style="--el-switch-on-color: #13ce66;--el-switch-off-color: #ff4949;" :active-value="0"
+                      :inactive-value="1" />
                     {{ scope.row.skuStatus === "0" ? "启售" : "停售" }}
                   </template>
                 </el-table-column>
@@ -479,6 +479,7 @@ import useTagsViewStore from '@/store/modules/tagsView';
 import { ElMessage } from "element-plus";
 import { cloneDeep } from "lodash";
 import { toRefs } from "vue";
+import {RateStatusEnum} from "./productEnum.js"
 
 const router = useRouter();
 const route = useRoute();

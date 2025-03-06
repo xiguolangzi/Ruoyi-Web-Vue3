@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询客户分类列表
-export function listCustomerCategory(query) {
+export function listCustomerCategory(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/order/customerCategory/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

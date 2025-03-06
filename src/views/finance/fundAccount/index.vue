@@ -23,7 +23,7 @@
             v-for="dict in project_general_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -83,7 +83,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="fundAccountList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="fundAccountList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" label="序号" width="50" align="center" />
       <el-table-column label="账户名称" align="center" prop="fundAccountName" min-width="150" show-overflow-tooltip/>
@@ -230,12 +230,12 @@
         <el-row >
           <el-form-item label="账户状态:" prop="fundAccountStatus" style="margin-right: 30px;">
             <el-radio-group v-model="form.fundAccountStatus">
-              <el-radio v-for="dict in project_general_status" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
+              <el-radio v-for="dict in project_general_status" :key="dict.value" :value="Number(dict.value)" >{{dict.label}}</el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="是否默认:" prop="fundIsDefault" >
             <el-radio-group v-model="form.fundIsDefault">
-              <el-radio v-for="dict in sys_yes_or_no" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
+              <el-radio v-for="dict in sys_yes_or_no" :key="dict.value" :value="Number(dict.value)" >{{dict.label}}</el-radio>
             </el-radio-group>
           </el-form-item>
         </el-row>
@@ -533,6 +533,28 @@ getList();
 </script>
 
 <style scoped lang="scss">
+
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+
 .el-select {
   width: 200px ;
 }

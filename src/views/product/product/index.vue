@@ -1,7 +1,6 @@
 <template>
   <div class="app-container">
     <!-------------------- 搜索条件 ----------------------->
-
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" :label-width="68">
       <el-form-item label="商品编码:" prop="productCode">
         <el-input v-model="queryParams.productCode" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery" />
@@ -18,7 +17,7 @@
       </el-form-item>
       <el-form-item label="商品状态:" prop="productStatus">
         <el-select v-model="queryParams.productStatus" placeholder="请选择商品状态" clearable>
-          <el-option v-for="dict in product_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in product_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="商品品牌:" prop="brandId">
@@ -26,15 +25,11 @@
           <el-option v-for="items in brandList" :key="items.brandId" :label="items.brandName" :value="items.brandId" />
         </el-select>
       </el-form-item>
-      <el-form-item label="税率:" prop="rateId">
+      <el-form-item label="商品税率:" prop="rateId">
         <el-select v-model="queryParams.rateId" placeholder="请选择税率" clearable>
           <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
             :value="items.rateId" />
         </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
 
@@ -57,12 +52,16 @@
         <el-button type="warning" plain icon="Download" @click="handleExport"
           v-hasPermi="['product:product:export']">导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <!-------------------- 数据展示列表区域 ----------------------->
 
-    <el-table v-loading="loading" :data="productList" @selection-change="handleSelectionChange" fit>
+    <el-table class="table-container" size="small" v-loading="loading" :data="productList" @selection-change="handleSelectionChange" fit>
       <el-table-column type="selection" :width="50" align="center" fixed="left" />
       <el-table-column label="商品主图" align="center" prop="productImage" :width="100">
         <template #default="scope">
@@ -143,6 +142,12 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- 分页查询页脚 -->
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize" @pagination="getList" />
+
+    
 
     <!-------------------- 商品详情查看 dialog ----------------------->
 
@@ -305,9 +310,7 @@
       </template>
     </el-dialog>
 
-    <!-- 分页查询页脚 -->
-    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize" @pagination="getList" />
+    
   </div>
 </template>
 
@@ -572,13 +575,30 @@ getList(); // 获取商品列表
 </script>
 
 <style scoped lang="scss">
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+
 .compact-form-item {
   margin-bottom: 0;
   /* 根据需要调整其他样式 */
-}
-.spec-row {
-  display: flex;
-  align-items: center;
 }
 
 .el-form-item {

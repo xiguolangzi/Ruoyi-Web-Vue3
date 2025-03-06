@@ -14,7 +14,7 @@
       </el-form-item>
       <el-form-item label="默认状态" prop="isDefault">
         <el-select v-model="queryParams.isDefault" placeholder="请选择默认状态" clearable>
-          <el-option v-for="dict in sys_yes_or_no" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in sys_yes_or_no" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item style="margin-left: 50px;">
@@ -43,7 +43,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="customerSalesmanList" @selection-change="handleSelectionChange" table-layout="fixed">
+    <el-table class="table-container" v-loading="loading" :data="customerSalesmanList" @selection-change="handleSelectionChange" table-layout="fixed">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" width="55" prop="id" />
       <el-table-column label="客户编码" align="center">
@@ -100,7 +100,7 @@
         </el-form-item>
         <el-form-item label="默认状态:" prop="isDefault">
           <el-radio-group v-model="form.isDefault">
-            <el-radio v-for="dict in sys_yes_or_no" :key="dict.value" :value="dict.value">{{ dict.label }}</el-radio>
+            <el-radio v-for="dict in sys_yes_or_no" :key="dict.value" :value="Number(dict.value)">{{ dict.label }}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -293,3 +293,26 @@ function handleExport() {
 
 getList();
 </script>
+
+<style lang="scss" scoped>
+.app-container {
+  height: 100%; /* 确保父容器高度充满 */
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex-grow: 1; /* 表格区域充满剩余空间 */
+  display: flex;
+  flex-direction: column;
+}
+
+.el-table {
+  flex-grow: 1; /* 表格充满剩余空间 */
+}
+
+.pagination {
+  flex-shrink: 0; /* 分页栏固定在底部 */
+  margin-top: auto; /* 将分页栏推到容器底部 */
+}
+</style>

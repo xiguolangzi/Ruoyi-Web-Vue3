@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询采购发票关联采购入库单列表
-export function listPurchaseInvoiceReceipts(query) {
+export function listPurchaseInvoiceReceipts(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/order/purchaseInvoiceReceipts/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

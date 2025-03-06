@@ -111,7 +111,7 @@
             <el-radio-button 
               v-for="dict in erp_product_price_type" 
               :key="dict.value" 
-              :value="dict.value">
+              :value="Number(dict.value)">
               {{ dict.label }}
             </el-radio-button>
           </el-radio-group>

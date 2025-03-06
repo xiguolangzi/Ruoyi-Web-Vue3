@@ -7,7 +7,7 @@
             v-for="dict in finance_period_year"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
          </el-select>
       </el-form-item>
@@ -17,7 +17,7 @@
             v-for="dict in finance_period_month"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
          </el-select>
       </el-form-item>
@@ -27,7 +27,7 @@
             v-for="dict in finance_period_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -141,7 +141,7 @@
               v-for="dict in finance_period_year"
               :key="dict.value"
               :label="dict.label"
-              :value="dict.value"
+              :value="Number(dict.value)"
             />
          </el-select>
         </el-form-item>
@@ -151,7 +151,7 @@
               v-for="dict in finance_period_month"
               :key="dict.value"
               :label="dict.label"
-              :value="dict.value"
+              :value="Number(dict.value)"
             />
          </el-select>
         </el-form-item>
@@ -173,12 +173,12 @@
         </el-form-item>
         <el-form-item label="期间状态" prop="periodStatus">
           <el-radio-group v-model="form.periodStatus">
-            <el-radio v-for="dict in finance_period_status" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
+            <el-radio v-for="dict in finance_period_status" :key="dict.value" :value="Number(dict.value)" >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="当前期间" prop="isCurrent">
           <el-radio-group v-model="form.isCurrent">
-            <el-radio v-for="dict in sys_yes_or_no" :key="dict.value" :value="dict.value" >{{dict.label}}</el-radio>
+            <el-radio v-for="dict in sys_yes_or_no" :key="dict.value" :value="Number(dict.value)" >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>

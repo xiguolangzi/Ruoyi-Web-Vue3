@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询序列配置管理列表
-export function listSequence(query) {
+export function listSequence(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/sequence/sequence/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

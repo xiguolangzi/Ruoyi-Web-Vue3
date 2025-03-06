@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询银行账户信息列表
-export function listBankAccount(query) {
+export function listBankAccount(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/order/bankAccount/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

@@ -33,7 +33,7 @@ const props = defineProps({
   disabled: { type: Boolean, default: false }
 });
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(['update:modelValue', 'selectedData']);
 
 const dataList = ref([]);
 const loading = ref(false);
@@ -75,7 +75,8 @@ const fetchData = async (query = "") => {
       // 5 同步视图参数
       value: item.userId,
       label: `${item.phoneNumber} - ${item.userName}`,
-      disabled: item.status != StatusEnum.ENABLE
+      disabled: item.status != StatusEnum.ENABLE,
+      data: item // 保留完整数据
     }));
     total.value = response.total || 0;
   } catch (error) {
@@ -89,7 +90,7 @@ const fetchData = async (query = "") => {
 /** 防抖搜索 */
 const handleSearch = debounce(fetchData, DebounceTime);
 
-/** 绑定值发生变化时触发 */
+/** 1 当前输入值发生变化触发的函数 */
 const onSearch = (query) => {
   keyword.value = query;
   pageNum.value = 1;
@@ -99,6 +100,19 @@ const onSearch = (query) => {
 /** 确保 v-model 绑定值能正确更新 */
 const handleChange = (val) => {
   emit("update:modelValue", val);
+
+  // 清空输入框时，确保选中的数据也是清空
+  if (!val) {
+    emit("selectedData", null); // 清空输入框时 -> 传递空数据对象
+    return;
+  }
+
+  // 获取所选ID对应的完整数据对象
+  const selectedData = dataList.value.find((item) => item.value === val);
+  if (selectedData) {
+    // 触发事件，传递所选ID对应的完整数据对象
+    emit("selectedData", selectedData.data);
+  }
 };
 
 watch(

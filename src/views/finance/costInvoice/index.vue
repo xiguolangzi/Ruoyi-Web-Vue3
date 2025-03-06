@@ -3,13 +3,13 @@
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="发票类型:" prop="invoiceType">
         <el-select v-model="queryParams.invoiceType" placeholder="请选择发票类型" @change="handleQuery" clearable>
-          <el-option v-for="dict in erp_cost_invoice_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in erp_cost_invoice_type" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="发票状态:" prop="invoiceStatus">
         <el-select v-model="queryParams.invoiceStatus" placeholder="请选择发票状态" @change="handleQuery" clearable>
           <el-option v-for="dict in erp_cost_invoice_status" :key="dict.value" :label="dict.label"
-            :value="dict.value" />
+            :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
 
@@ -17,7 +17,7 @@
         <el-select v-model="queryParams.assistType" placeholder="请选择客户类型" @keyup.enter="handleQuery"
           @change="changeQueryParamsAssistType" clearable>
           <el-option v-for="dict in finance_assist_type" :key="dict.value" :label="dict.label"
-            :value="dict.value"></el-option>
+            :value="Number(dict.value)"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="选择客户:" prop="assistId" v-if="queryParams.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER">
@@ -280,7 +280,7 @@
             <el-form-item label="发票类型:" prop="invoiceType">
               <el-select v-model="form.invoiceType" placeholder="请选择发票类型" @change="changeInvoiceType">
                 <el-option v-for="dict in erp_cost_invoice_type" :key="dict.value" :label="dict.label"
-                  :value="dict.value"></el-option>
+                  :value="Number(dict.value)"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
@@ -289,7 +289,7 @@
               <el-select v-model="form.assistType" placeholder="请选择客户类型" @change="changeAssistType"
                 :disabled="form.invoiceType == InvoiceTypeEnum.INVOICE_TYPE_PURCHASE">
                 <el-option v-for="dict in finance_assist_type" :key="dict.value" :label="dict.label"
-                  :value="dict.value"></el-option>
+                  :value="Number(dict.value)"></el-option>
               </el-select>
             </el-form-item>
           </el-col>

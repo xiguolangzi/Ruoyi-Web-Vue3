@@ -7,7 +7,7 @@
             v-for="dict in erp_stock_in_type"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -129,7 +129,7 @@
               v-for="dict in erp_stock_in_type"
               :key="dict.value"
               :label="dict.label"
-              :value="dict.value"
+              :value="Number(dict.value)"
             ></el-option>
           </el-select>
         </el-form-item>

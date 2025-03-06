@@ -4,22 +4,22 @@
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" :label-width="68">
       <el-form-item label="会计年度" prop="periodYear">
         <el-select v-model="queryParams.periodYear" placeholder="请选择会计年度" >
-          <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="会计月份" prop="periodMonth">
         <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份" >
-          <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="凭证类型" prop="voucherType">
         <el-select v-model="queryParams.voucherType" placeholder="请选择凭证类型" clearable>
-          <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="凭证状态" prop="voucherStatus">
         <el-select v-model="queryParams.voucherStatus" placeholder="请选择凭证状态" clearable>
-          <el-option v-for="dict in finance_voucher_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in finance_voucher_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item style="margin-left: 20px;">
@@ -202,7 +202,7 @@
             <el-form-item label="凭证类型" prop="voucherType">
               <el-select v-model="form.voucherType" placeholder="凭证类型" clearable style="width: 100%">
                 <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label"
-                  :value="dict.value" :disabled="isDisabledSelectType(dict.value)" ></el-option>
+                  :value="Number(dict.value)" :disabled="isDisabledSelectType(Number(dict.value))" ></el-option>
               </el-select>
             </el-form-item>
           </el-col>
@@ -321,7 +321,7 @@
                 <el-select v-model="assistForm.assistType" placeholder="请选择辅助项类型" @change="getAssistValueList"
                   style="width: 100%;">
                   <el-option v-for="dict in currentAssistTypesDict" :key="dict.value" :label="dict.label"
-                    :value="dict.value" />
+                    :value="Number(dict.value)" />
                 </el-select>
               </el-form-item>
             </el-col>

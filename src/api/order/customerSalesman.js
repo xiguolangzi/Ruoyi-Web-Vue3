@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询客户绑定业务员列表
-export function listCustomerSalesman(query) {
+export function listCustomerSalesman(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/order/customerSalesman/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

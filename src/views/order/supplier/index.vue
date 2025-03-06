@@ -59,7 +59,7 @@
                 v-for="dict in project_general_status"
                 :key="dict.value"
                 :label="dict.label"
-                :value="dict.value"
+                :value="Number(dict.value)"
               />
             </el-select>
           </el-form-item>
@@ -219,7 +219,7 @@
             </el-form-item>
             <el-form-item label="供应商状态:" prop="supplierStatus">
               <el-radio-group v-model="form.supplierStatus">
-                <el-radio v-for="dict in project_general_status" :key="dict.value" :value="dict.value">{{ dict.label}}</el-radio>
+                <el-radio v-for="dict in project_general_status" :key="dict.value" :value="Number(dict.value)">{{ dict.label}}</el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item label="备注:" prop="remark">

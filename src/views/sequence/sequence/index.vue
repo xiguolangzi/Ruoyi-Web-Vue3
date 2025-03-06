@@ -3,17 +3,17 @@
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="单据类型" prop="sequenceType">
         <el-select v-model="queryParams.sequenceType" placeholder="请选择单据类型" clearable>
-          <el-option v-for="dict in order_sequence_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in order_sequence_type" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="排序规则" prop="sequenceRule">
         <el-select v-model="queryParams.sequenceRule" placeholder="请选择排序规则" clearable>
-          <el-option v-for="dict in order_sequence_rules" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in order_sequence_rules" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="排序状态" prop="sequenceStatus">
         <el-select v-model="queryParams.sequenceStatus" placeholder="请选择状态" clearable>
-          <el-option v-for="dict in project_general_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in project_general_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -98,13 +98,13 @@
         <el-form-item label="单据类型" prop="sequenceType">
           <el-select v-model="form.sequenceType" placeholder="请选择单据类型">
             <el-option v-for="dict in order_sequence_type" :key="dict.value" :label="dict.label"
-              :value="dict.value"></el-option>
+              :value="Number(dict.value)"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="排序规则" prop="sequenceRule">
           <el-select v-model="form.sequenceRule" placeholder="请选择排序规则" @change="handleRulesChanged">
             <el-option v-for="dict in order_sequence_rules" :key="dict.value" :label="dict.label"
-              :value="dict.value"></el-option>
+              :value="Number(dict.value)"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="订单前缀" prop="sequencePrefix">
@@ -114,7 +114,7 @@
         <el-form-item label="时间格式" prop="dateType">
           <el-select v-model="form.dateType" placeholder="请选择时间格式" clearable disabled>
             <el-option v-for="dict in order_sequence_date_type" :key="dict.value" :label="dict.label"
-              :value="dict.value"></el-option>
+              :value="Number(dict.value)"></el-option>
           </el-select>
         </el-form-item>
         <div style="margin-bottom: 10px; margin-left: 40px;" v-if="form.sequenceRule !== RulesType.RANDOM">
@@ -124,7 +124,7 @@
         <el-form-item label="状态" prop="sequenceStatus">
           <el-radio-group v-model="form.sequenceStatus">
             <el-radio v-for="dict in project_general_status" :key="dict.value"
-              :value="dict.value">{{dict.label}}</el-radio>
+              :value="Number(dict.value)">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
@@ -151,7 +151,7 @@
               <template #default="scope">
                 <el-select v-model="scope.row.periodYear" placeholder="请选择会计年度" style="width: 100%;">
                   <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label"
-                    :value="dict.value"></el-option>
+                    :value="Number(dict.value)"></el-option>
                 </el-select>
               </template>
             </el-table-column>
@@ -159,7 +159,7 @@
               <template #default="scope">
                 <el-select v-model="scope.row.periodMonth" placeholder="请选择会计月份" style="width: 100%;" :disabled="form.sequenceRule === RulesType.YEAR">
                   <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label"
-                    :value="dict.value"></el-option>
+                    :value="Number(dict.value)"></el-option>
                 </el-select>
               </template>
             </el-table-column>

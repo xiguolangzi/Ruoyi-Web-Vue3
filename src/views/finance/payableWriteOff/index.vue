@@ -38,7 +38,7 @@
             v-for="dict in finance_write_off_type"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -150,7 +150,7 @@
               v-for="dict in finance_write_off_type"
               :key="dict.value"
               :label="dict.label"
-              :value="dict.value"
+              :value="Number(dict.value)"
             ></el-option>
           </el-select>
         </el-form-item>

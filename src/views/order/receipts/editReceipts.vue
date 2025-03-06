@@ -116,7 +116,7 @@
           </el-form-item>
           <el-form-item label="配送方式" prop="deliveryType">
             <el-select v-model="form.deliveryType" placeholder="请选择配送方式" clearable>
-              <el-option v-for="dict in erp_delivery_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+              <el-option v-for="dict in erp_delivery_type" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
             </el-select>
           </el-form-item>
           <el-form-item label="物流公司:" prop="deliveryCompanyId" v-if="form.deliveryType=='2'">

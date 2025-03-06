@@ -17,7 +17,7 @@
       </el-form-item>
       <el-form-item label="商品状态:" prop="productStatus">
         <el-select v-model="queryParams.productStatus" placeholder="请选择商品状态" clearable>
-          <el-option v-for="dict in product_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in product_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="商品品牌:" prop="brandId">

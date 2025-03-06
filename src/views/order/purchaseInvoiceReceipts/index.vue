@@ -23,7 +23,7 @@
             v-for="dict in erp_purchase_invoice_receipts_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>

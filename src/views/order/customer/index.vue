@@ -29,7 +29,7 @@
           <el-form-item label="客户类型: " prop="customerType">
             <el-select v-model="queryParams.customerType" placeholder="请选择客户类型" clearable>
               <el-option v-for="dict in order_customer_type" :key="dict.value" :label="dict.label"
-                :value="dict.value" />
+                :value="Number(dict.value)" />
             </el-select>
           </el-form-item>
           <el-form-item label="客户等级: " prop="levelId">
@@ -184,7 +184,7 @@
             <el-form-item label="客户类型: " prop="customerType">
               <el-select v-model="form.customerType" placeholder="请选择客户类型">
                 <el-option v-for="dict in order_customer_type" :key="dict.value" :label="dict.label"
-                  :value="dict.value"></el-option>
+                  :value="Number(dict.value)"></el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="客户等级: " prop="levelId">
@@ -195,7 +195,7 @@
             </el-form-item>
             <el-form-item label="客户状态" prop="customerStatus">
               <el-radio-group v-model="form.customerStatus">
-                <el-radio v-for="dict in project_general_status" :key="dict.value" :value="dict.value">{{ dict.label
+                <el-radio v-for="dict in project_general_status" :key="dict.value" :value="Number(dict.value)">{{ dict.label
                   }}</el-radio>
               </el-radio-group>
             </el-form-item>
@@ -554,7 +554,7 @@ function reset() {
     customerId: null,
     customerCode: null,
     customerName: null,
-    customerStatus: '0',
+    customerStatus: 0,
     contactName: null,
     contactPhone: null,
     contactEmail: null,
@@ -623,11 +623,16 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["customerRef"].validate(valid => {
     // 银行账户数据 - 去除没有银行账号的数据
-    form.value.bankAccountList = form.value.bankAccountList.filter(item => item.accountNo);
+    form.value.bankAccountList = form.value.bankAccountList.filter(item => item.accountNo) || [];
     // 银行账户数据 - 将账户ID预制的ID值清空
-    form.value.bankAccountList.forEach(item => {
-      item.accountId = null;
-    });
+    if (form.value.bankAccountList.length === 0) {
+      form.value.bankAccountList = [];
+    } else {
+      form.value.bankAccountList.forEach(item => {
+        item.accountId = null;
+      });
+    }
+    
     if (valid) {
       if (form.value.customerId != null) {
         updateCustomer(form.value).then(response => {

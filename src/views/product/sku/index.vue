@@ -12,12 +12,12 @@
       </el-form-item>
       <el-form-item label="sku状态:" prop="skuStatus">
         <el-select v-model="queryParams.skuStatus" placeholder="请选择sku状态" clearable>
-          <el-option v-for="dict in product_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in product_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="sku类型:" prop="skuType">
         <el-select v-model="queryParams.skuType" placeholder="请选择sku类型" clearable>
-          <el-option v-for="dict in erp_product_sku_type" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in erp_product_sku_type" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -195,7 +195,7 @@
         </el-form-item>
         <el-form-item label="sku状态" prop="skuStatus">
           <el-radio-group v-model="form.skuStatus">
-            <el-radio v-for="dict in product_status" :key="dict.value" :value="dict.value">{{dict.label}}</el-radio>
+            <el-radio v-for="dict in product_status" :key="dict.value" :value="Number(dict.value)">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>

@@ -16,7 +16,7 @@
             v-for="dict in sys_tenant_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           ></el-option>
         </el-select>
       </el-form-item>
@@ -121,7 +121,7 @@
             <el-radio
                 v-for="dict in sys_tenant_status"
                 :key="dict.value"
-                :value="dict.value"
+                :value="Number(dict.value)"
             >{{ dict.label }}</el-radio>
           </el-radio-group>
         </el-form-item>

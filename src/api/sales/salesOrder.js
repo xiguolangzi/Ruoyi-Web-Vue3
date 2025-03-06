@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询销售订单列表
-export function listSalesOrder(query) {
+export function listSalesOrder(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/sales/salesOrder/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

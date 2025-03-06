@@ -7,7 +7,7 @@
             v-for="dict in finance_fund_flow_type"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -25,7 +25,7 @@
             v-for="dict in finance_fund_flow_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -254,7 +254,7 @@
                   v-for="dict in finance_fund_flow_type"
                   :key="dict.value"
                   :label="dict.label"
-                  :value="dict.value"
+                  :value="Number(dict.value)"
                 ></el-option>
               </el-select>
             </el-form-item>
@@ -370,8 +370,8 @@
                   v-for="dict in finance_assist_type"
                   :key="dict.value"
                   :label="dict.label"
-                  :value="dict.value"
-                  :disabled="!assistTypes.includes(dict.value)"
+                  :value="Number(dict.value)"
+                  :disabled="!assistTypes.includes(Number(dict.value))"
                 />
               </el-select>
             </template>
@@ -437,7 +437,7 @@
                   v-for="dict in finance_document_type"
                   :key="dict.value"
                   :label="dict.label"
-                  :value="dict.value"
+                  :value="Number(dict.value)"
                 ></el-option>
               </el-select>
             </template>

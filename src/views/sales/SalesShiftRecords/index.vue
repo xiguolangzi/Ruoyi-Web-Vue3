@@ -43,7 +43,7 @@
       </el-form-item>
       <el-form-item label="交班状态" prop="shiftStatus">
         <el-select v-model="queryParams.shiftStatus" placeholder="请选择交班状态" clearable>
-          <el-option v-for="dict in erp_sales_shift_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in erp_sales_shift_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="交班开始时间" prop="shiftStartTime" style="width: 350px;">

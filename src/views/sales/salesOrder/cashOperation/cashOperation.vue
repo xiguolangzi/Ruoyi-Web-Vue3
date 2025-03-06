@@ -36,10 +36,10 @@
                 {{ form.orderType === "0" ? "销售订单" : "退货订单" }}
               </div>
               <el-form-item label="业务员:" prop="salesmanId">
-                <SalesmanSelect v-model="form.salesmanId"/>
+                <SalesmanSelect v-model="form.salesmanId" @selectedData="selectedSalesmanData"/>
               </el-form-item>
               <el-form-item label="客户:" prop="customerId">
-                <CustomerSelect v-model="form.customerId"/>
+                <CustomerSelect v-model="form.customerId"  @selectedData="selectedCustomerData"/>
               </el-form-item>
             </div>
             <div class="right-row">
@@ -54,10 +54,7 @@
                   {{ form.orderInTax === 0 ? "含税" : "不含税" }}
                 </div>
                 <el-form-item label="业务活动">
-                  <el-select v-model="form.activityId" filterable clearable placeholder="选择业务活动" style="width: 150px">
-                    <el-option v-for="item in salesActivityList" :key="item.activityId" :label="item.activityName"
-                      :value="item.activityId" :disabled="item.activityStatus !== StatusEnum.ENABLE"/>
-                  </el-select>
+                  <SalesActivitySelect v-model="form.activityId" @selectedData="selectedSalesActivityData"/>
                 </el-form-item>
                 <el-form-item label="其他编辑：">其他信息</el-form-item>
               </el-row>
@@ -125,7 +122,10 @@
               <el-form-item label="商品编码">
                 <el-input v-model="price" placeholder="请输入商品编码/名称" style="width: 100%;" @focus="setActiveInput($refs.priceRef.$el.querySelector('input'))" ref="priceRef"></el-input>
               </el-form-item>
-              <!-- <div>
+              <el-form-item label="选中商品">
+                <SkuSelect v-model="form.skuId"  @selectedData="selectedSkuData"/>
+              </el-form-item>
+              <div>
                 <strong>"客户税号: "</strong><span>{{ currentCustomer?.invoiceTax || '--'}}</span>
               </div>
               <div>
@@ -136,7 +136,7 @@
               </div>
               <div>
                 <strong>"客户地址: "</strong><span>{{ currentCustomer?.invoiceAddress || '--'}}</span>
-              </div> -->
+              </div>
             </el-col>
             <el-col :span="1.5">
               <div>订单汇总信息：</div>
@@ -168,52 +168,41 @@
 import { ref, onMounted } from 'vue';
 import TouchKeyboard from '@/components/TouchKeyboard/index.vue';
 import {initOrderData, initOrderDetailData, StatusEnum} from './cashOperationEnum.js';
-import { listSalesman } from "@/api/system/user";
-import { listCustomer } from "@/api/order/customer";
-import { listSalesActivity } from "@/api/sales/salesActivity";
 import CustomerSelect from '@/components/Common/CustomerSelect.vue';
 import SalesmanSelect from '@/components/Common/SalesmanSelect.vue';
+import SalesActivitySelect from '@/components/Common/SalesActivitySelect.vue';
+import SkuSelect from '@/components/Common/SkuSelect.vue';
 
 
 const drawer = ref(false)
+const currentCustomer = ref(null)
+const currentSalesman = ref(null)
+const currentSalesActivity = ref(null)
+const currentSku = ref(null)
 
-// ---------------- 1 获取业务活动数据 start ----------------
-const salesActivityList = ref([]);
-/** 供应商 - 获取列表 */
-const getSalesActivity = async () => {
-  listSalesActivity()
-    .then(response => {
-      salesActivityList.value = response.rows || []
-    })
-    .catch(error => {
-      ElMessage.error("获取业务活动列表时出错:", error)
-    })
-};
-getSalesActivity()
+/** 获取选中的客户数据 */
+const selectedCustomerData = (data) => {
+  console.log('收银台获取的客户数据:',data)
+  currentCustomer.value = data || null;
+}
 
-// ---------------- 1 获取业务活动数据 end   ----------------
+/** 获取选中的客户数据 */
+const selectedSalesmanData = (data) => {
+  console.log('收银台获取的业务员数据:',data)
+  currentSalesman.value = data || null;
+}
 
-// ------------------------------------ 1 获取业务员信息 start ------------------------------------
-// const userList = ref([]);
-// /** 获取员工列表 */
-// const getUserList = () => {
-//   listSalesman().then(response => {
-//     userList.value = response.rows || [];
-//     console.log("获取业务员列表：",userList.value);
-//   }).catch((e) => {
-//     console.log("获取业务员列表失败：",e);
-//   });
-// }
+/** 获取选中的业务活动数据 */
+const selectedSalesActivityData = (data) => {
+  console.log('收银台获取的业务活动数据:',data)
+  currentSalesActivity.value = data || null;
+}
 
-// const getUserName = (id) => {
-//   const user = userList.value.find(item => item.userId === id);
-//   return user ? user.userName : '--';
-// }
-
-// getUserList();
-
-// ------------------------------------ 1 获取业务员信息 end ------------------------------------
-
+/** 获取选中的商品数据 */
+const selectedSkuData = (data) => {
+  console.log('收银台获取的商品数据:',data)
+  currentSku.value = data || null;
+}
 
 
 // ******************* 数据区域 ****************************
@@ -366,6 +355,8 @@ const handleAction = (action) => {
       break;
     case "pay":
       console.log("支付");
+      console.log("表单form的数据：*****", form.value)
+      break;
   }
 };
 

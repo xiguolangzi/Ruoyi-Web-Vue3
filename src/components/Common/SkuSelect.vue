@@ -13,12 +13,16 @@
     style="width: 180px"
     :teleported='false' 
     @change="handleChange"
+    :collapse-tags-tooltip="true"
+    :default-first-option="true"
+    :fit-input-width="false"
+    
   />
 </template>
 
 <script setup>
 import { ref, watch } from "vue";
-import { listCustomer } from "@/api/order/customer";
+import { listSku } from "@/api/product/sku.js";
 import { debounce } from "lodash-es";
 import { StatusEnum, DebounceTime, KeywordLength } from './CommonEnum.js'
 import { MaxLengthEnum } from '@/api/constants/commonConstants.js'
@@ -26,7 +30,7 @@ import { MaxLengthEnum } from '@/api/constants/commonConstants.js'
 // 父组件接受参数
 const props = defineProps({
   modelValue: [String, Number, Array],
-  placeholder: { type: String, default: "手机号/邮箱" },
+  placeholder: { type: String, default: "名称/编码" },
   multiple: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false }
 });
@@ -56,33 +60,30 @@ const fetchCustomers = async (query = "") => {
 
   try {
     const queryParams = {
-      invoicePhone: null,
-      contactEmail: null,
-      invoiceTax: null,
+      skuCode: null,
+      skuName: null,
       pageNum: pageNum.value,
       pageSize
     };
 
-    // 判断query是不是邮箱
-    if (/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/.test(query)) {
-      // 邮箱
-      queryParams.contactEmail = query;
-    } else if (/^\d{6,11}$/.test(query)) {
+    // 判断query
+    if (/^\d+$/.test(query)) {
       // 手机号
-      queryParams.invoicePhone = query;
+      queryParams.skuCode = query;
     } else {
       // 其他情况
-      queryParams.invoiceTax = query;
+      queryParams.skuName = query;
     }
 
     console.log("请求参数:", queryParams);
 
     // 调用后端接口获取客户列表
-    const response = await listCustomer(queryParams);
+    const response = await listSku(queryParams);
+    console.log("返回数据:", response.rows);
     dataList.value = response.rows.map(item => ({
-      value: item.customerId,
-      label: `${item.invoicePhone} - ${item.customerName}`,
-      disabled: item.customerStatus != StatusEnum.ENABLE,
+      value: item.skuId,
+      label: `${item.skuCode} - ${item.skuName}`,
+      disabled: item.skuStatus != StatusEnum.ENABLE,
       data: item // 保留完整数据
     }));
     total.value = response.total || 0;

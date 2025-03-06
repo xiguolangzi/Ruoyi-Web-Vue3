@@ -15,7 +15,7 @@
             v-for="dict in sys_tenant_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -84,7 +84,7 @@
           </el-tooltip>
         </template>
         <template #default="scope">
-          <dict-tag :options="erp_sales_is_calculate" :value="scope.row.salesmanHasCommission"/>
+          <dict-tag :options="erp_sales_is_calculate" :value="scope.row.salesmanHasCommission" />
         </template>
       </el-table-column>
       <el-table-column label="累加佣金点数" align="center" prop="salesmanAddCommissionRate" :min-width="110" show-overflow-tooltip>
@@ -189,7 +189,7 @@
               v-for="dict in sys_tenant_status"
               :key="dict.value"
               :label="dict.value"
-              :value="dict.value"
+              :value="Number(dict.value)"
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -203,7 +203,7 @@
               v-for="dict in erp_sales_is_calculate"
               :key="dict.value"
               :label="dict.value"
-              :value="dict.value"
+              :value="Number(dict.value)"
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -232,7 +232,7 @@
               v-for="dict in erp_sales_is_calculate"
               :key="dict.value"
               :label="dict.value"
-              :value="dict.value"
+              :value="Number(dict.value)"
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -261,7 +261,7 @@
               v-for="dict in erp_sales_is_calculate"
               :key="dict.value"
               :label="dict.value"
-              :value="dict.value"
+              :value="Number(dict.value)"
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>

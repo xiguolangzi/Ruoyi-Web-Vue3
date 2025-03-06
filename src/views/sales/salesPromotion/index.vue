@@ -23,7 +23,7 @@
             v-for="dict in erp_sales_promotion_type"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -33,7 +33,7 @@
             v-for="dict in sys_tenant_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -43,7 +43,7 @@
             v-for="dict in sys_yes_or_no"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -157,7 +157,7 @@
                   v-for="dict in erp_sales_promotion_type"
                   :key="dict.value"
                   :label="dict.value"
-                  :value="dict.value"
+                  :value="Number(dict.value)"
                 >{{dict.label}}</el-radio-button>
               </el-radio-group>
             </el-form-item>
@@ -180,7 +180,7 @@
                   v-for="dict in sys_tenant_status"
                   :key="dict.value"
                   :label="dict.value"
-                  :value="dict.value"
+                  :value="Number(dict.value)"
                 >{{dict.label}}</el-radio>
               </el-radio-group>
             </el-form-item>
@@ -190,7 +190,7 @@
                   v-for="dict in sys_yes_or_no"
                   :key="dict.value"
                   :label="dict.value"
-                  :value="dict.value"
+                  :value="Number(dict.value)"
                 >{{dict.label}}</el-radio>
               </el-radio-group>
             </el-form-item>
@@ -260,7 +260,7 @@
                       v-for="dict in erp_sales_promotion_scope"
                       :key="dict.value"
                       :label="dict.value"
-                      :value="dict.value"
+                      :value="Number(dict.value)"
                     >{{dict.label}}</el-radio-button>
                   </el-radio-group>
                 </el-form-item>
@@ -322,7 +322,7 @@
                       v-for="dict in erp_sales_promotion_scope"
                       :key="dict.value"
                       :label="dict.value"
-                      :value="dict.value"
+                      :value="Number(dict.value)"
                     >{{dict.label}}</el-radio-button>
                   </el-radio-group>
                 </el-form-item>
@@ -350,7 +350,7 @@
                           v-for="dict in erp_sales_promotion_scope"
                           :key="dict.value"
                           :label="dict.value"
-                          :value="dict.value"
+                          :value="Number(dict.value)"
                         >{{dict.label}}</el-radio-button>
                       </el-radio-group>
                     </el-form-item>
@@ -420,7 +420,7 @@
                       v-for="dict in erp_sales_promotion_scope"
                       :key="dict.value"
                       :label="dict.value"
-                      :value="dict.value"
+                      :value="Number(dict.value)"
                     >{{dict.label}}</el-radio-button>
                   </el-radio-group>
                 </el-form-item>
@@ -448,7 +448,7 @@
                           v-for="dict in erp_sales_promotion_scope"
                           :key="dict.value"
                           :label="dict.value"
-                          :value="dict.value"
+                          :value="Number(dict.value)"
                         >{{dict.label}}</el-radio-button>
                       </el-radio-group>
                     </el-form-item>
@@ -510,7 +510,7 @@
                       v-for="dict in erp_sales_promotion_scope"
                       :key="dict.value"
                       :label="dict.value"
-                      :value="dict.value"
+                      :value="Number(dict.value)"
                     >{{dict.label}}</el-radio-button>
                   </el-radio-group>
                 </el-form-item>
@@ -801,12 +801,19 @@ const removeSalesPromotionScopeGiftDetail = (index) => {
 }
 // ---- 赠品适用范围 同步 活动适用范围 数据
 const handleSynchronizeData = () => {
-  // 同步活动范围类型
-  form.value.salesPromotionRuleFullGift.giftScopeType = cloneDeep(form.value.salesPromotionRuleFullGift.promotionScopeType);
-  form.value.salesPromotionRuleQuantity.giftScopeType = cloneDeep(form.value.salesPromotionRuleQuantity.promotionScopeType);
-
-  // 同步活动适用范围数据
-  form.value.salesPromotionScopeGiftList = cloneDeep(form.value.salesPromotionScope);
+  if(form.value.promotionType === PromotionTypeEnum.FULL_GIFT){
+     // 赠品范围类型 同步 活动范围类型
+    form.value.salesPromotionRuleFullGift.giftScopeType = cloneDeep(form.value.salesPromotionRuleFullGift.promotionScopeType);
+    // 赠品范围数据 同步 活动适用范围数据
+    form.value.salesPromotionScopeGiftList = cloneDeep(form.value.salesPromotionScopeList);
+  } else if(form.value.promotionType === PromotionTypeEnum.QUANTITY){
+     // 赠品范围类型 同步 活动范围类型
+    form.value.salesPromotionRuleQuantity.giftScopeType = cloneDeep(form.value.salesPromotionRuleQuantity.promotionScopeType);
+    // 赠品范围数据 同步 活动适用范围数据
+    form.value.salesPromotionScopeGiftList = cloneDeep(form.value.salesPromotionScopeList);
+  } else {
+    return;
+  }
 }
 
 // 初始化SKU列表
@@ -826,7 +833,7 @@ getSkuList()
 const formattedSkuList = computed(() => {
   return skuList.value.map((sku) => ({
     value: sku.skuId, // SKU ID
-    label: `${sku.skuCode} - ${sku.productName} - ${sku.skuValue}`, // 显示 SKU Code 和 Name
+    label: `${sku.skuCode} - ${sku.skuName} - ${sku.skuValue}`, // 显示 SKU Code 和 Name
   }));
 });
 
@@ -838,11 +845,14 @@ const handleSkuChange = (row) => {
     if (selectedSku) {
       row.productSkuVo.skuId = selectedSku.skuId;
       row.productSkuVo.skuCode = selectedSku.skuCode;
-      row.productSkuVo.productName = selectedSku.productName;
+      row.productSkuVo.skuName = selectedSku.skuName;
       row.productSkuVo.skuValue = selectedSku.skuValue;
-      row.productSkuVo.skuPrice1 = selectedSku.skuPrice1;
+      row.productSkuVo.skuPrice = selectedSku.skuPrice;
       row.productSkuVo.skuPrice2 = selectedSku.skuPrice2;
       row.productSkuVo.skuPrice3 = selectedSku.skuPrice3;
+      row.productSkuVo.skuPrice4 = selectedSku.skuPrice4;
+      row.productSkuVo.skuPrice5 = selectedSku.skuPrice5;
+      row.productSkuVo.skuPrice6 = selectedSku.skuPrice6;
     }
   } else {
     // 如果没有 skuId，则将 productSkuVo 设置为 null

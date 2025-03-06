@@ -9,7 +9,7 @@
       </el-form-item>
       <el-form-item label="套餐状态:" prop="comboStatus">
         <el-select v-model="queryParams.comboStatus" placeholder="请选择套餐状态" clearable>
-          <el-option v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="套餐税率:" prop="rateId">
@@ -171,7 +171,7 @@
               </el-form-item>
               <el-form-item label="套餐状态:" prop="comboStatus">
                 <el-radio-group v-model="form.comboStatus">
-                  <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.value" :value="dict.value">{{
+                  <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.value" :value="Number(dict.value)">{{
                     dict.label }}</el-radio>
                 </el-radio-group>
               </el-form-item>
@@ -200,7 +200,7 @@
               <el-form-item label="是否可选项:" style="margin-right: 20px;">
                 <el-radio-group v-model="item.isOptional" disabled>
                   <el-radio v-for="dict in erp_product_combo_optional" :key="dict.value" :label="dict.value"
-                    :value="dict.value">{{ dict.label }}</el-radio>
+                    :value="Number(dict.value)">{{ dict.label }}</el-radio>
                 </el-radio-group>
               </el-form-item>
               <el-form-item label="可选数量:" style="margin-right: 20px;" v-if="item.isOptional && item.isOptional != '1'">

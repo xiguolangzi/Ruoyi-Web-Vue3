@@ -9,12 +9,12 @@
       </el-form-item>
       <el-form-item label="会计年度:" prop="periodYear">
         <el-select v-model="queryParams.periodYear" placeholder="请选择会计年度" clearable>
-          <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="会计月份:" prop="periodMonth">
         <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份" clearable>
-          <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item style="margin-left: 10px;">
@@ -144,12 +144,12 @@
         </el-form-item>
         <el-form-item label="会计年度" prop="periodYear">
           <el-select v-model="form.periodYear" placeholder="请选择会计年度" clearable>
-            <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="dict.value" />
+            <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
           </el-select>
         </el-form-item>
         <el-form-item label="会计月份" prop="periodMonth">
           <el-select v-model="form.periodMonth" placeholder="请选择会计月份" clearable>
-            <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="dict.value" />
+            <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
           </el-select>
         </el-form-item>
         <el-form-item label="期初余额" prop="beginBalance">

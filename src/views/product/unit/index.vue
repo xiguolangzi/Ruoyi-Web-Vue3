@@ -15,7 +15,7 @@
             v-for="dict in product_unit_type"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
@@ -118,7 +118,7 @@
               <el-radio
                 v-for="dict in product_unit_type"
                 :key="dict.value"
-                :value="dict.value"
+                :value="Number(dict.value)"
               >{{dict.label}}</el-radio>
             </el-radio-group>
           </el-tooltip>

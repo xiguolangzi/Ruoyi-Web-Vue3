@@ -1,8 +1,9 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 /** 订单查询商品 SKU */
 export function listSkuByAddOrder(query = {}) {
-  const pageSize = query.pageSize || 5000;
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/product/sku/listSkuByAddOrder',
     method: 'get',
@@ -30,11 +31,12 @@ export function selectStockBySkuId(skuId) {
 
 
 // 查询sku列表
-export function listSku(query) {
+export function listSku(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/product/sku/list',
     method: 'get',
-    params: { pageSize: 5000, ...query }
+    params: { pageSize, ...query }
   })
 }
 

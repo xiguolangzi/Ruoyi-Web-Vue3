@@ -1,11 +1,13 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
+import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 // 查询客户等级列表
-export function listCustomerLevel(query) {
+export function listCustomerLevel(query = {}) {
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/order/customerLevel/list',
     method: 'get',
-    params: query
+    params: { pageSize, ...query }
   })
 }
 

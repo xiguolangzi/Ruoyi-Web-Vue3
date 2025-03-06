@@ -6,7 +6,7 @@
       </el-form-item>
       <el-form-item label="分类状态" prop="categoryStatus">
         <el-select v-model="queryParams.categoryStatus" placeholder="请选择分类状态" clearable>
-          <el-option v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
     </el-form>
@@ -83,7 +83,7 @@
         </el-form-item>
         <el-form-item label="分类状态" prop="categoryStatus">
           <el-radio-group v-model="form.categoryStatus">
-            <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :value="dict.value">{{dict.label}}</el-radio>
+            <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :value="Number(dict.value)">{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="排列顺序:" prop="orderNumber">

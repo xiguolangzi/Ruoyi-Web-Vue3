@@ -14,7 +14,7 @@
       </el-form-item>
       <el-form-item label="默认状态" prop="isDefault">
         <el-select v-model="queryParams.isDefault" placeholder="请选择默认状态" clearable>
-          <el-option v-for="dict in sys_yes_or_no" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in sys_yes_or_no" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item style="margin-left: 50px;">
@@ -100,7 +100,7 @@
         </el-form-item>
         <el-form-item label="默认状态:" prop="isDefault">
           <el-radio-group v-model="form.isDefault">
-            <el-radio v-for="dict in sys_yes_or_no" :key="dict.value" :value="dict.value">{{ dict.label }}</el-radio>
+            <el-radio v-for="dict in sys_yes_or_no" :key="dict.value" :value="Number(dict.value)">{{ dict.label }}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>

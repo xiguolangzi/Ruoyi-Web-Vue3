@@ -40,7 +40,7 @@
       </el-form-item>
       <el-form-item label="订单状态" prop="orderStatus">
         <el-select v-model="queryParams.orderStatus" placeholder="请选择订单状态" clearable style="width: 150px;">
-          <el-option v-for="dict in erp_purchase_status" :key="dict.value" :label="dict.label" :value="dict.value" />
+          <el-option v-for="dict in erp_purchase_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item>

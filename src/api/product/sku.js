@@ -11,12 +11,7 @@ export function listSkuByAddOrder(query = {}) {
 }
 
 // 修改SKU状态
-export function changeSkuStatus(skuId, skuStatus, tenantId) {
-  const data = {
-    skuId,
-    skuStatus,
-    tenantId
-  }
+export function changeSkuStatus(data) {
   return request({
     url: '/product/sku/changeStatus',
     method: 'put',

@@ -1,14 +1,16 @@
 import request from '@/utils/request'
+import { MaxLengthEnum } from '@/api/constants/commonConstants.js'
 
 // 查询客户列表
 export function listCustomer(query = {}) {
-  const pageSize = query.pageSize || 10000;
+  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
   return request({
     url: '/order/customer/list',
     method: 'get',
     params: { pageSize, ...query }
   })
 }
+
 
 // 查询客户详细
 export function getCustomer(customerId) {

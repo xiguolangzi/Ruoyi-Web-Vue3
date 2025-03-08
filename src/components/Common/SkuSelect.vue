@@ -15,8 +15,7 @@
     @change="handleChange"
     :collapse-tags-tooltip="true"
     :default-first-option="true"
-    :fit-input-width="false"
-    
+    :fit-input-width="false" 
   />
 </template>
 
@@ -128,7 +127,9 @@ const handleChange = (val) => {
 watch(
   () => props.modelValue,
   (newValue) => {
-    if (newValue) fetchCustomers();
+    if (newValue) {
+      onSearch(newValue); // 触发搜索
+    };
   },
   { immediate: true }
 );

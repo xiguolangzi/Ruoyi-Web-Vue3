@@ -48,25 +48,14 @@ const dispatchInputEvent = (inputEl) => {
 // **处理数字输入**
 const press = (key) => {
   if (activeInput.value) {
-    const inputEl = activeInput.value;
-    const start = inputEl.selectionStart; // 选中内容的起始位置
-    const end = inputEl.selectionEnd; // 选中内容的结束位置
-    const currentValue = inputEl.value;
+    const currentValue = activeInput.value.value;
 
-    // 如果有选中内容，则替换选中的内容
-    if (start !== end) {
-      const newValue = currentValue.slice(0, start) + key + currentValue.slice(end);
-      updateInputValue(newValue);
-
-      // 移动光标到新输入内容的后面
-      nextTick(() => {
-        inputEl.setSelectionRange(start + 1, start + 1);
-      });
-    } else {
-      // 如果没有选中内容，则追加输入内容
-      updateInputValue(currentValue + key);
+    // 如果输入的是小数点，并且当前值已经包含小数点，则不再输入
+    if (key === '.' && currentValue.includes('.')) {
+      return;
     }
 
+    updateInputValue(currentValue+ key);
     playKeySound();
   }
 };
@@ -74,34 +63,9 @@ const press = (key) => {
 // **退格删除**
 const backspace = () => {
   if (activeInput.value) {
-    const inputEl = activeInput.value;
-    const start = inputEl.selectionStart; // 选中内容的起始位置
-    const end = inputEl.selectionEnd; // 选中内容的结束位置
-    const currentValue = inputEl.value;
-
-    // 如果有选中内容，则删除选中的全部内容
-    if (start !== end) {
-      const newValue = currentValue.slice(0, start) + currentValue.slice(end);
-      updateInputValue(newValue);
-
-      // 移动光标到删除后的位置
-      nextTick(() => {
-        inputEl.setSelectionRange(start, start);
-      });
-    } else {
-      // 如果没有选中内容，则删除一个字符
-      if (start > 0) {
-        const newValue = currentValue.slice(0, start - 1) + currentValue.slice(start);
-        updateInputValue(newValue);
-
-        // 移动光标到删除后的位置
-        nextTick(() => {
-          inputEl.setSelectionRange(start - 1, start - 1);
-        });
-      }
-    }
-
+    updateInputValue(activeInput.value.value.slice(0, -1));
     playKeySound();
+
   }
 };
 

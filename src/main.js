@@ -44,6 +44,8 @@ import ImagePreview from "@/components/ImagePreview"
 import DictTag from '@/components/DictTag'
 // 国际化
 import i18n from '@/lang/index'
+// 输入框数字输入框
+
 
 const app = createApp(App)
 

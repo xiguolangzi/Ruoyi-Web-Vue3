@@ -1,13 +1,13 @@
 <template>
   <div :class="classObj" class="app-wrapper" :style="{ '--current-color': theme }">
     <!-- 锁屏 -->
-     <LockScreen  ref="lockScreenRef"/>
+    <LockScreen ref="lockScreenRef" />
 
-    <div v-if="device === 'mobile' && sidebar.opened" class="drawer-bg" @click="handleClickOutside"/>
+    <div v-if="device === 'mobile' && sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
     <sidebar v-if="!sidebar.hide" class="sidebar-container" />
     <div :class="{ hasTagsView: needTagsView, sidebarHide: sidebar.hide }" class="main-container">
       <div :class="{ 'fixed-header': fixedHeader }">
-        <navbar @setLayout="setLayout" @handleLockScreen="lockScreen"/>
+        <navbar @setLayout="setLayout" @handleLockScreen="lockScreen" />
         <tags-view v-if="needTagsView" />
       </div>
       <app-main />
@@ -26,6 +26,7 @@ import useAppStore from '@/store/modules/app'
 import useSettingsStore from '@/store/modules/settings'
 
 import LockScreen from '@/components/LockScreen/index.vue'
+import { ElMessageBox, ElNotification } from 'element-plus'
 
 const settingsStore = useSettingsStore()
 const theme = computed(() => settingsStore.theme);
@@ -73,19 +74,43 @@ function setLayout() {
 // 引用锁屏组件
 const lockScreenRef = ref(null);
 // 锁定屏幕
-const lockScreen = () => {
-  let inputPassword = prompt('请输入密码（1-6位）以锁定屏幕');
-  if (inputPassword) {
-    // 检查密码长度
-    if (inputPassword.length < 1 || inputPassword.length > 6) {
-      alert('密码长度必须为 1-6 位！');
-      return;
+// const lockScreen = () => {
+//   let inputPassword = prompt('请输入密码（1-6位）以锁定屏幕');
+//   if (inputPassword) {
+//     // 检查密码长度
+//     if (inputPassword.length < 1 || inputPassword.length > 6) {
+//       alert('密码长度必须为 1-6 位！');
+//       return;
+//     }
+
+//     lockScreenRef.value.lockScreen(inputPassword); // 锁定屏幕
+
+//   }else {
+//     alert('密码不能为空！');
+//   }
+// };
+
+const lockScreen = async () => {
+  try {
+    // 弹出密码输入框
+    const { value: inputPassword } = await ElMessageBox.prompt(
+      '请输入密码（1-6位）以锁定屏幕', // 提示信息
+      '锁定屏幕', // 标题
+      {
+        inputType: 'password', // 设置为密码输入模式
+        inputPattern: /^.{1,6}$/, // 正则表达式限制输入长度为 1-6 位
+        inputErrorMessage: '密码长度必须为 1-6 位！', // 输入不符合规则时的错误提示
+      }
+    );
+
+    // 如果用户输入了密码
+    if (inputPassword) {
+      // 调用锁定屏幕的逻辑
+      lockScreenRef.value.lockScreen(inputPassword);
     }
-
-    lockScreenRef.value.lockScreen(inputPassword); // 锁定屏幕
-
-  }else {
-    alert('密码不能为空！');
+  } catch (error) {
+    // 用户点击了取消
+    console.log('用户取消了输入密码');
   }
 };
 

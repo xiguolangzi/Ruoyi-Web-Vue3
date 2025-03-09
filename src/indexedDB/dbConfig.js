@@ -13,8 +13,8 @@ export const dbConfig = [
         },
         indexList: [
           {
-            name: 'password',
-            keyPath: 'password',
+            name: 'lockScreenKey',
+            keyPath: 'lockScreenKey',
             options: {
               unique: false
             }

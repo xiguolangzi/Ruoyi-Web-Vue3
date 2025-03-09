@@ -12,13 +12,8 @@
       </div>
       <!-- 解锁输入框和按钮 -->
       <div class="unlock-section">
-        <input
-          v-model="unLockPassword"
-          type="password"
-          placeholder="请输入解锁密码"
-          class="unlock-input"
-          maxlength="6"
-        />
+        <input v-model="unLockPassword" type="password" placeholder="请输入解锁密码" class="unlock-input" maxlength="6"
+          @keydown.enter="unlockScreen" />
         <button @click="unlockScreen" class="unlock-button">解锁</button>
         <button @click="handleForgotPassword" class="forgot-password-button">退出登录</button>
       </div>
@@ -37,7 +32,7 @@ const userStore = useUserStore()
 // --------------------------     1 锁屏 start     -------------------------
 const DB_NAME = "configDB";
 const STORE_NAME = "lockScreenConfig";
-const indexName = "password";
+const indexName = "lockScreenKey";
 
 // 1 先判断 DB_NAME 和 STORE_NAME 是否存加入配置
 const dbObject = dbConfig.find((db) => db.dbName === DB_NAME);
@@ -72,14 +67,12 @@ onMounted(() => {
 
 
 const lockScreen = (password) => {
-  console.log('保存的密码是1：',password);
    IndexedDBUtil.saveData(DB_NAME, STORE_NAME, {
       id: 1,
-      password: password,
+     lockScreenKey: password,
     }).then(() => {
       isLocked.value = true;
       console.log('锁屏成功！');
-      console.log('保存的密码是2：',password);
     });
 };
 
@@ -107,15 +100,15 @@ const handleForgotPassword = () => {
       IndexedDBUtil.clearStore(DB_NAME, STORE_NAME).then(() => {
         console.log("清除锁屏密码成功！")
       }).catch(() => {
-        console.log("清除锁屏密码失败！")
+        console.error("清除锁屏密码失败！")
       });
       // 返回首页
       location.href = '/index';
     }).catch(() => {
-    console.log("注销失败！")
+      console.error("注销失败！")
    });
   } catch(e) {
-    console.log("调用注销失败！" + e)
+    console.error("调用注销失败！" + e)
   };
 };
 

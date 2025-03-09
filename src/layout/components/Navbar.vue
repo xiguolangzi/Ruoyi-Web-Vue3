@@ -21,11 +21,19 @@
           <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
         </el-tooltip>
 
+        <el-tooltip content="锁屏" effect="dark" placement="bottom">
+          <div class="right-menu-item hover-effect" >
+            <el-button plain type="warning"  :icon="Lock" size="default" circle  @click="handleLockScreen" />
+          </div>
+        </el-tooltip>
+
         <el-tooltip content="文档地址" effect="dark" placement="bottom">
           <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
         </el-tooltip>
 
-        <screenfull id="screenfull" class="right-menu-item hover-effect" />
+        <el-tooltip content="全屏" effect="dark" placement="bottom">
+          <screenfull id="screenfull" class="right-menu-item hover-effect" />
+        </el-tooltip>
 
         <el-tooltip content="主题模式" effect="dark" placement="bottom">
           <div class="right-menu-item hover-effect theme-switch-wrapper" @click="toggleTheme">
@@ -78,6 +86,7 @@ import useUserStore from '@/store/modules/user'
 import useSettingsStore from '@/store/modules/settings'
 import LangSelect from '@/components/LangSelect'
 import TenantSelect from '@/components/TenantSelect'
+import { Lock } from '@element-plus/icons-vue'
 
 const appStore = useAppStore()
 const userStore = useUserStore()
@@ -112,14 +121,20 @@ function logout() {
   }).catch(() => { });
 }
 
-const emits = defineEmits(['setLayout'])
+const emits = defineEmits(['setLayout','handleLockScreen'])
 function setLayout() {
   emits('setLayout');
+}
+
+function handleLockScreen() {
+  emits('handleLockScreen');
 }
 
 function toggleTheme() {
   settingsStore.toggleTheme()
 }
+
+
 </script>
 
 <style lang='scss' scoped>

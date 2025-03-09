@@ -24,7 +24,7 @@
         <!-- 客户 -->
         <el-select v-model="queryParams.assistId" placeholder="请选择客户" @change="handleQuery" clearable filterable>
           <el-option v-for="customer in customerList" :key="customer.customerId" :label="customer.customerName"
-            :value="customer.customerId" :disabled="customer.customerStatus !== '0'">
+            :value="customer.customerId" :disabled="customer.customerStatus != '0'">
             <span>{{ `客户名称：${customer.customerName} ---- 客户编码：${customer.customerCode}` }}</span>
           </el-option>
         </el-select>
@@ -33,7 +33,7 @@
         <!-- 供应商 -->
         <el-select v-model="queryParams.assistId" placeholder="请选择供应商" @change="handleQuery" clearable filterable>
           <el-option v-for="supplier in supplierList" :key="supplier.supplierId" :label="supplier.supplierName"
-            :value="supplier.supplierId" :disabled="supplier.supplierStatus !== '0'">
+            :value="supplier.supplierId" :disabled="supplier.supplierStatus != '0'">
             <span>{{ `供应商名称：${supplier.supplierName} ---- 供应商编码：${supplier.supplierCode}` }}</span>
           </el-option>
         </el-select>
@@ -42,7 +42,7 @@
         <!-- 员工 -->
         <el-select v-model="queryParams.assistId" placeholder="请选择员工" @change="handleQuery" clearable filterable>
           <el-option v-for="user in userList" :key="user.userId" :label="user.userName" :value="user.userId"
-            :disabled="user.status !== '0'">
+            :disabled="user.status != '0'">
             <span>{{ `员工名称：${user.userName} ---- 员工昵称：${ user.nickName}` }}</span>
           </el-option>
         </el-select>
@@ -220,39 +220,39 @@
             <!-- 根据不同状态显示不同的操作按钮 -->
             <el-button-group class="mr-4">
               <!-- 草稿状态 -->
-              <el-button type="primary" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_DRAFT"
+              <el-button type="primary" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_DRAFT"
                 @click="handleSave" :loading="loading" v-hasPermi="['finance:costInvoice:edit']">
                 保存
               </el-button>
               <el-button type="danger"
-                v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_DRAFT && insertStatus == false"
+                v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_DRAFT && insertStatus == false"
                 @click="handleRemove" :loading="loading" v-hasPermi="['finance:costInvoice:remove']">
                 删除
               </el-button>
 
               <!-- 保存状态 -->
-              <el-button type="success" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_SAVED "
+              <el-button type="success" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_SAVED "
                 @click="handleSubmitAudited" :loading="loading" v-hasPermi="['finance:costInvoice:edit']">
                 提交审核
               </el-button>
-              <el-button type="warning" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_SAVED"
+              <el-button type="warning" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_SAVED"
                 @click="handleContinueEdit" :loading="loading" v-hasPermi="['finance:costInvoice:edit']">
                 继续编辑
               </el-button>
 
               <!-- 待审核状态 -->
-              <el-button type="primary" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED"
+              <el-button type="primary" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED"
                 @click="handleAudited" :loading="loading" v-hasPermi="['finance:costInvoice:audited']">
                 审核
               </el-button>
-              <el-button type="primary" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED"
+              <el-button type="primary" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_WAIT_AUDITED"
                 @click="handleReject" :loading="loading" v-hasPermi="['finance:costInvoice:audited']">
                 驳回提交审核
               </el-button>
 
 
               <!-- 审核状态 -->
-              <el-button type="warning" v-if="form.invoiceStatus === InvoiceStatusEnum.INVOICE_STATUS_AUDITED"
+              <el-button type="warning" v-if="form.invoiceStatus == InvoiceStatusEnum.INVOICE_STATUS_AUDITED"
                 @click="handleUnAudited" :loading="loading" v-hasPermi="['finance:costInvoice:audited']">
                 反审核
               </el-button>
@@ -299,7 +299,7 @@
               <!-- 客户 -->
               <el-select v-model="form.assistId" placeholder="请选择客户" clearable style="width: 100%;" filterable>
                 <el-option v-for="customer in customerList" :key="customer.customerId" :label="customer.customerName"
-                  :value="customer.customerId" :disabled="customer.customerStatus !== '0'">
+                  :value="customer.customerId" :disabled="customer.customerStatus != '0'">
                   <span>{{ '客户名称：' + customer.customerName + ' ---- ' + '客户编码：' + customer.customerCode }}</span>
                 </el-option>
               </el-select>
@@ -308,7 +308,7 @@
               <!-- 供应商 -->
               <el-select v-model="form.assistId" placeholder="请选择供应商" clearable style="width: 100%;" filterable>
                 <el-option v-for="supplier in supplierList" :key="supplier.supplierId" :label="supplier.supplierName"
-                  :value="supplier.supplierId" :disabled="supplier.supplierStatus !== '0'">
+                  :value="supplier.supplierId" :disabled="supplier.supplierStatus != '0'">
                   <span>{{ '供应商名称：' + supplier.supplierName + ' ---- ' + '供应商编码：' + supplier.supplierCode }}</span>
                 </el-option>
               </el-select>
@@ -317,7 +317,7 @@
               <!-- 员工 -->
               <el-select v-model="form.assistId" placeholder="请选择员工" clearable style="width: 100%;" filterable>
                 <el-option v-for="user in userList" :key="user.userId" :label="user.userName" :value="user.userId"
-                  :disabled="user.status !== '0'">
+                  :disabled="user.status != '0'">
                   <span>{{ '员工名称：' + user.userName + ' ---- ' + '员工昵称：' + user.nickName }}</span>
                 </el-option>
               </el-select>
@@ -962,7 +962,7 @@ const changeAssistType = () => {
   form.value.assistId = null;  // 清空辅助项ID
   // 如果发票类型是采购发票，则辅助项类型为供应商
   // 根据辅助项类型获取对应的会计科目编码(使用字典维护)
-  const mainAccountCode = finance_cost_invoice_account.value.find(item => item.value === form.value.assistType)?.label || '';
+  const mainAccountCode = finance_cost_invoice_account.value.find(item => item.value == form.value.assistType)?.label || '';
   // 更新主会计科目ID
   form.value.mainFinanceAccountId = accountList.value.find(item => item.accountCode === mainAccountCode)?.accountId || null;
 }
@@ -970,7 +970,7 @@ const changeAssistType = () => {
 /** 修改发票类型， 清空辅助项ID */
 const changeInvoiceType = () => {
   // 采购发票特殊处理 
-  if(form.value.invoiceType === InvoiceTypeEnum.INVOICE_TYPE_PURCHASE){
+  if(form.value.invoiceType == InvoiceTypeEnum.INVOICE_TYPE_PURCHASE){
     // 指定辅助项类型: 供应商 2
     form.value.assistType = AssistTypeEnum.ASSIST_TYPE_SUPPLIER
     // 指定会计科目：应付账款 2202
@@ -989,7 +989,7 @@ const changeInvoiceType = () => {
 }
 
 const updateAccountTree = () => {
-  if(form.value.invoiceType === InvoiceTypeEnum.INVOICE_TYPE_PURCHASE){
+  if(form.value.invoiceType == InvoiceTypeEnum.INVOICE_TYPE_PURCHASE){
     // 更新会计项目要展示的内容 - 费用
     projectTree.value = filterAccountTree(projectList.value,'1')
   } else {
@@ -1020,7 +1020,7 @@ const data = reactive({
     orderNo: null,
     invoiceStatus: null,
     tenantId: null,
-    invoiceType: '2',
+    invoiceType: 2,
   },
   rules: {
     invoiceNo: [
@@ -1081,7 +1081,7 @@ function cancel() {
 function reset() {
   form.value = {
     invoiceId: null,
-    invoiceType: '2',
+    invoiceType: 2,
     mainFinanceAccountId: null,
     assistType: null,
     assistId: null,
@@ -1093,7 +1093,7 @@ function reset() {
     invoiceTotalDiscountAmount: 0,
     invoiceTotalTaxAmount: 0,
     invoiceTotalNetAmount: 0,
-    invoiceStatus: '1',
+    invoiceStatus: 1,
     accountsPayable: null,
     paymentDueDate: null,
     verifiedAmount: 0,
@@ -1489,7 +1489,7 @@ const submitApproval = async () => {
   // 4 业务处理
   try{
     loading.value = true;
-    if( currentAction.value === OperateType.SAVE) {
+    if( currentAction.value == OperateType.SAVE) {
       proxy.$refs["costInvoiceRef"].validate(valid => {
         if (valid) {
           // 修改 / 新增 业务

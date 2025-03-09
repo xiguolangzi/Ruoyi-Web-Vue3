@@ -144,6 +144,7 @@
               class="custom-table"
               @scroll="handleScroll"
               @column-sort="onSort"
+              size="small"
               >
             </el-table-v2>
           </template>
@@ -263,6 +264,7 @@ const columns = computed(() => [
       if (form.value.orderStatus === OrderStatusEnum.EDIT) {
         return h(ElButton, {
           type: 'danger',
+          size: 'small',
           circle: true,
           icon: 'Delete',
           onClick: () => removeItem(rowIndex),

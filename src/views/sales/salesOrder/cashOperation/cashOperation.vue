@@ -1,29 +1,5 @@
 <template>
   <div ref="cashierContainer" class="app-container">
-    <!-- 锁屏 -->
-    <div v-if="isLocked" class="lock-screen-overlay">
-      <div class="lock-screen-content">
-        <!-- 时间显示 -->
-        <div class="time-display">
-          <span class="digit">{{ hours }}</span>
-          <span class="colon">:</span>
-          <span class="digit">{{ minutes }}</span>
-          <span class="colon">:</span>
-          <span class="digit">{{ seconds }}</span>
-        </div>
-        <!-- 解锁输入框和按钮 -->
-        <div class="unlock-section">
-          <input
-            v-model="password"
-            type="password"
-            placeholder="请输入密码"
-            class="unlock-input"
-          />
-          <button @click="unlockScreen" class="unlock-button">解锁</button>
-        </div>
-      </div>
-    </div>
-
     <!-- 收银台的具体内容 -->
     <el-container class="cash-container">
       <!-- 左侧区域 -->
@@ -37,7 +13,7 @@
         <!-- 下部分：商品输入框和汇总信息 -->
         <el-footer class="footer-data-container" height="200px">
           <div class="input-summary-container">
-            <SkuSelect v-model="form.skuId"  @selectedData="selectedSkuData"/>          
+            <SkuSelect ref="skuSelectRef"   @selectedData="selectedSkuData"/>          
           </div>
         </el-footer>
       </el-container>
@@ -106,12 +82,21 @@ import SalesmanSelect from '@/components/Common/SalesmanSelect.vue';
 import SalesActivitySelect from '@/components/Common/SalesActivitySelect.vue';
 import SkuSelect from '@/components/Common/SkuSelect.vue';
 import EditableTable from './EditableTable.vue';
+import {playKeyHappySound} from '@/utils/playKeySound.js';
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
 
 const keyboardRef = ref(null); // 键盘组件实例
-const productInput = ref(''); // 商品输入框的值
+const skuSelectRef = ref(null);
+// 组件加载完成后自动聚焦到商品输入框
+onMounted(() => {
+  nextTick(() => {
+    if (skuSelectRef.value) {
+      skuSelectRef.value.focus(); // 调用 SkuSelect 组件的 focus 方法
+    }
+  });
+});
 
 // 监听全局焦点事件
 onMounted(() => {
@@ -122,10 +107,12 @@ onMounted(() => {
 const handleFocus = (event) => {
   if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
     keyboardRef.value?.setActiveInput(event.target); // 将聚焦的输入框传递给键盘组件
+    // 将 skuSelectRef 传递给键盘组件
+    if (keyboardRef.value) {
+      keyboardRef.value.setSkuSelectRef(skuSelectRef.value);
+    }
   }
 };
-
-
 
 const drawer = ref(false)
 const currentCustomer = ref(null)
@@ -168,6 +155,10 @@ const selectedSalesActivityData = (data) => {
 const selectedSkuData = (data) => {
   console.log('收银台获取的商品数据:',data)
   currentSku.value = data || null;
+  if(currentSku.value){
+    handleAddSalesOrderDetail(currentSku.value)
+  }
+  
 }
 
 // 表单重置
@@ -181,8 +172,28 @@ onMounted(() => {
 });
 
 /** 销售订单明细添加按钮操作 */
-function handleAddSalesOrderDetail() {
+function handleAddSalesOrderDetail(sku) {
   const obj = initOrderDetailData();
+  obj.detailId=null
+  obj.detailMainSkuId=null
+  obj.skuId = sku.skuId
+  obj.skuCode = sku.skuCode
+  obj.skuName = sku.skuName
+  obj.assistName = sku.assistName
+  obj.skuType = sku.skuType
+  obj.skuValue = sku.skuValue
+  obj.batchId = sku.batchId
+  obj.skuUnit = sku.unitVo?.unitCode
+  obj.detailPrice = sku.skuPrice
+  obj.detailQuantity = 1
+  obj.detailAmount = sku.skuPrice * 1
+  obj.detailDiscountRate = 0
+  obj.detailDiscountAmount = 0
+  obj.detailSalesAmount = sku.skuPrice * 1
+  obj.detailBaseAmount = sku.skuPrice * 1
+  obj.detailTaxRate = sku.productRateVo?.rateValue
+  obj.detailTaxAmount = sku.skuPrice * 1 * sku.productRateVo?.rateValue
+  obj.detailNetAmount = sku.skuPrice * 1 * (1 + sku.productRateVo?.rateValue)
   form.value.salesOrderDetailList.push(obj)
 }
 
@@ -206,52 +217,6 @@ const toggleFullScreen = () => {
 
 // -------------------------     1 全屏锁屏 end     -------------------------
 
-// --------------------------     2 锁屏 start     -------------------------
-const isLocked = ref(false);
-const password = ref('');
-
-const lockScreen = () => {
-  isLocked.value = true;
-};
-
-const unlockScreen = () => {
-  if (password.value === '123456') {
-    isLocked.value = false;
-    password.value = '';
-  } else {
-    alert('密码错误,请重新输入！');
-  }
-};
-// --------------------------     2 锁屏 end     -------------------------
-
-// --------------------------     3 时间 start     -------------------------
-const hours = ref('00');
-const minutes = ref('00');
-const seconds = ref('00');
-
-// 更新时间
-const updateTime = () => {
-  const now = new Date();
-  hours.value = String(now.getHours()).padStart(2, '0');
-  minutes.value = String(now.getMinutes()).padStart(2, '0');
-  seconds.value = String(now.getSeconds()).padStart(2, '0');
-};
-
-// 每秒更新时间
-onMounted(() => {
-  updateTime();
-  setInterval(updateTime, 1000);
-  setInterval(getCurrentLocalTime, 1000);
-});
-
-// 获取当前本地时间
-const currentTime = ref(null);
-const getCurrentLocalTime = () => {
-  // 返回当前日期+时间
-  currentTime.value = new Date().toLocaleString();
-};
-
-// -------------------------     3 时间 end     -------------------------
 
 
 // --------------------------  5 侧边栏按钮区域 start  -------------------
@@ -275,11 +240,11 @@ const handleAction = (action) => {
       toggleFullScreen();
       break;
     case "lockScreen":
-      lockScreen();
+      console.log("锁屏业务已经移除");
       break;
     case "holdOrder":
       console.log("挂单");
-      handleAddSalesOrderDetail()
+      playKeyHappySound()
       break;
     case "splitOrder":
       console.log("拆单");
@@ -307,88 +272,6 @@ const handleAction = (action) => {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   position: relative;
   z-index: 0;
-
-  .lock-screen-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, #001f3f, #000);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-
-    .time-display {
-      font-family: 'Digital-7', monospace;
-      font-size: 10rem;
-      font-weight: bold;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      .digit {
-        background: rgba(255, 255, 255, 0.1);
-        padding: 10px 20px;
-        margin: 0 5px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.6), 0 0 30px rgba(0, 255, 255, 0.4);
-        animation: glow 1.5s infinite alternate;
-      }
-
-      .colon {
-        margin: 0 10px;
-        animation: blink 1s infinite;
-      }
-    }
-
-    .unlock-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      margin-top: 40px;
-
-      .unlock-input {
-        width: 200px;
-        padding: 10px;
-        font-size: 16px;
-        color: white;
-        background: rgba(255, 255, 255, 0.1);
-        border: none;
-        border-radius: 5px;
-        outline: none;
-        text-align: center;
-
-        &::placeholder {
-          color: rgba(255, 255, 255, 0.5);
-        }
-      }
-
-      .unlock-button {
-        width: 200px;
-        padding: 10px;
-        font-size: 16px;
-        color: white;
-        background: rgba(0, 255, 255, 0.2);
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background 0.3s ease;
-
-        &:hover {
-          background: rgba(0, 255, 255, 0.4);
-        }
-
-        &:active {
-          background: rgba(0, 255, 255, 0.6);
-        }
-      }
-    }
-  }
 
   .cash-container {
     flex: 1;

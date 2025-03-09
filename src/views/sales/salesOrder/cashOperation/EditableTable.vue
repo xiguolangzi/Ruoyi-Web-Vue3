@@ -101,7 +101,6 @@ const props = defineProps({
 
 // 处理输入事件
 const handleInput = (row, prop, value) => {
-
   // 确保 value 不是 undefined
   if (value === undefined || value === null) {
     return;
@@ -205,6 +204,7 @@ const handleCellClick = (row, column) => {
 
 // 处理输入框失焦
 const handleBlur = (row, prop) => {
+  updateAmount(row)
   editingCell.value = null;
 };
 

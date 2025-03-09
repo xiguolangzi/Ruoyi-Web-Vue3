@@ -51,7 +51,7 @@
           <image-preview :src="scope.row.comboImage" :width="60" :height="60" />
         </template>
       </el-table-column>
-      <el-table-column label="套餐编码" align="center" prop="comboCode" />
+      <el-table-column label="套餐条码" align="center" prop="comboCode" />
       <el-table-column label="套餐名称" align="left" header-align="center" show-overflow-tooltip >
         <template #default="scope">
           <div>
@@ -124,8 +124,8 @@
         <!-- 基础信息 -->
         <el-tab-pane label="基础信息" name="basic">
           <el-form ref="productComboRef" :model="form" :rules="rules" label-width="100px">
-            <el-form-item label="套餐编码:" prop="comboCode">
-              <el-input v-model="form.comboCode" placeholder="请输入套餐编码" />
+            <el-form-item label="套餐条码:" prop="comboCode">
+              <el-input v-model="form.comboCode" placeholder="请输入套餐条码" type="text" inputmode="numeric" maxlength="20" show-word-limit :rows="1" @keypress="onlyNumber"/>
             </el-form-item>
             <el-row :gutter="20">
               <el-col :span="12">
@@ -359,6 +359,13 @@ function getList() {
     loading.value = false;
   });
 }
+
+function onlyNumber(event) {
+  if (!/^\d$/.test(event.key)) {
+    event.preventDefault();
+  }
+}
+
 
 // --------------------- 1 表单 输入框聚焦选中 start ---------------
 // 统一的 focus 事件

@@ -20,15 +20,22 @@
 
 <script setup>
 import { ref } from "vue";
+import {playKeySound} from "@/utils/playKeySound.js"
 
 const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
 
 // 存储当前聚焦的输入框元素
 const activeInput = ref(null);
+const skuSelectRef = ref(null); // SkuSelect 组件的引用
 
 // 用于设置当前聚焦的输入框。当输入框获得焦点时，调用此方法将
 const setActiveInput = (inputEl) => {
   activeInput.value = inputEl;
+};
+
+// 设置 SkuSelect 组件的引用
+const setSkuSelectRef = (ref) => {
+  skuSelectRef.value = ref;
 };
 
 // **更新值并触发 Vue 响应**
@@ -116,31 +123,22 @@ const clear = () => {
 
 // **回车提交并重置输入框**
 const confirm = () => {
+  // 当前聚焦的元素 = activeInput.value
   if (activeInput.value) {
-    activeInput.value.blur(); // **让输入框失焦**
-    activeInput.value = null; // **清空 activeInput，确保下次点击输入框时能重新激活**
-    playKeySound();
+    const inputEl = activeInput.value;
+    // 如果当前聚焦的输入框是 SkuSelect 组件的输入框
+    if (inputEl.tagName === 'INPUT' && inputEl.parentElement.classList.contains('el-select__selected-item')) {
+      skuSelectRef.value?.handleEnterKey(); // 调用 SkuSelect 组件的 handleEnterKey 方法
+    }else {
+      activeInput.value.blur(); // **让输入框失焦**
+      activeInput.value = null; // **清空 activeInput，确保下次点击输入框时能重新激活**
+      playKeySound();
+    }
+    
   }
 };
 
-// **播放按键音效**
-const playKeySound = () => {
-  const audioContext = new (window.AudioContext || window.AudioContext)();
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  oscillator.type = 'sawtooth'; // 音色类型：square、sine、triangle、sawtooth
-  oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // 频率 (Hz)
-  gainNode.gain.setValueAtTime(0.5, audioContext.currentTime); // 音量
-
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  oscillator.start();
-  oscillator.stop(audioContext.currentTime + 0.1); // 播放时长 (秒)
-};
-
-defineExpose({ setActiveInput });
+defineExpose({ setActiveInput, setSkuSelectRef });
 </script>
 
 <style scoped>

@@ -186,19 +186,19 @@
             <!-- 根据不同状态显示不同的操作按钮 -->
             <el-button-group class="mr-4">
               <!-- 草稿状态 -->
-              <el-button type="primary" v-if="form.flowStatus === FlowStatusEnum.FLOW_STATUS_DRAFT"
+              <el-button type="primary" v-if="form.flowStatus == FlowStatusEnum.FLOW_STATUS_DRAFT"
                 @click="handleSave" :loading="loading" 
                 v-hasPermi="['finance:fundFlow:edit']"
               >
                 保存
               </el-button>
-              <el-button type="success" v-if="form.flowStatus === FlowStatusEnum.FLOW_STATUS_DRAFT && insertStatus === false"
+              <el-button type="success" v-if="form.flowStatus == FlowStatusEnum.FLOW_STATUS_DRAFT && insertStatus === false"
                 @click="handleSubmitAudited" :loading="loading" 
                 v-hasPermi="['finance:fundFlow:edit']"
               >
                 提交审核
               </el-button>
-              <el-button type="danger" v-if="form.flowStatus === FlowStatusEnum.FLOW_STATUS_DRAFT && insertStatus === false"
+              <el-button type="danger" v-if="form.flowStatus == FlowStatusEnum.FLOW_STATUS_DRAFT && insertStatus === false"
                 @click="handleRemove" :loading="loading" 
                 v-hasPermi="['finance:fundFlow:remove']"
               >
@@ -206,7 +206,7 @@
               </el-button>
 
               <!-- 待审核状态 -->
-               <el-button type="primary" v-if="form.flowStatus === FlowStatusEnum.FLOW_STATUS_WAIT_AUDITED"
+               <el-button type="primary" v-if="form.flowStatus == FlowStatusEnum.FLOW_STATUS_WAIT_AUDITED"
                 @click="handleAudited" :loading="loading" 
                 v-hasPermi="['finance:fundFlow:audited']"
               >
@@ -860,13 +860,13 @@ const { queryParams, form, rules } = toRefs(data);
 /** 凭证状态 */ 
 const FlowStatusEnum = {
   // 草稿
-  FLOW_STATUS_DRAFT: '1',
+  FLOW_STATUS_DRAFT: 1,
   // 待审核
-  FLOW_STATUS_WAIT_AUDITED: '2',
+  FLOW_STATUS_WAIT_AUDITED: 2,
   // 已审核
-  FLOW_STATUS_AUDITED: '3',
+  FLOW_STATUS_AUDITED: 3,
   // 已过账
-  FLOW_STATUS_POSTED: '4',
+  FLOW_STATUS_POSTED: 4,
 }
 
 
@@ -905,7 +905,7 @@ function reset() {
     flowAmount: null,
     balanceBefore: null,
     balanceAfter: null,
-    flowStatus: '1',
+    flowStatus: 1,
     remark: null,
     tenantId: null,
     operateLog: null,
@@ -1079,11 +1079,11 @@ const handleSave = () => {
     }
 
     // 5 收款类型检查，收款 交易金额大于0、付款 交易金额小于0
-    if(form.value.flowType === '1' && form.value.flowAmount <= 0){
+    if(form.value.flowType == 1 && form.value.flowAmount <= 0){
       proxy.$modal.msgError("收款类型 交易金额必须大于0 ,请检查!")
       return;
     }
-    if(form.value.flowType === '2' && form.value.flowAmount >= 0){
+    if(form.value.flowType == 2 && form.value.flowAmount >= 0){
       proxy.$modal.msgError("付款类型 交易金额必须小于0 ,请检查!")
       return;
     }
@@ -1149,11 +1149,11 @@ const handleSubmitAudited = () => {
     }
 
     // 5 收款类型检查，收款 交易金额大于0、付款 交易金额小于0
-    if(form.value.flowType === '1' && form.value.flowAmount <= 0){
+    if(form.value.flowType == 1 && form.value.flowAmount <= 0){
       proxy.$modal.msgError("收款类型 交易金额必须大于0 ,请检查!")
       return;
     }
-    if(form.value.flowType === '2' && form.value.flowAmount >= 0){
+    if(form.value.flowType == 2 && form.value.flowAmount >= 0){
       proxy.$modal.msgError("付款类型 交易金额必须小于0 ,请检查!")
       return;
     }

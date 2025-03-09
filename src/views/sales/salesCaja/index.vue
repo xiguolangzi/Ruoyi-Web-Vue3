@@ -75,7 +75,7 @@
       <el-table-column label="序号" align="center" type="index" width="50" />
       <el-table-column label="收银机名称" align="center" prop="cajaName" />
       <el-table-column label="设备唯一标识" align="center" prop="macAddress" min-width="150" show-overflow-tooltip/>
-      <el-table-column label="注册人" align="center" prop="createBy" />
+      
       <el-table-column label="设备状态" align="center" prop="cajaStatus" width="80">
         <template #default="scope">
           <el-switch v-model="scope.row.cajaStatus" :active-value="Number(sys_tenant_status[0].value)"
@@ -84,6 +84,8 @@
             @change="handleChangeStatus(scope.row)"></el-switch>
         </template>
       </el-table-column>
+      <el-table-column label="备注描述" align="left" header-align="center" prop="remark" show-overflow-tooltip/>
+      <el-table-column label="注册人" align="center" prop="createBy" />
       <el-table-column label="注册时间" align="center" prop="createTime" >
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
@@ -95,7 +97,7 @@
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注描述" align="center" prop="remark" />
+      
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['sales:salesCaja:edit']">修改</el-button>
@@ -115,8 +117,17 @@
     <!-- 添加或修改caja注册对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="salesCajaRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="唯一标识" prop="macAddress">
-          <el-input v-model="form.macAddress" placeholder="系统自动获取" disabled/>
+        <el-form-item label="唯一标识" prop="macAddress" >
+          <el-input v-model="form.macAddress" >
+            <template #append>
+              <el-button 
+                type="primary" 
+                icon="Refresh" 
+                @click="handleFreshMacAddress" 
+                style="margin-right: -6px;"
+              />
+            </template>
+          </el-input>
         </el-form-item>
         <el-form-item label="收银机名称" prop="cajaName">
           <el-input v-model="form.cajaName" placeholder="请输入收银机名称" type="textarea" maxlength="30" show-word-limit :rows="1" />
@@ -143,11 +154,10 @@
 <script setup name="SalesCaja">
 import { listSalesCaja, getSalesCaja, delSalesCaja, addSalesCaja, updateSalesCaja, changeStatus } from "@/api/sales/salesCaja";
 import useUserStore from "@/store/modules/user";
-import { getFingerprint } from "@/utils/fingerprintJS";
+import { getDeviceFingerprint } from "@/utils/fingerprintJS";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
-const {deviceFingerprint} = getFingerprint();
 
 const { proxy } = getCurrentInstance();
 const { sys_tenant_status } = proxy.useDict('sys_tenant_status');
@@ -254,9 +264,22 @@ function handleSelectionChange(selection) {
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
-  form.value.macAddress = deviceFingerprint.value;  // 获取设备唯一标识
-  open.value = true;
-  title.value = "添加caja注册";
+  getDeviceFingerprint(true).then((fingerprint) => {
+    form.value.macAddress = fingerprint;
+    open.value = true;
+    title.value = "添加caja注册";
+  }).catch((e) => {
+    proxy.$modal.msgError("获取caja注册码失败: " + e.message);
+  });
+}
+
+/** 刷新mac地址 */
+const handleFreshMacAddress = () => {
+  getDeviceFingerprint(true).then((fingerprint) => {
+    form.value.macAddress = fingerprint;
+  }).catch((e) => {
+    proxy.$modal.msgError("获取caja注册码失败: " + e.message);
+  });
 }
 
 /** 修改按钮操作 */

@@ -307,13 +307,12 @@
 <script setup name="SalesShiftRecords">
 import { listSalesShiftRecords, getSalesShiftRecords, delSalesShiftRecords, addSalesShiftRecords, updateSalesShiftRecords } from "@/api/sales/SalesShiftRecords";
 import useUserStore from "@/store/modules/user";
-import { getFingerprint } from "@/utils/fingerprintJS";
+import { getDeviceFingerprint } from "@/utils/fingerprintJS";
 import { listSalesCaja } from "@/api/sales/salesCaja";
 import { listCashier } from "@/api/system/user";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
-const {deviceFingerprint} = getFingerprint();
 
 const { proxy } = getCurrentInstance();
 const { erp_sales_shift_status } = proxy.useDict('erp_sales_shift_status');

@@ -12,8 +12,8 @@
       </div>
       <!-- 解锁输入框和按钮 -->
       <div class="unlock-section">
-        <input v-model="unLockPassword" type="password" placeholder="请输入解锁密码" class="unlock-input" maxlength="6"
-          @keydown.enter="unlockScreen" />
+        <el-input v-model="unLockPassword" type="password" :show-password=true placeholder="请输入解锁密码" class="unlock-input"
+          maxlength="6" @keydown.enter="unlockScreen" />
         <button @click="unlockScreen" class="unlock-button">解锁</button>
         <button @click="handleForgotPassword" class="forgot-password-button">退出登录</button>
       </div>
@@ -194,20 +194,15 @@ const getCurrentLocalTime = () => {
     margin-top: 40px;
 
     .unlock-input {
-      width: 200px;
-      padding: 10px;
-      font-size: 16px;
-      color: white;
-      background: rgba(255, 255, 255, 0.1); /* 半透明背景 */
-      border: none;
-      border-radius: 5px;
-      outline: none;
-      text-align: center;
-
-      &::placeholder {
-        color: rgba(255, 255, 255, 0.5); /* 半透明占位符 */
+        width: 200px;
+        padding: 10px;
+        font-size: 16px;
+        background-color: rgba(0, 255, 255, 0.2); /* 半透明背景 */
+        border: none;
+        border-radius: 5px;
+        outline: none;
+        text-align: center;
       }
-    }
 
     .unlock-button {
       width: 200px;

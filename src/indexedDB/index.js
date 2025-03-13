@@ -17,7 +17,7 @@ class IndexedDBUtil {
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
-        console.log(`初始化数据库 '${dbObject.dbName}' 需要升级, 旧版本: ${event.oldVersion}, 新版本: ${event.newVersion}`);
+        //console.log(`初始化数据库 '${dbObject.dbName}' 需要升级, 旧版本: ${event.oldVersion}, 新版本: ${event.newVersion}`);
 
         dbObject.storeNameList.forEach(({ storeName, options, indexList }) => {
           if (!db.objectStoreNames.contains(storeName)) {
@@ -35,9 +35,9 @@ class IndexedDBUtil {
         const db = request.result;
         db.onversionchange = () => {
           db.close();
-          console.log('数据库连接已关闭，等待升级');
+          console.warn('数据库连接已关闭，等待升级');
         };
-        console.log('数据库打开成功:', dbObject.dbName);
+        //console.log('数据库打开成功:', dbObject.dbName);
         resolve(db);
       };
 
@@ -86,7 +86,6 @@ class IndexedDBUtil {
    * @returns {Promise<void>}
    */
   static async saveData(dbName, storeName, data) {
-    console.log("save存储的数据是：", data)
     return this.withTransaction(dbName, storeName, 'readwrite', (store) => store.put(data));
   }
 

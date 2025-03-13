@@ -1,5 +1,5 @@
 
-// 订单数据
+/** 订单数据 */
 export const initOrderData = () => ({
   orderId: null,
   orderInitNo: null,
@@ -39,6 +39,7 @@ export const initOrderData = () => ({
   salesOrderDetailList: []
 });
 
+/** 订单详情数据 */
 export const initOrderDetailData = () => ({
   detailId: null,
   detailType: null,
@@ -66,9 +67,18 @@ export const initOrderDetailData = () => ({
   remark: null,
 })
 
-export const StatusEnum = {
+/** 正常/禁用状态枚举 */
+export const CajaStatusEnum = {
   // 正常
   ENABLE: 0,
   // 禁用
   DISABLE: 1
+}
+
+/** 交班状态枚举 */
+export const ShiftStatusEnum = {
+  // 未交班
+  ACTIVE: 1,
+  // 已交班
+  DONE: 2
 }

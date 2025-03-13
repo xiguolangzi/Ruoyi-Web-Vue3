@@ -19,6 +19,16 @@ export function getSalesCaja(cajaId) {
   })
 }
 
+// 通过caja地址查询caja注册详细
+export function getSalesCajaByMacAddress(macAddress) {
+  const query = { macAddress };
+  return request({
+    url: '/sales/salesCaja/check',
+    method: 'get',
+    params: query
+  })
+}
+
 // 新增caja注册
 export function addSalesCaja(data) {
   return request({

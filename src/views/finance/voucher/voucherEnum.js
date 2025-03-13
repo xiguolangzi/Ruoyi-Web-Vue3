@@ -18,6 +18,8 @@ export const VoucherTypeEnum = {
   VOUCHER_TYPE_SALES: 8,
   // 费用凭证
   VOUCHER_TYPE_COST: 9,
+  // 交班凭证
+  VOUCHER_TYPE_SHIFT: 10,
 }
 
 /** 凭证状态 */

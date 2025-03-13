@@ -22,7 +22,6 @@ if (!dbObject) {
 const saveFingerprintToDB = async (fingerprint) => {
   try {
     await IndexedDBUtil.saveData(DB_NAME, STORE_NAME, { id: idStr, value: fingerprint })
-    console.log("设备指纹存储成功:", fingerprint);
     return true;
   } catch (error) {
     console.error("存储设备指纹失败:", error);
@@ -44,7 +43,6 @@ const getFingerprintFromDB = async () => {
 const deleteFingerprintFromDB = async () => {
   try {
     await IndexedDBUtil.removeData(DB_NAME, STORE_NAME, idStr);
-    console.log("设备指纹删除成功");
     return true;
   } catch (error) {
     console.error("删除设备指纹失败:", error);
@@ -57,13 +55,11 @@ const generateFingerprint = async () => {
   // 先检查 IndexedDB 里是否已有指纹
   const existingFingerprint = await getFingerprintFromDB();
   if (existingFingerprint) {
-    console.log("🔄 从 IndexedDB 获取设备指纹:", existingFingerprint);
     return existingFingerprint.value; // 确保返回的是 `visitorId`
   }
   // 生成新指纹
   const fp = await FingerprintJS.load();
   const result = await fp.get();
-  console.log("🆕 新生成设备指纹:", result.visitorId);
   // 存入 IndexedDB
   await saveFingerprintToDB(result.visitorId);
   return result.visitorId;

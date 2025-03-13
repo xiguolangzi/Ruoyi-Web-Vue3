@@ -164,7 +164,7 @@ import { listAccount, getAccount, delAccount, addAccount, updateAccount } from "
 import useUserStore from "@/store/modules/user";
 import { ElMessage } from "element-plus";
 import { ref } from "vue";
-import { IsLeafAccountEnum } from "./accountEnum.js"
+import { IsLeafAccountEnum, AccountStatusEnum, AccountTypeEnum} from "./accountEnum.js"
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -227,8 +227,8 @@ const data = reactive({
   queryParams: {
     accountCode: null,
     accountName: null,
-    accountType: '1',
-    status: '0',
+    accountType: AccountTypeEnum.ASSET,
+    status: AccountStatusEnum.NORMAL,
     tenantId: null
   },
   rules: {
@@ -326,9 +326,9 @@ function reset() {
     parentId: null,
     accountLevel: null,
     ancestors: null,
-    isLeaf: '0',
+    isLeaf: IsLeafAccountEnum.YES,
     orderNum: null,
-    status: '0',
+    status: AccountStatusEnum.NORMAL,
     createBy: null,
     createTime: null,
     updateBy: null,

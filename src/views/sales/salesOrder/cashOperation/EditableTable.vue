@@ -5,7 +5,7 @@
     border
     show-summary
     :summary-method="getSummaries"
-    :stripe="true"
+    :stripe="false"
     size="small"
     style="width: 100%; height: 100%;"
     @cell-click="handleCellClick"
@@ -13,7 +13,7 @@
     <el-table-column type="index" label="序号" align="center" width="55" />
     <el-table-column prop="skuCode" label="商品编码" align="center" min-width="150" show-overflow-tooltip>
       <template v-slot="scope">
-        <el-popover trigger="hover" placement="left">
+        <el-popover trigger="hover" placement="left" >
           <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
           <template #reference>
             <el-link type="primary" :underline="false">{{ scope.row.skuCode || '--' }}</el-link>
@@ -28,7 +28,7 @@
         </span>
       </template>
     </el-table-column>
-    <el-table-column prop="skuValue" align="center" label="规格属性" />
+    <el-table-column prop="skuValue" align="center" label="规格属性" show-overflow-tooltip/>
     <el-table-column prop="detailPrice" align="center" label="单价">
       <template #default="scope">
         <el-input
@@ -282,3 +282,11 @@ onMounted(() => {
 });
 
 </script>
+
+<style lang="scss" scoped>
+// :deep(.el-popover) {
+//   position: absolute;
+//   left: -50px !important;
+//   top: -10px !important;
+// }
+</style>

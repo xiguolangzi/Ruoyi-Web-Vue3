@@ -114,7 +114,7 @@
         <el-form-item label="时间格式" prop="dateType">
           <el-select v-model="form.dateType" placeholder="请选择时间格式" clearable disabled>
             <el-option v-for="dict in order_sequence_date_type" :key="dict.value" :label="dict.label"
-              :value="Number(dict.value)"></el-option>
+              :value="dict.value"></el-option>
           </el-select>
         </el-form-item>
         <div style="margin-bottom: 10px; margin-left: 40px;" v-if="form.sequenceRule !== RulesType.RANDOM">

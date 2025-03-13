@@ -464,7 +464,7 @@ let totalDebitAmount = 0;
 let totalCreditAmount = 0;
 
 // 禁止编辑的类型
-const disabledType = [ VoucherTypeEnum.VOUCHER_TYPE_PURCHASE, VoucherTypeEnum.VOUCHER_TYPE_FUND_FLOW, VoucherTypeEnum.VOUCHER_TYPE_SALES, VoucherTypeEnum.VOUCHER_TYPE_COST];
+const disabledType = [ VoucherTypeEnum.VOUCHER_TYPE_PURCHASE, VoucherTypeEnum.VOUCHER_TYPE_FUND_FLOW, VoucherTypeEnum.VOUCHER_TYPE_SALES, VoucherTypeEnum.VOUCHER_TYPE_COST, VoucherTypeEnum.VOUCHER_TYPE_SHIFT];
 // 禁止编辑的状态
 const isInDisabledTypes = computed(() => disabledType.includes(form.value.voucherType))
 

@@ -7,6 +7,9 @@
 
 /** 金额保持两位小数 */
 export function formatTwo(value) {
+  if (!value) {
+    return "0.00";
+  }
   // 首先检查是否为有效的有限数字
   if (!Number.isFinite(Number(value))) {
     return "0.00";

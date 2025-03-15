@@ -35,8 +35,8 @@
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailPrice')" :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
           v-model="scope.row.detailPrice" size="small" @blur="handleBlur(scope.row, 'detailPrice')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" 
-          style="width: 100%;"  type="number"/>
+          @change="updateAmount(scope.row)" @input="handleInput(scope.row, 'detailPrice', value)"
+          style="width: 100%;"  />
         <span v-else>{{ formatTwo(scope.row.detailPrice) + ' €' }}</span>
       </template>
     </el-table-column>
@@ -47,7 +47,8 @@
           v-model="scope.row.detailQuantity" size="small"
           @blur="handleBlur(scope.row, 'detailQuantity')" 
           @focus="handleFocus" @change="updateAmount(scope.row)"
-          style="width: 100%;" type="number"
+          @input="handleInput(scope.row, 'detailQuantity', value)" 
+          style="width: 100%;" 
         />
         <span v-else>{{ scope.row.detailQuantity || 0 }}</span>
       </template>
@@ -60,7 +61,8 @@
           size="small" @blur="handleBlur(scope.row, 'detailDiscountRate')" 
           @focus="handleFocus"
           @change="updateAmount(scope.row)" 
-          style="width: 100%;" type="number"
+          @input="handleInput(scope.row, 'detailDiscountRate', value)"
+          style="width: 100%;" 
           />
         <span v-else>{{ scope.row.detailDiscountRate || 0 }} %</span>
       </template>
@@ -111,6 +113,21 @@ const props = defineProps({
   },
 });
 
+// 处理输入事件
+const handleInput = (row, prop, event) => {
+  // 确保 value 不是 undefined
+  if (value === undefined || value === null) {
+    return;
+  }
+
+  // 使用正则表达式过滤非数字和小数点
+  const value = event.target.value.replace(/[^0-9.]/g, '');
+  // 确保小数点只能输入一次
+  const dotCount = (sanitizedValue.match(/\./g) || []).length;
+  if (dotCount > 1) {
+    row[prop] = sanitizedValue.replace(/\.+$/, ''); // 去掉多余的小数点
+  }
+};
 
 // 计算合计行
 const getSummaries = (param) => {

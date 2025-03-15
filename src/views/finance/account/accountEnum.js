@@ -12,6 +12,10 @@ export const AccountStatusEnum = {
   DISABLED: 1,
 }
 
+/**
+ * 会计科目类型：
+ * 1：资产， 2：负债， 3：权益， 4：收入， 5：支出
+ */
 export const AccountTypeEnum = {
   // 资产
   ASSET: 1,

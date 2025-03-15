@@ -62,15 +62,10 @@ watch(tenantList, (newVal) => {
 // 展示才获取租户列表，否则不会显示下拉框
 console.log("userStore.userType----", userStore.userType);
 // 只有系统用户才展示 ，暂时超级管理员才展示！！
-if (userStore.userType === "00" && userStore.id === '1') {
+if (userStore.userType == "00" && userStore.id == '1') {
     show.value = true;
+    console.log("管理员展示过滤器")
     fetchTenantList()
 }
 
-
-
 </script>
-
-<style lang="scss" scoped>
-
-</style>

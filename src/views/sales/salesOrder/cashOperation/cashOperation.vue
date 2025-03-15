@@ -378,6 +378,8 @@ const handlerDoShift = () => {
   if(shiftForm.value.shiftId){
     // 完成交班
     ElMessageBox.confirm('你确定结束交班吗?','WARNING:',{type:'warning',appendTo:cashierContainer.value}).then(() => {
+      // TODO: 交班之前不允许有未完成的订单/挂单
+
       // 核对 盘点金额 = 与本次交班现金余额
       if(shiftForm.value.totalCashCompute !== shiftForm.value.totalCashCompute){
         proxy.$modal.msgError('盘点金额与交班现金余额不一致，请重新盘点金额！');

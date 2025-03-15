@@ -381,9 +381,9 @@ function toggleExpandAll() {
 }
 
 /** 修改按钮操作 */
-async function handleUpdate(row) {
+const handleUpdate = (row) =>{
   reset();
-  await getTreeselect();
+  getTreeselect();
   if (row != null) {
     form.value.parentId = row.parentId;
     form.value.accountLevel = row.accountLevel;

@@ -1,12 +1,10 @@
 <template>
-  <el-image 
-    :src="realSrcList[realSrcList.length - 1]" 
-    fit="cover" 
-    :style="`width:${realWidth};height:${realHeight};`"
+  <el-image :src="realSrcList[realSrcList.length - 1]" fit="cover" :style="`width:${realWidth};height:${realHeight};`"
     :preview-src-list="realSrcList" 
-    preview-teleported 
+    hide-on-click-modal 
+    preview-teleported
     :initial-index="realSrcList.length - 1"
-  >
+    >
     <template #error>
       <div class="image-slot">
         <el-icon><picture-filled /></el-icon>
@@ -30,7 +28,7 @@ const props = defineProps({
   height: {
     type: [Number, String],
     default: ""
-  }
+  },
 });
 
 const realSrc = computed(() => {

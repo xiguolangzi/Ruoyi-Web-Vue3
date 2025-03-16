@@ -7,134 +7,15 @@
 
         <!-- 上部分：流水展示 -->
         <el-main class="main-data-container">
-          <EditableTable ref="editableTableRef" :tableData="form.salesOrderDetailList"
-            @handleClickChangeImage="changeCurrentSkuData" />
+          <EditableTable ref="editableTableRef" :tableData="form.salesOrderDetailList" />
         </el-main>
 
         <!-- 下部分：商品输入框和汇总信息 -->
-        <el-footer class="footer-data-container">
-          <el-card class="footer-card">
-            <el-row class="footer-row">
-              <!-- 第一个区域：商品搜索和图片展示 -->
-              <el-col class="footer-col" :style="{ width: '220px', flex: 'none' }">
-                <div class="footer-col-content">
-                  <SkuSelect ref="skuSelectRef" @selectedData="selectedSkuData" />
-                  <div class="sku-image-container">
-                    <ImageNormal v-if="currentSku" :src="currentSku.skuImage" />
-                    <el-empty v-else :image-size="80" style="padding: 0px;margin: 0px;" />
-                  </div>
-                </div>
-              </el-col>
-
-              <!-- 第二个区域：订单统计数据 -->
-              <el-col class="footer-col" style="flex: 1;">
-                <div class="footer-col-content">
-                  <!-- 订单状态+订单号 -->
-                  <div class="section-title">
-                    <span> {{ form.orderDirection == OrderDirectionEnum.SALES ? "销售订单：" : "退货订单: " }} </span>
-                    <span>{{ form.orderNo }}</span>
-                  </div>
-                  <el-descriptions :column="1" border size="small">
-                    <el-descriptions-item label="总金额">
-                      <span class="highlight-text">{{ formatTwo(totalAmount) }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="总数量">
-                      <span class="highlight-text">{{ totalQuantity }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="总折扣">
-                      <span class="highlight-text">{{ formatTwo(totalDiscount) }}</span>
-                    </el-descriptions-item>
-                  </el-descriptions>
-                </div>
-              </el-col>
-
-              <!-- 第三个区域：订单配置数据 -->
-              <el-col class="footer-col" style="flex: 1;">
-                <div class="footer-col-content">
-                  <div class="section-title">订单配置:</div>
-                  <el-form-item label="客户">
-                    <el-input v-model="orderConfig.customer" placeholder="请输入客户" />
-                  </el-form-item>
-                  <el-form-item label="业务员">
-                    <el-input v-model="orderConfig.salesman" placeholder="请输入业务员" />
-                  </el-form-item>
-                  <el-row>
-                    <el-col :span="12">
-                      <el-form-item>
-                        <template #label>
-                          {{ orderInTax == OrderInTaxEnum.TAX ? "含税" : "不含税" }}
-                        </template>
-                        <el-switch v-model="orderInTax" :active-value="OrderInTaxEnum.TAX"
-                          :inactive-value="OrderInTaxEnum.NO_TAX"
-                          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" />
-                      </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                      <el-badge :value="200" :max="99">
-                        <el-button>挂单数量需要存放在缓存中，有效时间1天</el-button>
-                      </el-badge>
-                    </el-col>
-                  </el-row>
-                  <el-row>
-                    <el-col :span="12">
-                      <el-form-item>
-                        <template #label>
-                          {{ orderInTax == OrderInTaxEnum.TAX ? "含税" : "不含税" }}
-                        </template>
-                        <el-switch v-model="orderInTax" :active-value="OrderInTaxEnum.TAX"
-                          :inactive-value="OrderInTaxEnum.NO_TAX"
-                          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" />
-                      </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                      <el-badge :value="200" :max="99">
-                        <el-button>挂单数量需要存放在缓存中，有效时间1天</el-button>
-                      </el-badge>
-                    </el-col>
-                  </el-row>
-                  <el-row>
-                    <el-col :span="12">
-                      <el-form-item>
-                        <template #label>
-                          {{ orderInTax == OrderInTaxEnum.TAX ? "含税" : "不含税" }}
-                        </template>
-                        <el-switch v-model="orderInTax" :active-value="OrderInTaxEnum.TAX"
-                          :inactive-value="OrderInTaxEnum.NO_TAX"
-                          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" />
-                      </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                      <el-badge :value="200" :max="99">
-                        <el-button>挂单数量需要存放在缓存中，有效时间1天</el-button>
-                      </el-badge>
-                    </el-col>
-                  </el-row>
-                  <el-row>
-                    <el-col :span="12">
-                      <el-form-item>
-                        <template #label>
-                          {{ orderInTax == OrderInTaxEnum.TAX ? "含税" : "不含税" }}
-                        </template>
-                        <el-switch v-model="orderInTax" :active-value="OrderInTaxEnum.TAX"
-                          :inactive-value="OrderInTaxEnum.NO_TAX"
-                          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" />
-                      </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                      <el-badge :value="200" :max="99">
-                        <el-button>挂单数量需要存放在缓存中，有效时间1天</el-button>
-                      </el-badge>
-                    </el-col>
-                  </el-row>
-
-
-
-                </div>
-              </el-col>
-            </el-row>
-          </el-card>
+        <el-footer class="footer-data-container" height="200px">
+          <div class="input-summary-container">
+            <SkuSelect ref="skuSelectRef" @selectedData="selectedSkuData" />
+          </div>
         </el-footer>
-
       </el-container>
 
       <!-- 右侧区域 -->
@@ -142,39 +23,32 @@
         <el-tabs type="border-card" class="full-height-tabs">
           <el-tab-pane label="工具">
             <div class="tool-keyboard">
-              <TouchKeyboard ref="keyboardRef" v-if="cajaShowKeyboard == 0" />
+              <TouchKeyboard ref="keyboardRef" />
             </div>
-            <el-divider v-if="cajaShowKeyboard == 0" />
+            <el-divider />
             <div class="tool-button">
               <el-button v-for="(action, index) in actions" :key="index" size="small" type="primary" plain
                 class="action-button" @click="handleAction(action)">
-                <span class="button-content">
-                  <span class="label">{{ action.label }}</span>
-                  <span class="key-down">{{ action.keyDown }}</span>
-                </span>
+                {{ action.label }}
               </el-button>
             </div>
           </el-tab-pane>
           <el-tab-pane label="订单设置">
             <div>
               <div class="left-row">
+                <div>
+                  <el-switch v-model="form.orderType" size="small"
+                    style="--el-switch-on-color: #13ce66;--el-switch-off-color: #ff4949;" :active-value='0'
+                    :inactive-value='1' />
+                  {{ form.orderType == 0 ? "销售订单" : "退货订单" }}
+                </div>
                 <el-divider content-position="left"> <span>订单绑定业务员</span> </el-divider>
                 <el-form-item label="业务员:" prop="salesmanId">
                   <SalesmanSelect v-model="form.salesmanId" @selectedData="selectedSalesmanData" />
                 </el-form-item>
-                <el-divider content-position="left"> <span>客户信息</span> </el-divider>
-                <el-form-item label="客户信息:" prop="customerId">
+                <el-form-item label="客户:" prop="customerId">
                   <CustomerSelect v-model="form.customerId" @selectedData="selectedCustomerData" />
                 </el-form-item>
-                <el-divider content-position="left"> <span>仓库信息</span> </el-divider>
-                <el-form-item label="仓库信息:" prop="customerId">
-                  <WarehouseSelect v-model="form.warehouseId" @selectedData="selectedWarehouseData" />
-                </el-form-item>
-                <el-divider content-position="left"> <span>业务活动</span> </el-divider>
-                <el-form-item label="业务活动:" prop="customerId">
-                  <SalesActivitySelect v-model="form.activityId" @selectedData="selectedSalesActivityData" />
-                </el-form-item>
-                <el-divider content-position="left"> <span>挂单列表</span> </el-divider>
               </div>
             </div>
           </el-tab-pane>
@@ -186,6 +60,8 @@
           </el-tab-pane>
         </el-tabs>
       </el-aside>
+
+
 
     </el-container>
 
@@ -409,13 +285,12 @@
 </template>
 
 <script setup name="cashOperation">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import TouchKeyboard from '@/components/TouchKeyboard/index.vue';
-import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderInTaxEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum } from './cashOperationEnum.js';
+import {initOrderData, initOrderDetailData, CajaStatusEnum, ShiftStatusEnum} from './cashOperationEnum.js';
 import CustomerSelect from '@/components/Common/CustomerSelect.vue';
 import SalesmanSelect from '@/components/Common/SalesmanSelect.vue';
 import SalesActivitySelect from '@/components/Common/SalesActivitySelect.vue';
-import WarehouseSelect from '@/components/Common/WarehouseSelect.vue';
 import SkuSelect from '@/components/Common/SkuSelect.vue';
 import EditableTable from './EditableTable.vue';
 import {playKeyHappySound} from '@/utils/playKeySound.js';
@@ -426,148 +301,13 @@ import { getShiftRecordsIsActive, getLastShiftRecords, addSalesShiftRecords, con
 import useUserStore from "@/store/modules/user";
 import {UserTypeEnum} from "@/views/system/tenant/tenantConstants.js";
 import { size } from 'lodash';
-import ImageNormal from '@/components/ImageNormal/index.vue';
-import { Picture as IconPicture } from '@element-plus/icons-vue'
-import { addSalesOrder, updateSalesOrder } from "@/api/sales/salesOrder";
+
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
-
-
 // 获取当前用户信息
 const userStore = useUserStore();
 
-
-// -------------- 7 订单数据处理 start --------------------
-const data = reactive({
-  form: {
-    salesOrderDetailList: [], // 初始化为空数组
-  },
-  rules: {
-    tenantId: [
-      { required: true, message: "租户id不能为空", trigger: "blur" }
-    ],
-  }
-});
-
-const { form, rules } = toRefs(data);
-
-// 表单重置
-function reset() {
-  form.value = {
-    orderId: null,
-    orderDirection: OrderDirectionEnum.SALES,
-    orderInitNo: null,
-    orderNo: null,
-    parentOrderId: null,
-    orderSource: orderSourceEnum.CAJA,
-    orderInTax: null,
-    warehouseId: null,
-    cajaId: null,
-    shiftId: null,
-    salesmanId: null,
-    customerId: null,
-    activityId: null,
-    orderType: OrderTypeEnum.PRE_ORDER,
-    orderStatus: OrderStatusEnum.INIT,
-    orderIsHold: OrderIsHoldEnum.NORMAL,
-    orderPayStatus: OrderPayStatusEnum.SETTLE,
-    totalAmount: null,
-    totalDiscountAmount: null,
-    totalPromotionReduceAmount: null,
-    totalSalesAmount: null,
-    totalBaseAmount: null,
-    totalTaxAmount: null,
-    totalNetAmount: null,
-    cashAmount: null,
-    bankAmount: null,
-    changeAmount: null,
-    zeroAmount: null,
-    remainAmount: null,
-    verifiedAmount: null,
-    totalGiftQuantity: null,
-    remark: null,
-    createBy: null,
-    createTime: null,
-    updateBy: null,
-    updateTime: null,
-    tenantId: null,
-    delFlag: null,
-    operateLog: null,
-    salesOrderDetailList: []
-  };
-  proxy.resetForm("salesOrderRef");
-  
-}
-
-onMounted(() => {
-  reset();
-});
-
-
-/** 提交按钮 */
-function submitForm() {
-  proxy.$refs["salesOrderRef"].validate(valid => {
-    if (valid) {
-      form.value.salesOrderDetailList = salesOrderDetailList.value;
-      if (form.value.orderId != null) {
-        updateSalesOrder(form.value).then(response => {
-          proxy.$modal.msgSuccess("修改成功");
-          open.value = false;
-          getList();
-        });
-      } else {
-        addSalesOrder(form.value).then(response => {
-          proxy.$modal.msgSuccess("新增成功");
-          open.value = false;
-          getList();
-        });
-      }
-    }
-  });
-}
-
-
-// --------------- 7 订单数据处理 end --------------------
-
-// **************** 获取配置 start *******************
-/** 获取是否含税配置 */
-const orderInTax = ref(OrderInTaxEnum.TAX);
-const getConfigOrderInTax = async () => {
-  const config = await proxy.getTenantConfig("orderInTax");
-  orderInTax.value = config.configValue;
-}
-getConfigOrderInTax()
-
-/** 是否展示触摸键盘配置 */
-const cajaShowKeyboard = ref(0)
-const getCajaShowKeyboard = async () => {
-  const config = await proxy.getTenantConfig("cajaShowKeyboard");
-  cajaShowKeyboard.value = config.configValue || 0;
-}
-getCajaShowKeyboard()
-
-// **************** 获取配置 end *******************
-
-// -------------- 6 底部区域设计 start ---------------------
-const orderConfig = ref({
-  customer: '', // 客户
-  salesman: '', // 业务员
-  isTaxIncluded: false, // 是否含税
-});
-
-// 模拟订单汇总数据
-const totalAmount = ref(999.99);
-const totalQuantity = ref(10);
-const totalDiscount = ref(50.0);
-
-
-
-
-
-
-
-// -------------- 6 底部区域设计 end ---------------------
 
 // -------------- 5 交班业务 start  ---------------------
 
@@ -901,20 +641,16 @@ const toggleFullScreen = () => {
 
 // ------------------ 2 侧边栏按钮区域 start  -------------------
 const actions = [
-  { label: "全屏", action: "toggleFullScreen", keyDown:"F1" },
-  { label: "交班", action: "shift", keyDown: "F2" },
-  { label: "挂单", action: "holdOrder", keyDown: "F3" },
-  { label: "取单", action: "holdOrder", keyDown: "F4" },
-  { label: "收款", action: "pay", keyDown: "F5" },
-  { label: "钱箱", action: "openCashDrawer", keyDown: "F6" },
-  { label: "重打", action: "reprint", keyDown: "F7" },
-  { label: "无价打印", action: "reprint", keyDown: "F8" },
-  { label: "赠品", action: "reprint", keyDown: "F9" },
-  { label: "通用商品", action: "reprint", keyDown: "F10" },
-  { label: "整单折扣", action: "reprint", keyDown: "F11" },
-  { label: "折上折", action: "reprint", keyDown: "F12" },
-  { label: "拆单", action: "splitOrder", keyDown: "Ctrl + O" },
-  { label: "退货", action: "reprint", keyDown: "Ctrl + Alt" }
+  { label: "全屏", action: "toggleFullScreen" },
+  { label: "交班", action: "shift" },
+  { label: "挂单", action: "holdOrder" },
+  { label: "拆单", action: "splitOrder" },
+  { label: "支付", action: "pay" },
+  { label: "钱箱", action: "openCashDrawer" },
+  { label: "重打", action: "reprint" },
+  { label: "赠品", action: "reprint" },
+  { label: "通用商品", action: "reprint" },
+  { label: "整单折扣", action: "reprint" },
 ];
 
 const handleAction = (action) => {
@@ -943,9 +679,8 @@ const handleAction = (action) => {
       console.log("拆单");
       break;
     case "pay":
-      console.log("支付"); orderInTax
+      console.log("支付");
       console.log("表单form的数据：*****", form.value)
-      console.log("配置orderInTax：*****", orderInTax.value)
       break;
   }
 };
@@ -953,7 +688,7 @@ const handleAction = (action) => {
 
 // ----------------- 2 侧边栏按钮区域 end  -------------------
 
-// ---------------- 1 键盘 + 表格 + 商品查询 组件处理 start -----------------
+// ***************** 1 键盘 + 表格 + 商品查询 组件处理 start *****************
 
 // 组件加载完成后自动聚焦到商品输入框
 onMounted(() => {
@@ -982,18 +717,23 @@ const handleFocus = (event) => {
 
 const keyboardRef = ref(null);  // 键盘组件实例
 const skuSelectRef = ref(null); // skuSelect组件实例
-const editableTableRef = ref(null); // 表格组件实例
 const currentCustomer = ref(null)
 const currentSalesman = ref(null)
 const currentSalesActivity = ref(null)
 const currentSku = ref(null)
-const currentWarehouse = ref(null);
 
-const changeCurrentSkuData = (data) => {
-  currentSku.value = data || null;
-}
+const data = reactive({
+  form: {
+    salesOrderDetailList: [], // 初始化为空数组
+  },
+  rules: {
+    tenantId: [
+      { required: true, message: "租户id不能为空", trigger: "blur" }
+    ],
+  }
+});
 
-
+const { form, rules } = toRefs(data);
 
 /** 获取选中的客户数据 */
 const selectedCustomerData = (data) => {
@@ -1023,13 +763,15 @@ const selectedSkuData = (data) => {
 
 }
 
-/** 获取选中的仓库 */
-const selectedWarehouseData = (data) => {
-  console.log('收银台获取的仓库数据:', data)
-  currentWarehouse.value = data || null;
+// 表单重置
+function reset() {
+  form.value = initOrderData();
+  proxy.resetForm("salesOrderRef");
 }
 
-
+onMounted(() => {
+  reset();
+});
 
 /** 销售订单明细添加按钮操作 */
 function handleAddSalesOrderDetail(sku) {
@@ -1059,102 +801,6 @@ function handleAddSalesOrderDetail(sku) {
 }
 
 // ***************** 1 键盘 + 表格 + 商品查询 组件处理 end *****************
-
-// ----------------- 0 快捷键 start -----------------
-// 1 监听快捷键
-onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
-});
-// 2 释放快捷键监听
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
-});
-
-/** 3 快捷键实现 */
-const handleKeyDown = (event) => {
-  // 捕获 F1 到 F12
-  if (event.key.startsWith('F') && event.key.length > 1) {
-    const keyNumber = parseInt(event.key.slice(1), 10); // 提取 F 后面的数字
-    if (keyNumber >= 1 && keyNumber <= 12) {
-      event.preventDefault();
-      console.log(`F${keyNumber} 被按下`);
-      // 根据 F 键执行不同的逻辑
-      switch (keyNumber) {
-        case 1:
-          // 播放按键音效
-          playKeyHappySound();
-          focusLastRowQuantity();
-          break;
-        case 2:
-          // 播放按键音效
-          playKeyHappySound();
-          focusSkuInput();
-          break;
-        case 3:
-          // 播放按键音效
-          playKeyHappySound();
-          toggleFullScreen();
-          break;
-        case 4:
-          // 播放按键音效
-          playKeyHappySound();
-          handleShift();
-          break;
-        default:
-          console.log(`F${keyNumber} 被按下`);
-          break;
-      }
-    }
-  }
-
-  // 捕获组合键 Ctrl + T
-  if (event.ctrlKey && event.key === 'o') {
-    event.preventDefault();
-    // 播放按键音效
-    playKeyHappySound();
-    console.log("Ctrl + O 被按下");
-    // 执行 Ctrl + O 的逻辑
-  }
-
-  // 捕获组合键 Ctrl + Alt
-  if (event.ctrlKey && event.altKey) {
-    event.preventDefault();
-    // 播放按键音效
-    playKeyHappySound();
-    console.log("Ctrl + Alt 被按下");
-    // 执行 Ctrl + Alt 的逻辑
-  }
-};
-
-/** 键盘组件聚焦到最后一行的数量单元格 */
-const focusLastRowQuantity = () => {
-  if (editableTableRef.value) {
-    editableTableRef.value.focusLastRowQuantity();
-  }
-};
-
-/** 聚焦到商品查询输入框 */
-const focusSkuInput = () => {
-  if (skuSelectRef.value) {
-    skuSelectRef.value.focus();
-  }
-};
-
-/** 交班 */
-const handleShift = () => {
-  getSalesShiftRecords(shiftForm.value.shiftId).then((response) => {
-    if (response.data.isActive) {
-      // 更新交班记录
-      shiftForm.value = response.data;
-    }
-  });
-  // 弹出交班对话框
-  handlerOpenDialog()
-}
-
-
-
-// ----------------- 0 快捷键 end -----------------
 
 </script>
 
@@ -1205,71 +851,14 @@ const handleShift = () => {
         width: 100%;
         padding: 0px;
         margin: 0px;
-        background-color: #f5f7fa;  /* 浅灰色背景 */
-        overflow-y: auto; /* 允许滚动 */
-        
-        .footer-card {
-          min-height: 100%;
-          width: 100%;
+        background-color: #e0e0e0; /* 下部分背景色 */
+
+        .input-summary-container {
+          height: 100%;
+          background-color: white;
+          padding: 20px;
           border-radius: 8px;
-          /* 圆角 */
-          box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
-          /* 阴影 */
-          padding: 0px;
-          margin: 0px;
-      
-          .footer-row {
-            height: 100%;
-            margin: 0 !important;
-            /* 移除默认的外边距 */
-          }
-      
-          .footer-col {
-            height: 100%;
-            display: flex;
-            align-items: center;
-            border-right: 0.5px solid #ebeef5; /* 更细、更浅的分割线 */
-            padding-right: 10px; /* 分割线与内容的间距 */
-            margin-right: 10px; /* 区域之间的间距 */
-
-            &:last-child {
-              border-right: none; /* 去除最后一个区域的分割线 */
-              padding-right: 0;
-              margin-right: 0;
-            }
-      
-            .footer-col-content {
-              height: 80%;
-              width: 80%;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              padding: 0px; /* 内边距 */
-              margin: 0px;
-
-              .section-title {
-                font-size: 16px;
-                font-weight: bold;
-                margin-bottom: 10px;
-                color: #303133;
-                /* 标题颜色 */
-              }
-      
-              .sku-image-container {
-                flex: 1;
-                padding: 10px;
-                margin: 0px;
-                //text-align: center;
-              }
-      
-              .highlight-text {
-                color: #409eff;
-                /* 高亮文本颜色 */
-                font-weight: bold;
-              }
-            }
-      
-          }
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
       }
     }
@@ -1327,22 +916,6 @@ const handleShift = () => {
               transform: translateY(0); /* 恢复原位 */
             }
           }
-
-          .button-content {
-            display: flex;
-            justify-content: space-between; /* 让内容分居两侧 */
-            align-items: center;
-            width: 100%;
-            .label {
-              text-align: left; /* label 左对齐 */
-            }
-            .key-down {
-              color: hsl(128, 90%, 49%);
-              margin-left: 25px;
-              font-size: 12px;
-            }
-          } 
-
         }
 
         /* 设置 Tab 内容区域的高度 */
@@ -1387,8 +960,6 @@ const handleShift = () => {
 :deep(.input-content) {
   background: var(--el-color-success-light-9);
 }
-
-
 
 
 

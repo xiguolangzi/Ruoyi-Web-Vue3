@@ -92,7 +92,7 @@ const fetchCustomers = async (query = "") => {
     // 格式化数据
     dataList.value = response.rows.map(item => ({
       value: item.skuId,
-      label: `${item.skuCode} - ${item.skuName}`,
+      label: `${item.skuCode} - ${item.skuName}  ${JSON.parse(item.skuValue)  == "default" ? "" : '- ' + item.skuValue}`,
       disabled: item.skuStatus != StatusEnum.ENABLE,
       data: item // 保留完整数据
     }));

@@ -4,8 +4,12 @@
     <el-table-column type="index" label="序号" align="center" width="55" />
     <el-table-column prop="skuCode" label="商品编码" align="center" min-width="120" show-overflow-tooltip>
       <template v-slot="scope">
-        <el-link type="primary" :underline="false" @click="handleClickChangeImage(scope.row)">{{ scope.row.skuCode ||
-          '--' }}</el-link>
+        <el-popover trigger="hover" placement="left">
+          <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
+          <template #reference>
+            <el-link type="primary" :underline="false">{{ scope.row.skuCode || '--' }}</el-link>
+          </template>
+        </el-popover>
       </template>
     </el-table-column>
     <el-table-column prop="skuName" label="商品名称" align="center" min-width="120" show-overflow-tooltip>
@@ -18,14 +22,12 @@
     </el-table-column>
     <el-table-column prop="skuValue" align="center" label="规格属性" show-overflow-tooltip>
       <template #default="scope">
-        <div style="display: flex;">
-          <div v-if="getSkuValue(scope.row.skuValue) === 'default'">
-            -- <!-- 直接显示默认 SKU -->
-          </div>
-          <div v-else v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
-            <strong>{{ item[0] }}:</strong>
-            <span>{{ item[1] }} ,&nbsp; </span>
-          </div>
+        <div v-if="getSkuValue(scope.row.skuValue) === 'default'">
+          -- <!-- 直接显示默认 SKU -->
+        </div>
+        <div v-else v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
+          <strong>{{ item[0] }}:</strong>
+          <span>{{ item[1] }}</span>
         </div>
       </template>
     </el-table-column>
@@ -33,25 +35,33 @@
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailPrice')" :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
           v-model="scope.row.detailPrice" size="small" @blur="handleBlur(scope.row, 'detailPrice')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="number" />
+          @change="updateAmount(scope.row)" 
+          style="width: 100%;"  type="number"/>
         <span v-else>{{ formatTwo(scope.row.detailPrice) + ' €' }}</span>
       </template>
     </el-table-column>
     <el-table-column prop="detailQuantity" align="center" label="数量">
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailQuantity')"
-          :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" v-model="scope.row.detailQuantity" size="small"
-          @blur="handleBlur(scope.row, 'detailQuantity')" @focus="handleFocus" @change="updateAmount(scope.row)"
-          style="width: 100%;" type="number" />
+          :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" 
+          v-model="scope.row.detailQuantity" size="small"
+          @blur="handleBlur(scope.row, 'detailQuantity')" 
+          @focus="handleFocus" @change="updateAmount(scope.row)"
+          style="width: 100%;" type="number"
+        />
         <span v-else>{{ scope.row.detailQuantity || 0 }}</span>
       </template>
     </el-table-column>
     <el-table-column prop="detailDiscountRate" align="center" label="折扣">
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailDiscountRate')"
-          :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" v-model="scope.row.detailDiscountRate"
-          size="small" @blur="handleBlur(scope.row, 'detailDiscountRate')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="number" />
+          :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" 
+          v-model="scope.row.detailDiscountRate"
+          size="small" @blur="handleBlur(scope.row, 'detailDiscountRate')" 
+          @focus="handleFocus"
+          @change="updateAmount(scope.row)" 
+          style="width: 100%;" type="number"
+          />
         <span v-else>{{ scope.row.detailDiscountRate || 0 }} %</span>
       </template>
     </el-table-column>
@@ -62,9 +72,12 @@
     </el-table-column>
     <el-table-column prop="detailSn" align="center" label="机器码" show-overflow-tooltip>
       <template #default="scope">
-        <el-input v-if="isEditing(scope.row, 'detailSn')" :ref="(el) => setInputRef(el, scope.row, 'detailSn')"
-          v-model="scope.row.detailSn" size="small" @blur="handleBlur(scope.row, 'detailSn')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="text" :maxlength="20" />
+        <el-input v-if="isEditing(scope.row, 'detailSn')" 
+          :ref="(el) => setInputRef(el, scope.row, 'detailSn')"
+          v-model="scope.row.detailSn" size="small" 
+          @blur="handleBlur(scope.row, 'detailSn')" @focus="handleFocus"
+          @change="updateAmount(scope.row)" 
+          style="width: 100%;"  type="text" :maxlength="20"/>
         <span v-else>{{ scope.row.detailSn }}</span>
       </template>
     </el-table-column>
@@ -98,15 +111,6 @@ const props = defineProps({
   },
 });
 
-
-const emit = defineEmits(['handleClickChangeImage']);
-
-/**
- * 点击更新展示图片
- */
-const handleClickChangeImage = (row) => {
-  emit('handleClickChangeImage', row);
-};
 
 // 计算合计行
 const getSummaries = (param) => {
@@ -264,20 +268,6 @@ watch(() => props.tableData.length, () => {
 // 组件加载完成时滚动到底部
 onMounted(() => {
   scrollToBottom();
-});
-
-// 暴露方法 - 聚焦到最后一行的输入框
-const focusLastRowQuantity = () => {
-  if (props.tableData.length > 0) {
-    const lastRow = props.tableData[props.tableData.length - 1];
-    if (lastRow) {
-      handleCellClick(lastRow, { property: 'detailQuantity' });
-    }
-  }
-}
-
-defineExpose({
-  focusLastRowQuantity,
 });
 
 </script>

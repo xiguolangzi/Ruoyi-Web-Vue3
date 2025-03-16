@@ -1,10 +1,10 @@
 <template>
-  <div class="product_edit">
+  <div class="app-container">
     <h3 style="margin-left: 20px">{{ title }}</h3>
-    <el-tabs v-model="activeName" type="border-card" class="demo-tabs" style="margin: 0 20px"
+    <el-tabs class="tab-container" v-model="activeName" type="border-card" style="margin: 0 20px"
       :before-leave="beforeLeave">
       <!------------------------------------------   基础信息部分   -------------------------------------------->
-      <el-tab-pane label="商品基础信息" name="first">
+      <el-tab-pane class="pane-container" label="商品基础信息" name="first">
         <el-form ref="productRef" :model="form" :rules="rules" label-width="80px">
           <el-card shadow="hover">
             <template #header>
@@ -245,7 +245,7 @@
         </div>
       </el-tab-pane>
       <!--------------------------------------------   SKU 部分  ---------------------------------------------->
-      <el-tab-pane label="SKU规格信息" name="second">
+      <el-tab-pane class="pane-container" label="SKU规格信息" name="second">
         <div class="product-spec-editor">
           <!---------------- 配置规格部分 ------------>
           <el-card>
@@ -274,8 +274,8 @@
                   <template #default="scope">
                     <div class="spec-values">
                       <el-input v-for="(value, index) in scope.row.values" :key="index"
-                        v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)" type="textarea" :maxlength="10" show-word-limit :rows="1"
-                        style="width: auto;">
+                        v-model="scope.row.values[index]" placeholder="请输入规格的值" :disabled="exist(scope.row, index)"
+                        type="textarea" :maxlength="10" show-word-limit :rows="1" style="width: auto;">
                         <!----scope.$index 当前行数； index 在scope.row.values中的索引 可以用过 v-if="!exist(scope.row,index)" 控制删除初始化的规格值 -->
                         <template #append v-if="!exist(scope.row, index)">
                           <el-button @click="removeSpecValue(scope.$index, index)" icon="Minus"></el-button>
@@ -325,7 +325,8 @@
 
                 <el-table-column label="规格编码" prop="skuCode" align="center" :min-width="150">
                   <template #default="scope">
-                    <el-input v-model="scope.row.skuCode" style="width: 100%;" type="textarea" :maxlength="20" show-word-limit :rows="1" />
+                    <el-input v-model="scope.row.skuCode" style="width: 100%;" type="textarea" :maxlength="20"
+                      show-word-limit :rows="1" />
                   </template>
                 </el-table-column>
 
@@ -1067,6 +1068,31 @@ getInfoById(); // 获取修改传递的ID 然后继续进行初始化数据
 </script>
   
 <style scoped lang="scss">
+.app-container{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* 允许滚动 */
+
+  .tab-container{
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    display: flex;
+    overflow-y: auto; /* 允许滚动 */
+
+    .pane-container{
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+  } 
+}
+
+
 .spec-selection,
 .spec-combinations {
   margin-bottom: 20px;

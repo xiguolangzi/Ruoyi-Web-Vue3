@@ -15,6 +15,7 @@ export const ActionTextMap = {
   openLocation: "启用",
   orderInTax: "含税",
   openBatchNo: "启用",
+  cajaShowKeyboard: "展示",
   default: "启用",
 };
 
@@ -25,6 +26,7 @@ export const InactionTextMap = {
   openLocation: "禁用",
   orderInTax: "不含税",
   openBatchNo: "禁用",
+  cajaShowKeyboard: "隐藏",
   default: "禁用",
 };
 

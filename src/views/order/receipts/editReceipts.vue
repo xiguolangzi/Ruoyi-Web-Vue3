@@ -1,7 +1,7 @@
 <!-- PurchaseOrderDetail.vue -->
 <template>
-  <div class="purchase-order-detail">
-    <el-card class="purchase-order">
+  <div class="app-container">
+    <el-card class="card-data">
       <template #header>
         <div class="header-content">
           <div class="title">
@@ -192,7 +192,7 @@
     </el-card>
 
     <!-- 订单操作记录 -->
-    <el-card class="operation-card">
+    <el-card class="card-operate-log">
       <template #header>
         <div class="card-header">
           <span>订单操作记录</span>
@@ -2131,8 +2131,33 @@ getSuppliers()
 </script>
 
 <style scoped lang="scss">
-.purchase-order {
-  margin: 0px 10px 0px 10px;
+.app-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  /* 允许滚动 */
+  padding: 0px;
+  margin: 0px;
+
+  .card-data {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    
+    overflow-y: auto;
+    /* 允许滚动 */
+  }
+
+  .card-operate-log {
+    width: 100%;
+    height: 150px !important;
+    flex-shrink: 0;
+    overflow-y: auto;
+    /* 允许滚动 */
+
+  }
 }
 
 /* 头部样式 */

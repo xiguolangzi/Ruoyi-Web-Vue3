@@ -9,6 +9,17 @@ export function listTenantConfig(query) {
   })
 }
 
+/**
+ * 根据配置编码获取租户配置
+ */
+export function getTenantConfigByConfigCode(query) {
+  return request({
+    url: '/config/tenantConfig/configCode',
+    method: 'get',
+    params: query
+  })
+}
+
 // 查询租户配置详细
 export function getTenantConfig(configId) {
   return request({

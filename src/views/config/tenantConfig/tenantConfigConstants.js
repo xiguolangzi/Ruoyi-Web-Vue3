@@ -9,6 +9,26 @@ export const ShowTypeDict = [
 ];
 
 /**
+ * 开关启用时显示的字段
+ */
+export const ActionTextMap = {
+  openLocation: "启用",
+  orderInTax: "含税",
+  openBatchNo: "启用",
+  default: "启用",
+};
+
+/**
+ * 开关关闭时显示的字段
+ */
+export const InactionTextMap = {
+  openLocation: "禁用",
+  orderInTax: "不含税",
+  openBatchNo: "禁用",
+  default: "禁用",
+};
+
+/**
  * 状态配置
  * 1-启用 2-禁用
  */

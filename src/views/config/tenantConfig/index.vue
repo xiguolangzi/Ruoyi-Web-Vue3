@@ -37,7 +37,7 @@
       <el-table-column label="配置的值" align="center" prop="configValue">
         <template #default="scope">
           <el-switch v-model="scope.row.configValue" :active-value="StatusEnum.ENABLE"
-            :inactive-value="StatusEnum.DISABLE" inline-prompt active-text="启用" inactive-text="禁用"
+            :inactive-value="StatusEnum.DISABLE" inline-prompt :active-text="actionText(scope.row)" :inactive-text="inactionText(scope.row)"
             style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
             @change="handleChangeStatus(scope.row)" v-if="scope.row.showType == ShowTypeEnum.SWITCH" />
           <el-input v-model="scope.row.configValue" @change="handleChangeStatus(scope.row)"
@@ -110,7 +110,7 @@
 <script setup name="TenantConfig">
 import { listTenantConfig, getTenantConfig, delTenantConfig, addTenantConfig, updateTenantConfig, updateConfigValue } from "@/api/config/tenantConfig";
 import useUserStore from "@/store/modules/user";
-import {ShowTypeDict, ShowTypeEnum, StatusEnum } from "./tenantConfigConstants.js";
+import { ShowTypeDict, ShowTypeEnum, StatusEnum, ActionTextMap, InactionTextMap } from "./tenantConfigConstants.js";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -126,6 +126,20 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+// -------------------------------- 1 开关名称 start ---------------------------
+
+
+const actionText = (row) => {
+  return ActionTextMap[row.configCode] || ActionTextMap.default;
+};
+
+const inactionText = (row) => {
+  return InactionTextMap[row.configCode] || InactionTextMap.default;
+};
+
+// -------------------------------- 1 开关名称 end ---------------------------
+
 
 const handleChangeStatus = (row) => {
   updateConfigValue(row).then((res) => {

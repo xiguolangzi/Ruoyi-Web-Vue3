@@ -12,7 +12,7 @@ import '@/assets/styles/index.scss' // global css
 import App from './App'
 import pinia from './store'
 import router from './router'
-import directive from './directive' // directive 权限
+import directive from './directive' // directive 注解
 
 // 注册指令
 import plugins from './plugins' // plugins
@@ -44,7 +44,8 @@ import ImagePreview from "@/components/ImagePreview"
 import DictTag from '@/components/DictTag'
 // 国际化
 import i18n from '@/lang/index'
-// 输入框数字输入框
+// 获取租户配置方法
+import { getTenantConfig } from "@/utils/getTenantConfig";
 
 
 const app = createApp(App)
@@ -60,6 +61,7 @@ app.config.globalProperties.selectDictLabel = selectDictLabel
 app.config.globalProperties.selectDictLabels = selectDictLabels
 app.config.globalProperties.formatTwo = formatTwo
 app.config.globalProperties.getSkuValue = getSkuValue
+app.config.globalProperties.getTenantConfig = getTenantConfig
 
 // 全局组件挂载
 app.component('DictTag', DictTag)

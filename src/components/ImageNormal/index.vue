@@ -12,11 +12,11 @@ const props = defineProps({
   },
   width: {
     type: [Number, String],
-    default: ""
+    default: "100%"
   },
   height: {
     type: [Number, String],
-    default: ""
+    default: "100%"
   },
 });
 

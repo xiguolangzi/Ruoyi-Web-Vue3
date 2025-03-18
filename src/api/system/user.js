@@ -42,6 +42,15 @@ export function listCashier(query = {}) {
   })
 }
 
+// 门店店长认证
+export function authStoreManager(data) {
+  return request({
+    url: '/system/user/authStoreManager',
+    method: 'post',
+    data: data
+  })
+}
+
 // 查询用户详细
 export function getUser(userId) {
   return request({

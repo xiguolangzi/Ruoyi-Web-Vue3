@@ -7,8 +7,8 @@
 
         <!-- 上部分：流水展示 -->
         <el-main class="main-data-container">
-          <EditableTable ref="editableTableRef" :tableData="form.salesOrderDetailList"
-            @handleClickChangeImage="changeCurrentSkuData" />
+          <EditableTable ref="editableTableRef" :tableData="form.salesOrderDetailList" :editPrice="canEditPrice" :editDiscountRate="canEditDiscountRate"
+            @handleClickChangeImage="changeCurrentSkuData" @deleteRow="handleDeleteRow"/>
         </el-main>
 
         <!-- 下部分：商品输入框和汇总信息 -->
@@ -16,8 +16,8 @@
           <el-card class="footer-card">
             <el-row class="footer-row">
               <!-- 第一个区域：商品搜索和图片展示 -->
-              <el-col class="footer-col" :style="{ width: '220px', flex: 'none' }">
-                <div class="footer-col-content">
+              <el-col class="footer-col" :style="{ width: '190px', flex: 'none' }">
+                <div class="footer-col-content" >
                   <SkuSelect ref="skuSelectRef" @selectedData="selectedSkuData" />
                   <div class="sku-image-container">
                     <ImageNormal v-if="currentSku" :src="currentSku.skuImage" />
@@ -26,109 +26,80 @@
                 </div>
               </el-col>
 
-              <!-- 第二个区域：订单统计数据 -->
+              
+
+              <!-- 第2个区域：订单配置数据 -->
+              <el-col class="footer-col" style="flex: 1;">
+                <div class="footer-col-content">
+                  <div class="section-title">
+                    <span>订单设置：</span>
+                    <div>
+                      <el-badge :value="10" :max="99" :show-zero="false" style="margin-left: 20px;">
+                        <el-button type="primary" size="small">挂单</el-button>
+                      </el-badge>
+                    </div>
+                    
+                  </div>
+                  <el-descriptions :column="2" size="small" style="width: 100%;">
+                    <el-descriptions-item label="客户名称:" :span="2" >
+                      <span class="highlight-text">{{currentCustomer?.customerName || '--'}}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="税号:" :min-width="100">
+                      <span class="highlight-text">{{currentCustomer?.invoiceTax || '--'}}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="手机:" :min-width="100">
+                      <span class="highlight-text">{{currentCustomer?.invoicePhone || '--'}}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="地址:" :span="2">
+                      <span class="highlight-text">{{currentCustomer?.invoiceAddress || '--'}}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="仓库:" >
+                      <span class="highlight-text">{{currentWarehouse?.warehouseName || '--'}}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="业务员:" >
+                      <span class="highlight-text">{{currentSalesman?.userName || '--'}}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="业务活动:" >
+                      <span class="highlight-text">{{currentSalesActivity?.activityName || '--'}}</span>
+                    </el-descriptions-item>
+                    
+                  </el-descriptions>
+                  
+
+                </div>
+              </el-col>
+
+              <!-- 第3个区域：订单统计数据 -->
               <el-col class="footer-col" style="flex: 1;">
                 <div class="footer-col-content">
                   <!-- 订单状态+订单号 -->
                   <div class="section-title">
                     <span> {{ form.orderDirection == OrderDirectionEnum.SALES ? "销售订单：" : "退货订单: " }} </span>
-                    <span>{{ form.orderNo }}</span>
+                    <span style="font-size: 12px; margin-right: 10px; color: #409eff;">{{ form.orderNo }}</span>
                   </div>
-                  <el-descriptions :column="1" border size="small">
-                    <el-descriptions-item label="总金额">
-                      <span class="highlight-text">{{ formatTwo(totalAmount) }}</span>
+                  <el-descriptions :column="2"   size="small" style="margin-top: 10px;">
+                    <el-descriptions-item label="金额:">
+                      <span class="highlight-text">{{ formatTwo(totalAmount) + ' €'}} </span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="总数量">
-                      <span class="highlight-text">{{ totalQuantity }}</span>
+                    <el-descriptions-item label="折扣:">
+                      <span class="highlight-text">{{ formatTwo(totalDiscountAmount) + ' €' }}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="总折扣">
-                      <span class="highlight-text">{{ formatTwo(totalDiscount) }}</span>
+                    <el-descriptions-item label="减免:" >
+                      <span class="highlight-text">{{ formatTwo(form.totalPromotionReduceAmount) + ' €' }}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="赠送:" >
+                      <span class="highlight-text">{{ form.totalGiftQuantity}}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="基础:" >
+                      <span class="highlight-text">{{ formatTwo(totalBaseAmount) + ' €'}}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="税额:" :span="2">
+                      <span class="highlight-text">{{ formatTwo(totalTaxAmount) + ' €'}}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="应收金额:" :span="2" class-name="total-label2" label-class-name="total-content2">
+                      <span >{{ formatTwo(totalNetAmount) + ' €'}}</span>
                     </el-descriptions-item>
                   </el-descriptions>
-                </div>
-              </el-col>
-
-              <!-- 第三个区域：订单配置数据 -->
-              <el-col class="footer-col" style="flex: 1;">
-                <div class="footer-col-content">
-                  <div class="section-title">订单配置:</div>
-                  <el-form-item label="客户">
-                    <el-input v-model="orderConfig.customer" placeholder="请输入客户" />
-                  </el-form-item>
-                  <el-form-item label="业务员">
-                    <el-input v-model="orderConfig.salesman" placeholder="请输入业务员" />
-                  </el-form-item>
-                  <el-row>
-                    <el-col :span="12">
-                      <el-form-item>
-                        <template #label>
-                          {{ orderInTax == OrderInTaxEnum.TAX ? "含税" : "不含税" }}
-                        </template>
-                        <el-switch v-model="orderInTax" :active-value="OrderInTaxEnum.TAX"
-                          :inactive-value="OrderInTaxEnum.NO_TAX"
-                          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" />
-                      </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                      <el-badge :value="200" :max="99">
-                        <el-button>挂单数量需要存放在缓存中，有效时间1天</el-button>
-                      </el-badge>
-                    </el-col>
-                  </el-row>
-                  <el-row>
-                    <el-col :span="12">
-                      <el-form-item>
-                        <template #label>
-                          {{ orderInTax == OrderInTaxEnum.TAX ? "含税" : "不含税" }}
-                        </template>
-                        <el-switch v-model="orderInTax" :active-value="OrderInTaxEnum.TAX"
-                          :inactive-value="OrderInTaxEnum.NO_TAX"
-                          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" />
-                      </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                      <el-badge :value="200" :max="99">
-                        <el-button>挂单数量需要存放在缓存中，有效时间1天</el-button>
-                      </el-badge>
-                    </el-col>
-                  </el-row>
-                  <el-row>
-                    <el-col :span="12">
-                      <el-form-item>
-                        <template #label>
-                          {{ orderInTax == OrderInTaxEnum.TAX ? "含税" : "不含税" }}
-                        </template>
-                        <el-switch v-model="orderInTax" :active-value="OrderInTaxEnum.TAX"
-                          :inactive-value="OrderInTaxEnum.NO_TAX"
-                          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" />
-                      </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                      <el-badge :value="200" :max="99">
-                        <el-button>挂单数量需要存放在缓存中，有效时间1天</el-button>
-                      </el-badge>
-                    </el-col>
-                  </el-row>
-                  <el-row>
-                    <el-col :span="12">
-                      <el-form-item>
-                        <template #label>
-                          {{ orderInTax == OrderInTaxEnum.TAX ? "含税" : "不含税" }}
-                        </template>
-                        <el-switch v-model="orderInTax" :active-value="OrderInTaxEnum.TAX"
-                          :inactive-value="OrderInTaxEnum.NO_TAX"
-                          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949" />
-                      </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                      <el-badge :value="200" :max="99">
-                        <el-button>挂单数量需要存放在缓存中，有效时间1天</el-button>
-                      </el-badge>
-                    </el-col>
-                  </el-row>
-
-
-
                 </div>
               </el-col>
             </el-row>
@@ -174,7 +145,7 @@
                 <el-form-item label="业务活动:" prop="customerId">
                   <SalesActivitySelect v-model="form.activityId" @selectedData="selectedSalesActivityData" />
                 </el-form-item>
-                <el-divider content-position="left"> <span>挂单列表</span> </el-divider>
+                <el-divider content-position="left"> <span>促销活动查询</span> </el-divider>
               </div>
             </div>
           </el-tab-pane>
@@ -402,6 +373,21 @@
         </el-tab-pane>
       </el-tabs>
     </el-dialog>
+
+    <el-dialog v-model="dialogVisible2" title="店长认证:" append-to-body width="400">
+      <el-form :model="userForm" ref="userFormRef">
+        <el-form-item label="用户名" prop="userName">
+          <el-input v-model="userForm.userName" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="userForm.password" type="password" placeholder="请输入密码" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible2 = false">取消</el-button>
+        <el-button type="primary" @click="checkAuthStoreManager">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 
 
@@ -411,7 +397,7 @@
 <script setup name="cashOperation">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import TouchKeyboard from '@/components/TouchKeyboard/index.vue';
-import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderInTaxEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum } from './cashOperationEnum.js';
+import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum,DetailTypeEnum } from './cashOperationEnum.js';
 import CustomerSelect from '@/components/Common/CustomerSelect.vue';
 import SalesmanSelect from '@/components/Common/SalesmanSelect.vue';
 import SalesActivitySelect from '@/components/Common/SalesActivitySelect.vue';
@@ -429,16 +415,73 @@ import { size } from 'lodash';
 import ImageNormal from '@/components/ImageNormal/index.vue';
 import { Picture as IconPicture } from '@element-plus/icons-vue'
 import { addSalesOrder, updateSalesOrder } from "@/api/sales/salesOrder";
+import {authStoreManager} from "@/api/system/user.js"
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
 
-
 // 获取当前用户信息
 const userStore = useUserStore();
+const dialogVisible = ref(false) // 交班窗口
+const dialogVisible2 = ref(false) // 店长认证
+const userForm = ref({});  // 店长信息
+const activeTab = ref('first')  // 交班默认tab窗口
+const keyboardRef = ref(null);  // 键盘组件实例
+const skuSelectRef = ref(null); // skuSelect组件实例
+const editableTableRef = ref(null); // 表格组件实例
+const currentCustomer = ref(null)
+const currentSalesman = ref(null)
+const currentSalesActivity = ref(null)
+const currentSku = ref(null)
+const currentWarehouse = ref(null);
+const canEditPrice = ref('1');  // 表格子组件编辑单价disable控制
+const canEditDiscountRate = ref('1'); // 表格子组件编辑折扣disable控制
+
+/** 获取租户配置 */
+const getTenantConfig = async () => {
+  const config = await proxy.getTenantConfig("editPrice");
+  canEditPrice.value = config?.configValue || '1';
+  const config2 = await proxy.getTenantConfig("editDiscountRate");
+  canEditDiscountRate.value = config2?.configValue || '1';
+}
+getTenantConfig()
+
+const changeCurrentSkuData = (data) => {
+  currentSku.value = data || null;
+}
+
+/**
+ * 处理删除行
+ */
+const handleDeleteRow = (index) => {
+  // 门店权限校验
+  dialogVisible2.value = true;
+  userForm.value.index = index;
+  
+};
+
+const checkAuthStoreManager = () => {
+  authStoreManager(userForm.value).then(()=>{
+    form.value.salesOrderDetailList.splice(userForm.value.index, 1); // 删除指定行
+    dialogVisible2.value = false
+    userForm.value = {}
+  }).catch((e)=>{
+    userForm.value = {}
+    ElNotification({
+      title: 'error',
+      message: '没有店长权限，禁止删除行数据！',
+      type: 'error',
+      position: 'bottom-right',
+      // appendTo 挂载到 全屏组件上
+      appendTo: cashierContainer.value
+    })
+    console.error("店长权限校验",e)
+  }) 
+}
 
 
-// -------------- 7 订单数据处理 start --------------------
+
+// ------------------------------------- 10 form 订单表单 start -------------------------------------
 const data = reactive({
   form: {
     salesOrderDetailList: [], // 初始化为空数组
@@ -452,7 +495,7 @@ const data = reactive({
 
 const { form, rules } = toRefs(data);
 
-// 表单重置
+// 销售订单表单数据重置
 function reset() {
   form.value = {
     orderId: null,
@@ -461,7 +504,6 @@ function reset() {
     orderNo: null,
     parentOrderId: null,
     orderSource: orderSourceEnum.CAJA,
-    orderInTax: null,
     warehouseId: null,
     cajaId: null,
     shiftId: null,
@@ -472,20 +514,21 @@ function reset() {
     orderStatus: OrderStatusEnum.INIT,
     orderIsHold: OrderIsHoldEnum.NORMAL,
     orderPayStatus: OrderPayStatusEnum.SETTLE,
-    totalAmount: null,
-    totalDiscountAmount: null,
-    totalPromotionReduceAmount: null,
-    totalSalesAmount: null,
-    totalBaseAmount: null,
-    totalTaxAmount: null,
-    totalNetAmount: null,
-    cashAmount: null,
-    bankAmount: null,
-    changeAmount: null,
-    zeroAmount: null,
-    remainAmount: null,
-    verifiedAmount: null,
-    totalGiftQuantity: null,
+    totalQuantity: 0,
+    totalAmount: 0,
+    totalDiscountAmount: 0,
+    totalSalesAmount: 0,
+    totalPromotionReduceAmount: 0,
+    totalBaseAmount: 0,
+    totalTaxAmount: 0,
+    totalNetAmount: 0,
+    cashAmount: 0,
+    bankAmount: 0,
+    changeAmount: 0,
+    zeroAmount: 0,
+    remainAmount: 0,
+    verifiedAmount: 0,
+    totalGiftQuantity: 0,
     remark: null,
     createBy: null,
     createTime: null,
@@ -503,6 +546,11 @@ function reset() {
 onMounted(() => {
   reset();
 });
+// ------------------------------------- 10 form 订单表单 End -------------------------------------
+
+
+// -------------- 7 订单数据处理 start --------------------
+
 
 
 /** 提交按钮 */
@@ -531,13 +579,6 @@ function submitForm() {
 // --------------- 7 订单数据处理 end --------------------
 
 // **************** 获取配置 start *******************
-/** 获取是否含税配置 */
-const orderInTax = ref(OrderInTaxEnum.TAX);
-const getConfigOrderInTax = async () => {
-  const config = await proxy.getTenantConfig("orderInTax");
-  orderInTax.value = config.configValue;
-}
-getConfigOrderInTax()
 
 /** 是否展示触摸键盘配置 */
 const cajaShowKeyboard = ref(0)
@@ -549,30 +590,8 @@ getCajaShowKeyboard()
 
 // **************** 获取配置 end *******************
 
-// -------------- 6 底部区域设计 start ---------------------
-const orderConfig = ref({
-  customer: '', // 客户
-  salesman: '', // 业务员
-  isTaxIncluded: false, // 是否含税
-});
-
-// 模拟订单汇总数据
-const totalAmount = ref(999.99);
-const totalQuantity = ref(10);
-const totalDiscount = ref(50.0);
-
-
-
-
-
-
-
-// -------------- 6 底部区域设计 end ---------------------
 
 // -------------- 5 交班业务 start  ---------------------
-
-const dialogVisible = ref(false) // 交班窗口
-const activeTab = ref('first')  // 交班默认tab窗口
 
 /** 交班业务  */
 const checkSalesShiftRecords = () => {
@@ -905,7 +924,7 @@ const actions = [
   { label: "交班", action: "shift", keyDown: "F2" },
   { label: "挂单", action: "holdOrder", keyDown: "F3" },
   { label: "取单", action: "holdOrder", keyDown: "F4" },
-  { label: "收款", action: "pay", keyDown: "F5" },
+  { label: "收款", action: "handlerPayment", keyDown: "F5" },
   { label: "钱箱", action: "openCashDrawer", keyDown: "F6" },
   { label: "重打", action: "reprint", keyDown: "F7" },
   { label: "无价打印", action: "reprint", keyDown: "F8" },
@@ -938,14 +957,14 @@ const handleAction = (action) => {
     case "holdOrder":
       console.log("挂单");
       playKeyHappySound()
+      console.log("表单form的数据：*****", form.value)
       break;
     case "splitOrder":
       console.log("拆单");
       break;
-    case "pay":
-      console.log("支付"); orderInTax
-      console.log("表单form的数据：*****", form.value)
-      console.log("配置orderInTax：*****", orderInTax.value)
+    case "handlerPayment":
+      handlerPayment()
+      console.log("收款"); 
       break;
   }
 };
@@ -980,18 +999,6 @@ const handleFocus = (event) => {
   }
 };
 
-const keyboardRef = ref(null);  // 键盘组件实例
-const skuSelectRef = ref(null); // skuSelect组件实例
-const editableTableRef = ref(null); // 表格组件实例
-const currentCustomer = ref(null)
-const currentSalesman = ref(null)
-const currentSalesActivity = ref(null)
-const currentSku = ref(null)
-const currentWarehouse = ref(null);
-
-const changeCurrentSkuData = (data) => {
-  currentSku.value = data || null;
-}
 
 
 
@@ -999,6 +1006,14 @@ const changeCurrentSkuData = (data) => {
 const selectedCustomerData = (data) => {
   console.log('收银台获取的客户数据:', data)
   currentCustomer.value = data || null;
+
+  // 更新价格和折扣
+  updateDetailPriceAndDiscount();
+
+  // 更新业务员信息
+  if(currentCustomer.value?.salesmanVo){
+    currentSalesman.value = currentCustomer.value.salesmanVo
+  }
 }
 
 /** 获取选中的客户数据 */
@@ -1030,33 +1045,6 @@ const selectedWarehouseData = (data) => {
 }
 
 
-
-/** 销售订单明细添加按钮操作 */
-function handleAddSalesOrderDetail(sku) {
-  const obj = initOrderDetailData();
-  obj.detailId = null
-  obj.detailMainSkuId = null
-  obj.skuId = sku.skuId
-  obj.skuCode = sku.skuCode
-  obj.skuImage = sku.skuImage
-  obj.skuName = sku.skuName
-  obj.assistName = sku.assistName
-  obj.skuType = sku.skuType
-  obj.skuValue = sku.skuValue
-  obj.batchId = sku.batchId
-  obj.skuUnit = sku.unitVo?.unitCode
-  obj.detailPrice = sku.skuPrice
-  obj.detailQuantity = 1
-  obj.detailAmount = sku.skuPrice * 1
-  obj.detailDiscountRate = 0
-  obj.detailDiscountAmount = 0
-  obj.detailSalesAmount = sku.skuPrice * 1
-  obj.detailBaseAmount = sku.skuPrice * 1
-  obj.detailTaxRate = sku.productRateVo?.rateValue
-  obj.detailTaxAmount = sku.skuPrice * 1 * sku.productRateVo?.rateValue
-  obj.detailNetAmount = sku.skuPrice * 1 * (1 + sku.productRateVo?.rateValue)
-  form.value.salesOrderDetailList.push(obj)
-}
 
 // ***************** 1 键盘 + 表格 + 商品查询 组件处理 end *****************
 
@@ -1099,6 +1087,11 @@ const handleKeyDown = (event) => {
           // 播放按键音效
           playKeyHappySound();
           handleShift();
+          break;
+        case 5:
+          // 播放按键音效
+          playKeyHappySound();
+          handlerPayment()
           break;
         default:
           console.log(`F${keyNumber} 被按下`);
@@ -1152,9 +1145,215 @@ const handleShift = () => {
   handlerOpenDialog()
 }
 
-
-
 // ----------------- 0 快捷键 end -----------------
+
+// -------------------------------------- 9 订单明细计算 start ------------------------------------------
+/** 计算含税和不含税的金额 */
+function calculateAmounts(detailPrice, taxRate, inTax) {
+  const rateValue = (taxRate || 0)/100;
+  let detailBaseAmount, detailTaxAmount, detailNetAmount;
+
+  if (inTax === 0) {
+    // 含税
+    detailBaseAmount = detailPrice / (1 + rateValue);
+    detailTaxAmount = detailPrice - detailBaseAmount;
+    detailNetAmount = detailPrice;
+  } else {
+    // 不含税
+    detailBaseAmount = detailPrice;
+    detailTaxAmount = detailPrice * (rateValue);
+    detailNetAmount = detailPrice + detailTaxAmount;
+  }
+
+  return { detailBaseAmount, detailTaxAmount, detailNetAmount };
+}
+
+/** 销售订单明细添加按钮操作 */
+function handleAddSalesOrderDetail(sku) {
+  const obj = initOrderDetailData();
+  const { skuId, skuCode, skuImage, skuName, assistName, skuType, skuValue, batchNo, unitVo, productRateVo, inTax, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6 } = sku;
+
+  // 1 基础信息赋值
+  obj.detailId = null;
+  obj.detailType = DetailTypeEnum.MAIN;
+  obj.detailMainSkuId = null;
+  obj.skuId = skuId;
+  obj.skuCode = skuCode;
+  obj.skuImage = skuImage;
+  obj.skuName = skuName;
+  obj.assistName = assistName;
+  obj.skuType = skuType;
+  obj.skuValue = skuValue;
+  obj.batchNo = batchNo;
+  obj.detailSn = null;
+  obj.skuUnit = unitVo?.unitCode;
+  obj.inTax = inTax;
+  obj.skuPrice = skuPrice;
+  obj.skuPrice2 = skuPrice2;
+  obj.skuPrice3 = skuPrice3;
+  obj.skuPrice4 = skuPrice4;
+  obj.skuPrice5 = skuPrice5;
+  obj.skuPrice6 = skuPrice6;
+
+  // 2 数量和金额计算
+  obj.detailPrice = sku.skuPrice;
+  obj.detailQuantity = 1;
+  obj.detailAmount = sku.skuPrice;
+  obj.detailDiscountRate = 0;
+  obj.detailDiscountAmount = 0;
+  obj.detailSalesAmount = sku.skuPrice;
+  obj.detailTaxRate = productRateVo?.rateValue || 0;
+  // 3 含税/不含税
+  const { detailBaseAmount, detailTaxAmount, detailNetAmount } = calculateAmounts(
+    obj.detailSalesAmount,
+    obj.detailTaxRate,
+    obj.inTax
+  );
+  obj.detailBaseAmount = detailBaseAmount;
+  obj.detailTaxAmount = detailTaxAmount;
+  obj.detailNetAmount = detailNetAmount;
+  
+  // 4 添加到订单明细列表
+  form.value.salesOrderDetailList.push(obj);
+}
+
+// 根据客户信息 折扣/价格 更新明细价格/折扣 根据是否含税计算最终金额
+const updateDetailPriceAndDiscount = () => {
+  if (form.value.salesOrderDetailList.length > 0 ) {
+    // 获取客户等级和折扣
+    const customerLevel = currentCustomer.value?.customerLevel;
+    const levelPrice = customerLevel?.levelPrice;
+    const levelDiscount = customerLevel?.levelDiscount || 0;
+
+    console.log("当前客户等级：", customerLevel);
+    console.log("当前客户等级价格：", levelPrice);
+    console.log("当前客户等级折扣：", levelDiscount);
+
+    // 更新每个订单明细的价格、折扣和金额
+    form.value.salesOrderDetailList.forEach((item) => {
+      // 动态构建 priceMap
+      const priceMap = {
+        1: item.skuPrice,
+        2: item.skuPrice2,
+        3: item.skuPrice3,
+        4: item.skuPrice4,
+        5: item.skuPrice5,
+        6: item.skuPrice6,
+      };
+
+      // 更新价格
+      item.detailPrice = priceMap[levelPrice] || item.skuPrice;
+      console.log("更新后的价格：", item.detailPrice);
+
+      // 更新折扣率
+      item.detailDiscountRate = levelDiscount;
+      console.log("更新后的折扣率：", item.detailDiscountRate);
+
+      // 计算订单金额
+      item.detailAmount = item.detailPrice * item.detailQuantity;
+      item.detailDiscountAmount = item.detailAmount * (item.detailDiscountRate / 100);
+      item.detailSalesAmount = item.detailAmount - item.detailDiscountAmount;
+
+      // 根据是否含税计算净金额、基础金额和税额
+      if (item.inTax === 0) {
+        // 含税
+        item.detailNetAmount = item.detailSalesAmount;
+        item.detailBaseAmount = item.detailNetAmount / (1 + item.detailTaxRate / 100);
+        item.detailTaxAmount = item.detailNetAmount - item.detailBaseAmount;
+      } else if (item.inTax === 1) {
+        // 不含税
+        item.detailBaseAmount = item.detailSalesAmount;
+        item.detailTaxAmount = item.detailBaseAmount * (item.detailTaxRate / 100);
+        item.detailNetAmount = item.detailBaseAmount + item.detailTaxAmount;
+      }
+
+      console.log("订单明细计算结果：", item);
+    });
+  }
+};
+
+// -------------------------------------- 9 订单明细计算 end ------------------------------------------
+
+// ------------------------------------- 8 计算表格数据 start -------------------------
+// 8.1 总数量
+const totalQuantity = computed(() => {
+  return data.form.salesOrderDetailList.reduce((total, item) => {
+    return total + Number(item.detailQuantity);
+  }, 0);
+});
+// 8.2 总金额 form.totalAmount
+const totalAmount = computed(() => {
+  return data.form.salesOrderDetailList.reduce((total, item) => {
+    return total + Number(item.detailAmount);
+  }, 0);
+});
+// 8.3 总折扣额
+const totalDiscountAmount = computed(() => {
+  return data.form.salesOrderDetailList.reduce((total, item) => {
+    return total + Number(item.detailDiscountAmount);
+  }, 0);
+});
+// 8.4 销售总金额 form.totalSalesAmount
+const totalSalesAmount = computed(() => {
+  return data.form.salesOrderDetailList.reduce((total, item) => {
+    return total + Number(item.detailSalesAmount);
+  }, 0);
+});
+
+// 8.5 销售活动减免金额（后台计算返回） form.totalPromotionReduceAmount 促销活动
+
+// 8.6 发票计算基础金额 form.totalBaseAmount 含税/不含税
+const totalBaseAmount = computed(() => {
+  return data.form.salesOrderDetailList.reduce((total, item) => {
+    return total + Number(item.detailBaseAmount);
+  }, 0);
+});
+
+// 8.7 税额 form.totalTaxAmount 含税/不含税
+const totalTaxAmount = computed(() => {
+  return data.form.salesOrderDetailList.reduce((total, item) => {
+    return total + Number(item.detailTaxAmount);
+  }, 0);
+});
+
+// 8.8 应收金额 form.totalNetAmount 含税/不含税
+const totalNetAmount = computed(() => {
+  return data.form.salesOrderDetailList.reduce((total, item) => {
+    return total + Number(item.detailNetAmount);
+  }, 0);
+});
+
+// 8.9 赠送数量 (后台计算返回) form.totalGiftQuantity  促销活动
+
+// 更新订单form数据
+const updateFormData = () => {
+  form.value.cajaId = currentCaja.value.cajaId;
+  form.value.shiftId = currentShift.value.shiftId;
+  form.value.totalAmount = totalAmount.value;
+  form.value.totalQuantity = totalQuantity.value;
+  form.value.totalDiscountAmount = totalDiscountAmount.value;
+  form.value.totalSalesAmount = totalSalesAmount.value;
+  form.value.totalBaseAmount = totalBaseAmount.value;
+  form.value.totalTaxAmount = totalTaxAmount.value;
+  form.value.totalNetAmount = totalNetAmount.value;
+};
+// 9 收款操作
+const handlerPayment = () => {
+  updateDetailPriceAndDiscount()
+  updateFormData()
+  // 添加订单信息 -> 返回计算后的订单信息
+  addSalesOrder(form.value).then((res) => {
+    if(res.code == 200 && res.data){
+      form.value = res.data;
+    } else {
+      ElMessage.error(res.msg);
+    }
+  }).catch(error => {
+    ElMessage.error(error.message);
+  });
+};
+
+// ----------------------------------------- 8 计算表格数据 end ----------------------
 
 </script>
 
@@ -1206,7 +1405,7 @@ const handleShift = () => {
         padding: 0px;
         margin: 0px;
         background-color: #f5f7fa;  /* 浅灰色背景 */
-        overflow-y: auto; /* 允许滚动 */
+        //overflow-y: auto; /* 允许滚动 */
         
         .footer-card {
           min-height: 100%;
@@ -1228,7 +1427,7 @@ const handleShift = () => {
             height: 100%;
             display: flex;
             align-items: center;
-            border-right: 0.5px solid #ebeef5; /* 更细、更浅的分割线 */
+            border-right: 1px solid #d8dce6; /* 更细、更浅的分割线 */
             padding-right: 10px; /* 分割线与内容的间距 */
             margin-right: 10px; /* 区域之间的间距 */
 
@@ -1239,27 +1438,28 @@ const handleShift = () => {
             }
       
             .footer-col-content {
-              height: 80%;
-              width: 80%;
+              height: 90%;
+              width: 100%;
               display: flex;
               flex-direction: column;
               justify-content: center;
-              padding: 0px; /* 内边距 */
+              padding: 5px; /* 内边距 */
               margin: 0px;
 
               .section-title {
                 font-size: 16px;
                 font-weight: bold;
-                margin-bottom: 10px;
-                color: #303133;
-                /* 标题颜色 */
+                color: #303133; /* 标题颜色 */
+                display: flex;
+                justify-content: space-between; /* 将内容分散对齐 */
+                align-items: center; /* 垂直居中 */
+                padding: 5px;
               }
       
               .sku-image-container {
                 flex: 1;
-                padding: 10px;
-                margin: 0px;
-                //text-align: center;
+                margin: 10px;
+                text-align: center;
               }
       
               .highlight-text {
@@ -1386,6 +1586,19 @@ const handleShift = () => {
 }
 :deep(.input-content) {
   background: var(--el-color-success-light-9);
+}
+
+:deep(.total-label2){
+  font-size: 20px;
+  color: #f30909;
+}
+
+:deep(.total-content2) {
+  font-size: 20px;
+}
+
+:deep(.el-card__body){
+  padding: 0px !important;
 }
 
 

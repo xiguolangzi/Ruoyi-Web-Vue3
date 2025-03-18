@@ -4,6 +4,7 @@
     filterable
     remote
     clearable
+    default-first-option
     :options="dataList"
     :remote-method="onSearch"
     :loading="loading"

@@ -1,5 +1,5 @@
 <template>
-  <el-table ref="tableRef" :data="tableData" border show-summary :summary-method="getSummaries" :stripe="false"
+  <el-table ref="tableRef" :data="tableData" border show-summary :summary-method="getSummaries" :stripe="true"
     size="small" style="width: 100%; height: 100%;" @cell-click="handleCellClick">
     <el-table-column type="index" label="序号" align="center" width="55" />
     <el-table-column prop="skuCode" label="商品编码" align="center" min-width="120" show-overflow-tooltip>
@@ -32,15 +32,15 @@
     <el-table-column prop="detailPrice" align="center" label="单价">
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailPrice')" :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
-          v-model="scope.row.detailPrice" size="small" @blur="handleBlur(scope.row, 'detailPrice')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="number" />
+          v-model.number="scope.row.detailPrice" size="small" @blur="handleBlur(scope.row, 'detailPrice')" @focus="handleFocus"
+          @change="updateAmount(scope.row)" style="width: 100%;" type="number" :disabled="editPrice != '0'"/>
         <span v-else>{{ formatTwo(scope.row.detailPrice) + ' €' }}</span>
       </template>
     </el-table-column>
     <el-table-column prop="detailQuantity" align="center" label="数量">
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailQuantity')"
-          :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" v-model="scope.row.detailQuantity" size="small"
+          :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" v-model.number="scope.row.detailQuantity" size="small"
           @blur="handleBlur(scope.row, 'detailQuantity')" @focus="handleFocus" @change="updateAmount(scope.row)"
           style="width: 100%;" type="number" />
         <span v-else>{{ scope.row.detailQuantity || 0 }}</span>
@@ -49,9 +49,9 @@
     <el-table-column prop="detailDiscountRate" align="center" label="折扣">
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailDiscountRate')"
-          :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" v-model="scope.row.detailDiscountRate"
+          :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" v-model.number="scope.row.detailDiscountRate"
           size="small" @blur="handleBlur(scope.row, 'detailDiscountRate')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="number" />
+          @change="updateAmount(scope.row)" style="width: 100%;" type="number" :disabled="editDiscountRate != '0'"/>
         <span v-else>{{ scope.row.detailDiscountRate || 0 }} %</span>
       </template>
     </el-table-column>
@@ -78,17 +78,33 @@
         <dict-tag :options="erp_product_sku_type" :value="scope.row.skuType" />
       </template>
     </el-table-column>
+    <el-table-column prop="inTax" align="center" label="是否含税">
+      <template #default="scope">
+        <el-switch v-model="scope.row.inTax" 
+          :active-value="OrderInTaxEnum.TAX"
+          :inactive-value="OrderInTaxEnum.NO_TAX"
+          active-text="含税" inactive-text="不含税" inline-prompt style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;" 
+          disabled v-hasPermi="['sales:salesCaja:admin']"
+        />
+      </template>
+    </el-table-column>
+    <el-table-column label="操作" align="center" width="50">
+      <template #default="scope">
+        <el-button type="danger" size="small" :icon="Delete" circle  @click="handleDeleteRow(scope.$index)"  />
+      </template>
+    </el-table-column>
   </el-table>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
 import ImageNormal from '@/components/ImageNormal/index.vue';
-
+import { OrderInTaxEnum } from './cashOperationEnum.js';
+import { Delete } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
-
 
 const props = defineProps({
   tableData: {
@@ -96,10 +112,18 @@ const props = defineProps({
     required: true,
     default: () => [],
   },
+  editPrice: {
+    type: String,
+    default: false,
+  },
+  editDiscountRate: {
+    type: String,
+    default: false,
+  },
 });
 
 
-const emit = defineEmits(['handleClickChangeImage']);
+const emit = defineEmits(['handleClickChangeImage', 'deleteRow']);
 
 /**
  * 点击更新展示图片
@@ -107,6 +131,17 @@ const emit = defineEmits(['handleClickChangeImage']);
 const handleClickChangeImage = (row) => {
   emit('handleClickChangeImage', row);
 };
+
+/**
+ * 删除行
+ */
+const handleDeleteRow = (index) => {
+  emit('deleteRow', index); // 通知父组件删除指定行
+};
+
+
+
+
 
 // 计算合计行
 const getSummaries = (param) => {
@@ -133,22 +168,48 @@ const getSummaries = (param) => {
   return sums;
 };
 
+/** 计算含税和不含税的金额 */
+function calculateAmounts(detailPrice, taxRate, inTax) {
+  const rateValue = (taxRate || 0)/100;
+  let detailBaseAmount, detailTaxAmount, detailNetAmount;
+
+  if (inTax === 0) {
+    // 含税
+    detailBaseAmount = detailPrice / (1 + rateValue);
+    detailTaxAmount = detailPrice - detailBaseAmount;
+    detailNetAmount = detailPrice;
+  } else {
+    // 不含税
+    detailBaseAmount = detailPrice;
+    detailTaxAmount = detailPrice * (rateValue);
+    detailNetAmount = detailPrice + detailTaxAmount;
+  }
+
+  return { detailBaseAmount, detailTaxAmount, detailNetAmount };
+}
+
 // 计算金额
 const updateAmount = (row) => {
   const price = Number(row.detailPrice) || 0;
   const quantity = Number(row.detailQuantity) || 0;
   const discount = Number(row.detailDiscountRate) || 0;
+  const detailTaxRate = Number(row.detailTaxRate)/100 || 0;
+  const inTax = row.inTax;
   
-  row.detailSalesAmount = ((price * quantity) * (1 - discount / 100)).toFixed(2);
-};
+  row.detailAmount = (price * quantity).toFixed(2);
+  row.detailDiscountAmount = ((price * quantity) * discount / 100).toFixed(4);
+  row.detailSalesAmount = row.detailAmount - row.detailDiscountAmount;
 
-// 计算表格数据（确保 detailSalesAmount 计算正确）
-const computedTableData = computed(() => {
-  return props.tableData.map(row => ({
-    ...row,
-    detailSalesAmount: ((Number(row.detailPrice) || 0) * (Number(row.detailQuantity) || 0) * (1 - (Number(row.detailDiscountRate) || 0) / 100)).toFixed(2),
-  }));
-});
+  // 3 含税/不含税
+  const { detailBaseAmount, detailTaxAmount, detailNetAmount } = calculateAmounts(
+    row.detailSalesAmount,
+    row.detailTaxRate,
+    row.inTax
+  );
+  row.detailBaseAmount = detailBaseAmount;
+  row.detailTaxAmount = detailTaxAmount;
+  row.detailNetAmount = detailNetAmount;
+};
 
 const tableRef = ref(null); // 表格实例
 const inputRef = ref(null); // 输入框实例

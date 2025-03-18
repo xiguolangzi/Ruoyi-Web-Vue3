@@ -103,6 +103,11 @@
           <span>{{ formatTwo(scope.row.productPrice) }} €</span>
         </template>
       </el-table-column>
+      <el-table-column label="是否含税" align="center" prop="inTax" :width="80">
+        <template #default="scope">
+          <el-tag :type="scope.row.inTax == 0 ? 'success' : 'danger'">{{ scope.row.inTax == 0 ? "含税" : "不含税" }}</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="税率" align="center" prop="productRateVo.rateValue" :width="80">
         <template #default="scope">
           <span>{{ scope.row.productRateVo?.rateValue || '--' }} %</span>

@@ -36,8 +36,8 @@
       <el-table-column label="配置编码" align="center" prop="configCode" />
       <el-table-column label="配置的值" align="center" prop="configValue">
         <template #default="scope">
-          <el-switch v-model="scope.row.configValue" :active-value="StatusEnum.ENABLE"
-            :inactive-value="StatusEnum.DISABLE" inline-prompt :active-text="actionText(scope.row)" :inactive-text="inactionText(scope.row)"
+          <el-switch v-model="scope.row.configValue" active-value="0"
+            inactive-value="1" inline-prompt :active-text="actionText(scope.row)" :inactive-text="inactionText(scope.row)"
             style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
             @change="handleChangeStatus(scope.row)" v-if="scope.row.showType == ShowTypeEnum.SWITCH" />
           <el-input v-model="scope.row.configValue" @change="handleChangeStatus(scope.row)"

@@ -45,7 +45,7 @@
               <el-col :span="8">
                 <el-form-item label="商品单价:" prop="productPrice">
                   <el-input-number v-model="form.productPrice" placeholder="请输入商品单价" :min="0" :max='99999'
-                    :precision='2' style="width: 100%;">
+                    :precision='2' style="width: 100%;" v-focusSelect >
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -62,7 +62,7 @@
               </el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="6">
+              <el-col :span="8">
                 <el-form-item label="商品状态:" prop="productStatus">
                   <el-radio-group v-model="form.productStatus" @change="handleProductChanged">
                     <el-radio v-for="dict in product_status" :key="dict.value" :value="Number(dict.value)">{{ dict.label
@@ -70,7 +70,7 @@
                   </el-radio-group>
                 </el-form-item>
               </el-col>
-              <el-col :span="6">
+              <el-col :span="8">
                 <el-form-item label="税率:" prop="rateId">
                   <el-select v-model="form.rateId" placeholder="请选择税率" @change="handleProductChanged">
                     <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
@@ -78,7 +78,7 @@
                   </el-select>
                 </el-form-item>
               </el-col>
-              <el-col :span="6">
+              <el-col :span="8">
                 <el-form-item label="计量单位:" prop="unitId">
                   <el-select v-model="form.unitId" placeholder="请选择计量单位" @change="handleProductChanged">
                     <el-option v-for="items in unitList" :key="items.unitId" :label="items.unitCode"
@@ -86,15 +86,8 @@
                   </el-select>
                 </el-form-item>
               </el-col>
-              <el-col :span="6">
-                <el-form-item label="成本计算:" prop="costMethod">
-                  <el-select v-model="form.costMethod" placeholder="请选择成本计算" style="width: 200px" disabled>
-                    <el-option v-for="dict in product_cost_method" :key="dict.value" :label="dict.label"
-                      :value="Number(dict.value)"></el-option>
-                  </el-select>
-                </el-form-item>
-              </el-col>
             </el-row>
+
             <el-form-item label="商品主图" prop="productImage">
               <image-upload v-model="form.productImage" />
             </el-form-item>
@@ -108,7 +101,13 @@
             <template #header>
               <div>
                 <span>商品单价信息</span>
-                <el-button type="primary" size="small" style="margin-left: 50px;" plain
+                <el-switch v-model="form.inTax" 
+                  :active-value="0"
+                  :inactive-value="1"
+                  active-text="含税" inactive-text="不含税" inline-prompt
+                  style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;margin-left: 50px;" 
+                />
+                <el-button type="primary" size="small" style="margin-left: 20px;" plain
                   @click="handleProductPriceChanged">商品单价同步</el-button>
                 <el-button type="danger" size="small" style="margin-left: 20px;" plain
                   @click="handleSkuPriceChangedByProduct">SKU单价信息 同步 商品单价信息</el-button>
@@ -118,7 +117,7 @@
               <el-col :span="1.5">
                 <el-form-item label="商品单价:" prop="productPrice">
                   <el-input-number v-model="form.productPrice" placeholder="输入单价" :max='99999' :min='0' :precision='2'
-                    style="width: 100%;">
+                    style="width: 100%;" v-focusSelect>
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -127,8 +126,8 @@
               </el-col>
               <el-col :span="1.5">
                 <el-form-item label="商品单价2:" prop="productPrice2">
-                  <el-input-number v-model="form.productPrice2" placeholder="输入单价" :max='99999' :min='0' :precision='2'
-                    value-on-clear="min" style="width: 100%;">
+                  <el-input-number v-model="form.productPrice2" placeholder="输入单价2" :max='99999' :min='0' :precision='2'
+                    value-on-clear="min" style="width: 100%;" v-focusSelect>
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -137,8 +136,8 @@
               </el-col>
               <el-col :span="1.5">
                 <el-form-item label="商品单价3:" prop="productPrice3">
-                  <el-input-number v-model="form.productPrice3" placeholder="输入单价" :max='99999' :min='0' :precision='2'
-                    value-on-clear="min" style="width: 100%;">
+                  <el-input-number v-model="form.productPrice3" placeholder="输入单价3" :max='99999' :min='0' :precision='2'
+                    value-on-clear="min" style="width: 100%;" v-focusSelect>
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -147,8 +146,8 @@
               </el-col>
               <el-col :span="1.5">
                 <el-form-item label="商品单价4:" prop="productPrice4">
-                  <el-input-number v-model="form.productPrice4" placeholder="输入单价" :max='99999' :min='0' :precision='2'
-                    value-on-clear="min" style="width: 100%;">
+                  <el-input-number v-model="form.productPrice4" placeholder="输入单价4" :max='99999' :min='0' :precision='2'
+                    value-on-clear="min" style="width: 100%;" v-focusSelect>
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -157,8 +156,8 @@
               </el-col>
               <el-col :span="1.5">
                 <el-form-item label="商品单价5:" prop="productPrice5">
-                  <el-input-number v-model="form.productPrice5" placeholder="输入单价" :max='99999' :min='0' :precision='2'
-                    value-on-clear="min" style="width: 100%;">
+                  <el-input-number v-model="form.productPrice5" placeholder="输入单价5" :max='99999' :min='0' :precision='2'
+                    value-on-clear="min" style="width: 100%;" v-focusSelect>
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -167,8 +166,8 @@
               </el-col>
               <el-col :span="1.5">
                 <el-form-item label="商品单价6:" prop="productPrice6">
-                  <el-input-number v-model="form.productPrice6" placeholder="输入单价" :max='99999' :min='0' :precision='2'
-                    value-on-clear="min" style="width: 100%;">
+                  <el-input-number v-model="form.productPrice6" placeholder="输入单价6" :max='99999' :min='0' :precision='2'
+                    value-on-clear="min" style="width: 100%;" v-focusSelect>
                     <template #suffix>
                       <span>€</span>
                     </template>
@@ -184,30 +183,30 @@
               <span>商品包装信息</span>
             </template>
             <el-row>
-              <el-col :span="1.5">
+              <el-col :span="8">
                 <el-form-item label="长度:" prop="length">
                   <el-input-number v-model="form.length" placeholder="请输入长(cm)" style="width: auto" :min="0"
-                    value-on-clear="min" :controls="false" @change="calculateVolume">
+                    value-on-clear="min" :controls="false" @change="calculateVolume" v-focusSelect>
                     <template #suffix>
                       <span>cm</span>
                     </template>
                   </el-input-number>
                 </el-form-item>
               </el-col>
-              <el-col :span="1.5">
+              <el-col :span="8">
                 <el-form-item label="宽度:" prop="width">
                   <el-input-number v-model="form.width" placeholder="请输入宽(cm)" type="number" style="width: auto"
-                    :min="0" value-on-clear="min" :controls="false" @change="calculateVolume">
+                    :min="0" value-on-clear="min" :controls="false" @change="calculateVolume" v-focusSelect>
                     <template #suffix>
                       <span>cm</span>
                     </template>
                   </el-input-number>
                 </el-form-item>
               </el-col>
-              <el-col :span="1.5">
+              <el-col :span="8">
                 <el-form-item label="高度:" prop="height">
                   <el-input-number v-model="form.height" placeholder="请输入高(cm)" type="number" style="width: auto"
-                    :min="0" value-on-clear="min" :controls="false" @change="calculateVolume">
+                    :min="0" value-on-clear="min" :controls="false" @change="calculateVolume" v-focusSelect>
                     <template #suffix>
                       <span>cm</span>
                     </template>
@@ -229,7 +228,7 @@
               <el-col :span="1.5">
                 <el-form-item label="重量:" prop="weight">
                   <el-input-number v-model="form.weight" placeholder="请输入重量(kg)" type="number" style="width: auto"
-                    :min="0" value-on-clear="min" :controls="false">
+                    :min="0" value-on-clear="min" :controls="false" v-focusSelect>
                     <template #suffix>
                       <span>kg</span>
                     </template>
@@ -482,6 +481,9 @@ import { cloneDeep } from "lodash";
 import { toRefs } from "vue";
 import {RateStatusEnum} from "./productEnum.js"
 
+const { proxy } = getCurrentInstance();
+const { product_cost_method, product_status } = proxy.useDict("product_cost_method", "product_status" );
+
 const router = useRouter();
 const route = useRoute();
 const tagsViewStore = useTagsViewStore();
@@ -497,6 +499,14 @@ const activeName = ref("first");
 // 抽屉弹窗
 const drawer = ref(false);
 
+/** 获取是否含税配置 */
+const orderInTax = ref(0);
+const getConfigOrderInTax = async () => {
+  const config = await proxy.getTenantConfig("orderInTax");
+  orderInTax.value = config.configValue;
+}
+getConfigOrderInTax()
+
 
 /** 包装信息计算 */
 const calculateVolume = () => {
@@ -508,8 +518,7 @@ const calculateVolume = () => {
 };
 
 // **************************************** 1 基础资料部门 start *******************************************
-const { proxy } = getCurrentInstance();
-const { product_cost_method, product_status } = proxy.useDict("product_cost_method", "product_status" );
+
 
 // 表单重置
 const data = reactive({
@@ -518,6 +527,7 @@ const data = reactive({
     productCode: null,
     productName: null,
     assistName: null,
+    inTax: orderInTax,
     productPrice: null,
     productPrice2: null,
     productPrice3: null,
@@ -655,6 +665,7 @@ const generateCombinations = () => {
     productCode: form.value.productCode,
     skuName: form.value.productName,
     assistName: form.value.assistName,
+    inTax: form.value.inTax,
   }));
 
   // 使用 Map 进行高效比对和更新
@@ -730,6 +741,7 @@ const handleProductChanged = () => {
     item.skuStatus = form.value.productStatus;
     item.rateId = form.value.rateId;
     item.categoryId = form.value.categoryId;
+    item.inTax = form.value.inTax;
   });
 }
 
@@ -784,7 +796,7 @@ const submitHandler = async () => {
     await proxy.$refs["productRef"].validate();
 
     // 1. 是否存在sku数据
-    if (productSkuList.value.length === 0) {
+    if (productSkuList.value.length == 0) {
       // 没有sku数据 -> 直接初始化默认sku
       initData();
       return;
@@ -805,10 +817,17 @@ const submitHandler = async () => {
           item.skuValue = JSON.stringify(item.skuValue);
         }
         // 同步商品禁用状态
-        if (form.value.productStatus === '1') {
-          item.skuStatus = '1';
+        if (form.value.productStatus == 1) {
+          item.skuStatus = 1;
+        }
+        // 同步含税状态
+        if(orderInTax.value == 0){
+          item.inTax = 0;
         }
       });
+
+      // form 表单设置是否含税
+      form.value.inTax = orderInTax.value;
 
       return {
         ...form.value,
@@ -882,11 +901,15 @@ const initSku = () => ({
   productId: form.value.productId,
   productCode: form.value.productCode,
   skuName: form.value.productName,
-  assistName: form.value.assistName
+  assistName: form.value.assistName,
+  inTax: orderInTax.value
 });
 
 const initData = async () => {
   try {
+    // 0 表单设置是否含税
+    form.value.inTax = orderInTax.value;
+
     // 1 初始化 form 的 skuSelected (规则配置内容)
     form.value.skuSelected = JSON.stringify([
       { name: "", values: [""], selected: false },
@@ -902,6 +925,7 @@ const initData = async () => {
     // 4 对skuValue进行JSON.stringify
     productSkuList.value.forEach((item) => {
       item.skuValue = JSON.stringify(item.skuValue);
+      item.inTax = orderInTax.value
     });
     // 5 将productSkuList赋值给form.value.productSkuList
     form.value.productSkuList = productSkuList.value;

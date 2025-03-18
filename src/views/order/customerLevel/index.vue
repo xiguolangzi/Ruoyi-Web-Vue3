@@ -100,7 +100,7 @@
         </el-form-item>
         <el-form-item label="基础折扣" prop="levelDiscount">
           <el-input-number v-model="form.levelDiscount" placeholder="输入基础折扣" :max='100' :min='0' :step="0"
-            value-on-clear="min" style="width: 100%;" :controls="false">
+            value-on-clear="min" v-focusSelect>
             <template #suffix>
               <span>%</span>
             </template>

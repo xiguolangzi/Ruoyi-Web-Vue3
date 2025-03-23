@@ -240,6 +240,16 @@
                 </el-form-item>
               </el-col>
             </el-row>
+            <el-form-item label="是否累加计算:" >
+              <el-radio-group v-model="form.salesPromotionRuleFullReduce.isAccumulation">
+                <el-radio
+                  v-for="dict in sales_promotion_is_accumulation"
+                  :key="dict.value"
+                  :label="dict.value"
+                  :value="Number(dict.value)"
+                >{{dict.value == IsAccumulativeEnum.YES ? "满足条件累加减免额度" : "满足条件只减免一次"}}</el-radio>
+              </el-radio-group>
+            </el-form-item>
 
             <!-- 活动适用范围模板 -->
             <salesPromotionScope
@@ -302,6 +312,16 @@
                 </el-form-item>
               </el-col>
             </el-row>
+            <el-form-item label="是否累加计算:" >
+              <el-radio-group v-model="form.salesPromotionRuleFullGift.isAccumulation">
+                <el-radio
+                  v-for="dict in sales_promotion_is_accumulation"
+                  :key="dict.value"
+                  :label="dict.value"
+                  :value="Number(dict.value)"
+                >{{dict.value == IsAccumulativeEnum.YES ? "满足条件累加赠送" : "满足条件只赠送一次"}}</el-radio>
+              </el-radio-group>
+            </el-form-item>
 
             <!-- 活动范围模板 -->
             <salesPromotionScope
@@ -323,6 +343,7 @@
                       :key="dict.value"
                       :label="dict.value"
                       :value="Number(dict.value)"
+                      :disabled="dict.value == 1"
                     >{{dict.label}}</el-radio-button>
                   </el-radio-group>
                 </el-form-item>
@@ -351,6 +372,7 @@
                           :key="dict.value"
                           :label="dict.value"
                           :value="Number(dict.value)"
+                          :disabled="dict.value == 1"
                         >{{dict.label}}</el-radio-button>
                       </el-radio-group>
                     </el-form-item>
@@ -380,7 +402,7 @@
               </el-col>
               <el-col :span="9">
                 <el-form-item label="达标数量:" >
-                  <el-input-number v-model="form.salesPromotionRuleQuantity.fullAmount" placeholder="达标数量" 
+                  <el-input-number v-model="form.salesPromotionRuleQuantity.fullQuantity" placeholder="达标数量" 
                     :max='99999' :min='0' 
                     :controls="false" ref="inputNumber1" 
                     @focus="handleFocus1"
@@ -391,7 +413,7 @@
               </el-col>
               <el-col :span="9">
                 <el-form-item label="赠送数量:" >
-                  <el-input-number v-model="form.salesPromotionRuleQuantity.giftMaxQuantity" placeholder="赠送数量" 
+                  <el-input-number v-model="form.salesPromotionRuleQuantity.giftQuantity" placeholder="赠送数量" 
                     :max='99999' :min='0' 
                     :controls="false" ref="inputNumber2" 
                     @focus="handleFocus2"
@@ -477,7 +499,7 @@
               </el-col>
               <el-col :span="16">
                 <el-form-item label="活动折扣:" >
-                  <el-input-number v-model="form.salesPromotionRuleDiscount.fullAmount" placeholder="达标数量" 
+                  <el-input-number v-model="form.salesPromotionRuleDiscount.discountRate" placeholder="活动折扣" 
                     :max='99999' :min='0' :precision='2'
                     :controls="false" ref="inputNumber1" 
                     @focus="handleFocus1"
@@ -541,11 +563,11 @@ import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
 import { listCategory } from "@/api/product/category";
 import salesPromotionScope from "./salesPromotionScope.vue";
 import salesPromotionScopeGift from "./salesPromotionScopeGift.vue";
-import {StatusEnum, IsMemberOnlyEnum, PromotionTypeEnum, ScopeTypeEnum, IsAllProductEnum} from "./enum.js";
+import {StatusEnum, IsMemberOnlyEnum, PromotionTypeEnum, ScopeTypeEnum, IsAllProductEnum, IsAccumulativeEnum} from "./enum.js";
 import { cloneDeep } from "lodash";
 
 const { proxy } = getCurrentInstance();
-const { erp_sales_promotion_type, erp_sales_promotion_scope, sys_tenant_status, sys_yes_or_no } = proxy.useDict('erp_sales_promotion_type', 'erp_sales_promotion_scope', 'sys_tenant_status', 'sys_yes_or_no');
+const { erp_sales_promotion_type, erp_sales_promotion_scope, sys_tenant_status, sys_yes_or_no, sales_promotion_is_accumulation } = proxy.useDict('erp_sales_promotion_type', 'erp_sales_promotion_scope', 'sys_tenant_status', 'sys_yes_or_no', 'sales_promotion_is_accumulation');
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -660,6 +682,7 @@ const initSalesPromotionRuleFullReduce = () => ({
   promotionScopeType: ScopeTypeEnum.SKU,
   fullAmount: null,
   reduceAmount: null,
+  isAccumulation: IsAccumulativeEnum.NO,
 });
 // 满送y
 const initSalesPromotionRuleFullGift = () => ({
@@ -669,6 +692,7 @@ const initSalesPromotionRuleFullGift = () => ({
   fullAmount: null,
   giftScopeType: ScopeTypeEnum.SKU,
   giftMaxQuantity: null,
+  isAccumulation: IsAccumulativeEnum.NO,
 });
 // 买x送y
 const initSalesPromotionRuleQuantity = () => ({

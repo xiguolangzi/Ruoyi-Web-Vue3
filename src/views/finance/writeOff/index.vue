@@ -140,7 +140,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="writeOffList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="writeOffList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="核销流水编号" align="center" prop="writeOffNo" />
       <el-table-column label="核销类型" align="center" prop="writeOffType">

@@ -75,7 +75,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="brandList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="brandList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="品牌编码" align="center" prop="brandId" />
       <el-table-column label="品牌代码" align="center" prop="brandCode" />

@@ -193,13 +193,13 @@ export const dynamicRoutes = [
     ]
   },
   {
-    path: '/purchaseManage/receipts',
+    path: '/order/receipts',
     component: Layout,
     hidden: true,
-    permissions: ['purchaseManage:receipts:add'],
+    permissions: ['order:receipts:edit'],
     children: [
       {
-        path: '/purchaseManage/receipts/edit',
+        path: '/order/receipts/edit',
         component: () => import('@/views/order/receipts/editReceipts'),
         name: 'editReceipts',
         meta: { title: '编辑采购入库单' }

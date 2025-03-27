@@ -43,7 +43,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="customerSalesmanList" @selection-change="handleSelectionChange" table-layout="fixed">
+    <el-table class="table-container" v-loading="loading" :data="customerSalesmanList" @selection-change="handleSelectionChange" table-layout="fixed" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" width="55" prop="id" />
       <el-table-column label="客户编码" align="center">

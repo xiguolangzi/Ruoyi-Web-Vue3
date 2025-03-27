@@ -56,7 +56,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="purchaseOrderDetailList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="purchaseOrderDetailList" @selection-change="handleSelectionChange" size="small">
 
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" label="序号" width="55"  align="center"/>

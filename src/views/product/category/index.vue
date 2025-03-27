@@ -54,6 +54,7 @@
       :default-expand-all="isExpandAll"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
       ref="categoryTable"
+      size="small"
       @cell-click="handleCellClick"
     >
       <el-table-column label="分类名称" prop="categoryName" min-width="100" show-overflow-tooltip/>

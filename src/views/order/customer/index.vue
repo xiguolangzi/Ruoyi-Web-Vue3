@@ -74,7 +74,9 @@
         </el-row>
 
 
-          <el-table class="table-container" v-loading="loading" :data="customerList" @selection-change="handleSelectionChange" resizable  ref="customerTable" @expand-change="handleExpandChange2" row-key="customerId">
+          <el-table class="table-container" v-loading="loading" :data="customerList" size="small"
+          @selection-change="handleSelectionChange" resizable  ref="customerTable" 
+          @expand-change="handleExpandChange2" row-key="customerId">
             <el-table-column type="expand">
               <template #default="props">
                 <div style="padding: 10px 50px;">

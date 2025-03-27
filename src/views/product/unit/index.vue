@@ -67,7 +67,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="unitList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="unitList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="计量单位ID" align="center" prop="unitId" />
       <el-table-column label="单位名称" align="center" prop="unitCode" />

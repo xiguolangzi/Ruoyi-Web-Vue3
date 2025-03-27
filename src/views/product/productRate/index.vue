@@ -67,7 +67,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="productRateList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="productRateList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="税率ID" align="center" prop="rateId" />
       <el-table-column label="税率值(%)" align="center" prop="rateValue" />

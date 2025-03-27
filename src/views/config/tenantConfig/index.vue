@@ -30,7 +30,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="tenantConfigList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="tenantConfigList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="配置ID" align="center" prop="configId" />
       <el-table-column label="配置编码" align="center" prop="configCode" />

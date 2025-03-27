@@ -21,7 +21,7 @@
             :key="customer.customerId"
             :label="customer.customerName"
             :value="customer.customerId"
-            :disabled="customer.customerStatus !== '0'"
+            :disabled="customer.customerStatus != '0'"
           >
             <span>{{ '客户名称：' + customer.customerName + ' ---- ' + '客户编码：' + customer.customerCode }}</span>
           </el-option>
@@ -35,7 +35,7 @@
             :key="supplier.supplierId"
             :label="supplier.supplierName"
             :value="supplier.supplierId"
-            :disabled="supplier.supplierStatus !== '0'"
+            :disabled="supplier.supplierStatus != '0'"
           >
             <span>{{ '供应商名称：' + supplier.supplierName + ' ---- ' + '供应商编码：' + supplier.supplierCode }}</span>
           </el-option>
@@ -49,7 +49,7 @@
             :key="user.userId"
             :label="user.userName"
             :value="user.userId"
-            :disabled="user.status !== '0'"
+            :disabled="user.status != '0'"
           >
             <span>{{ '员工名称：' + user.userName + ' ---- ' + '员工昵称：' + user.nickName }}</span>
           </el-option>

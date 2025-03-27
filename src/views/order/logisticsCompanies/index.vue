@@ -99,7 +99,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="logisticsCompaniesList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="logisticsCompaniesList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="公司名称" align="center" prop="companyName" show-overflow-tooltip/>
       <el-table-column label="公司编码" align="center" prop="companyCode" />

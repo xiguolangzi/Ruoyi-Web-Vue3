@@ -95,7 +95,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="salesPromotionList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="salesPromotionList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="活动编码" align="center" prop="promotionCode" />
       <el-table-column label="活动名称" align="center" prop="promotionName" />
@@ -152,7 +152,7 @@
               <el-input v-model="form.promotionName" placeholder="请输入促销活动名称" type="textarea" :maxlength="50" show-word-limit :rows="1" />
             </el-form-item>
             <el-form-item label="活动类型:" prop="promotionType">
-              <el-radio-group v-model="form.promotionType" @change="changePromotionType">
+              <el-radio-group v-model="form.promotionType" size="small" @change="changePromotionType">
                 <el-radio-button
                   v-for="dict in erp_sales_promotion_type"
                   :key="dict.value"
@@ -202,8 +202,8 @@
 
         <el-tab-pane label="配置活动规则" name="items">
 
-          <!-- RuleFullReduce 满减-->
-          <template v-if="form.promotionType == PromotionTypeEnum.FULL_REDUCE">
+          <!-- RuleFullDiscount 满折扣-->
+          <template v-if="form.promotionType == PromotionTypeEnum.FULL_DISCOUNT">
             
             <el-row :gutter="20">
               <el-col :span="6">
@@ -213,7 +213,7 @@
               </el-col>
               <el-col :span="9">
                 <el-form-item label="满额条件:" >
-                  <el-input-number v-model="form.salesPromotionRuleFullReduce.fullAmount" placeholder="满额条件" 
+                  <el-input-number v-model="form.salesPromotionRuleFullDiscount.fullAmount" placeholder="满额条件" 
                     :max='99999' :min='0' :precision='2'
                     :controls="false" ref="inputNumber1" 
                     @focus="handleFocus1"
@@ -226,34 +226,24 @@
                 </el-form-item>
               </el-col>
               <el-col :span="9">
-                <el-form-item label="减免额度:" >
-                  <el-input-number v-model="form.salesPromotionRuleFullReduce.reduceAmount" placeholder="减免额度" 
-                    :max='99999' :min='0' :precision='2'
+                <el-form-item label="折扣率:" >
+                  <el-input-number v-model="form.salesPromotionRuleFullDiscount.reduceAmount" placeholder="折扣率" 
+                    :max='100' :min='0' :precision='0'
                     :controls="false" ref="inputNumber2" 
                     @focus="handleFocus2"
                     style="width: 100%;"
                   >
                     <template #suffix>
-                      <span>€</span>
+                      <span>%</span>
                     </template>
                   </el-input-number>
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-form-item label="是否累加计算:" >
-              <el-radio-group v-model="form.salesPromotionRuleFullReduce.isAccumulation">
-                <el-radio
-                  v-for="dict in sales_promotion_is_accumulation"
-                  :key="dict.value"
-                  :label="dict.value"
-                  :value="Number(dict.value)"
-                >{{dict.value == IsAccumulativeEnum.YES ? "满足条件累加减免额度" : "满足条件只减免一次"}}</el-radio>
-              </el-radio-group>
-            </el-form-item>
 
             <!-- 活动适用范围模板 -->
             <salesPromotionScope
-              :promotionScopeType="form.salesPromotionRuleFullReduce.promotionScopeType"
+              :promotionScopeType="form.salesPromotionRuleFullDiscount.promotionScopeType"
               :salesPromotionScopeList="form.salesPromotionScopeList"
               :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
@@ -265,7 +255,7 @@
             >
               <template #promotion-scope-label>
                 <el-form-item label="活动适用范围:" >
-                  <el-radio-group v-model="form.salesPromotionRuleFullReduce.promotionScopeType" @change="handlePromotionScopeTypeChanged(form.salesPromotionRuleFullReduce.promotionScopeType)">
+                  <el-radio-group v-model="form.salesPromotionRuleFullDiscount.promotionScopeType" size="small" @change="handlePromotionScopeTypeChanged(form.salesPromotionRuleFullDiscount.promotionScopeType)">
                     <el-radio-button
                       v-for="dict in erp_sales_promotion_scope"
                       :key="dict.value"
@@ -337,7 +327,7 @@
             >
               <template #promotion-scope-label>
                 <el-form-item label="活动适用范围:" >
-                  <el-radio-group v-model="form.salesPromotionRuleFullGift.promotionScopeType" @change="handlePromotionScopeTypeChanged(form.salesPromotionRuleFullGift.promotionScopeType)">
+                  <el-radio-group v-model="form.salesPromotionRuleFullGift.promotionScopeType" size="small" @change="handlePromotionScopeTypeChanged(form.salesPromotionRuleFullGift.promotionScopeType)">
                     <el-radio-button
                       v-for="dict in erp_sales_promotion_scope"
                       :key="dict.value"
@@ -366,7 +356,7 @@
                 <el-row>
                   <el-col :span="16">
                     <el-form-item label="赠品适用范围:" >
-                      <el-radio-group v-model="form.salesPromotionRuleFullGift.giftScopeType" @change="handleGiftScopeTypeChanged(form.salesPromotionRuleFullGift.giftScopeType)">
+                      <el-radio-group v-model="form.salesPromotionRuleFullGift.giftScopeType" size="small" @change="handleGiftScopeTypeChanged(form.salesPromotionRuleFullGift.giftScopeType)">
                         <el-radio-button
                           v-for="dict in erp_sales_promotion_scope"
                           :key="dict.value"
@@ -378,7 +368,7 @@
                     </el-form-item>
                   </el-col>
                   <el-col :span="8">
-                    <el-button type="primary" plain @click="handleSynchronizeData()">
+                    <el-button type="primary" plain @click="handleSynchronizeData()" size="small">
                       <template #icon>
                         <svg-icon icon-class="synchronizeData" />
                       </template>
@@ -392,7 +382,7 @@
 
           </template>
 
-          <!-- RuleQuantity 买x送y -->
+          <!-- RuleQuantity 买x免y -->
           <template v-if="form.promotionType == PromotionTypeEnum.QUANTITY">
             <el-row :gutter="20">
               <el-col :span="6">
@@ -412,8 +402,8 @@
                 </el-form-item>
               </el-col>
               <el-col :span="9">
-                <el-form-item label="赠送数量:" >
-                  <el-input-number v-model="form.salesPromotionRuleQuantity.giftQuantity" placeholder="赠送数量" 
+                <el-form-item label="免支付数量:" >
+                  <el-input-number v-model="form.salesPromotionRuleQuantity.giftQuantity" placeholder="免支付数量" 
                     :max='99999' :min='0' 
                     :controls="false" ref="inputNumber2" 
                     @focus="handleFocus2"
@@ -437,7 +427,7 @@
             >
               <template #promotion-scope-label>
                 <el-form-item label="活动适用范围:" >
-                  <el-radio-group v-model="form.salesPromotionRuleQuantity.promotionScopeType" @change="handlePromotionScopeTypeChanged(form.salesPromotionRuleQuantity.promotionScopeType)">
+                  <el-radio-group v-model="form.salesPromotionRuleQuantity.promotionScopeType" size="small" @change="handlePromotionScopeTypeChanged(form.salesPromotionRuleQuantity.promotionScopeType)">
                     <el-radio-button
                       v-for="dict in erp_sales_promotion_scope"
                       :key="dict.value"
@@ -463,9 +453,9 @@
             >
               <template #gift-scope-label>
                 <el-row>
-                  <el-col :span="16">
-                    <el-form-item label="赠品适用范围:" >
-                      <el-radio-group v-model="form.salesPromotionRuleQuantity.giftScopeType" @change="handleGiftScopeTypeChanged(form.salesPromotionRuleQuantity.giftScopeType)">
+                  <el-col :span="18">
+                    <el-form-item label="免支付适用范围:" >
+                      <el-radio-group v-model="form.salesPromotionRuleQuantity.giftScopeType" size="small" @change="handleGiftScopeTypeChanged(form.salesPromotionRuleQuantity.giftScopeType)">
                         <el-radio-button
                           v-for="dict in erp_sales_promotion_scope"
                           :key="dict.value"
@@ -475,8 +465,8 @@
                       </el-radio-group>
                     </el-form-item>
                   </el-col>
-                  <el-col :span="8">
-                    <el-button type="primary" plain @click="handleSynchronizeData()">
+                  <el-col :span="6" >
+                    <el-button type="primary" plain @click="handleSynchronizeData()" size="small">
                       <template #icon>
                         <svg-icon icon-class="synchronizeData" />
                       </template>
@@ -527,7 +517,7 @@
             >
               <template #promotion-scope-label>
                 <el-form-item label="活动适用范围:" >
-                  <el-radio-group v-model="form.salesPromotionRuleFullReduce.promotionScopeType" @change="handlePromotionScopeTypeChanged(form.salesPromotionRuleFullReduce.promotionScopeType)">
+                  <el-radio-group v-model="form.salesPromotionRuleFullReduce.promotionScopeType" size="small" @change="handlePromotionScopeTypeChanged(form.salesPromotionRuleFullReduce.promotionScopeType)">
                     <el-radio-button
                       v-for="dict in erp_sales_promotion_scope"
                       :key="dict.value"
@@ -676,13 +666,12 @@ const beforeLeave = async (oldValue, newValue) => {
 
 // --------------- 4 切换促销类型 start   -----------------
 // 满减
-const initSalesPromotionRuleFullReduce = () => ({
+const initSalesPromotionRuleFullDiscount = () => ({
   ruleId: null,
   promotionId: null,
   promotionScopeType: ScopeTypeEnum.SKU,
   fullAmount: null,
-  reduceAmount: null,
-  isAccumulation: IsAccumulativeEnum.NO,
+  discountRate: null,
 });
 // 满送y
 const initSalesPromotionRuleFullGift = () => ({
@@ -712,7 +701,7 @@ const initSalesPromotionRuleDiscount = () => ({
 });
 // 重置规则
 const restAllRules = () => {
-  form.value.salesPromotionRuleFullReduce = initSalesPromotionRuleFullReduce();
+  form.value.salesPromotionRuleFullDiscount = initSalesPromotionRuleFullDiscount();
   form.value.salesPromotionRuleFullGift = initSalesPromotionRuleFullGift();
   form.value.salesPromotionRuleQuantity = initSalesPromotionRuleQuantity();
   form.value.salesPromotionRuleDiscount = initSalesPromotionRuleDiscount();
@@ -722,9 +711,9 @@ const restAllRules = () => {
 /** 修改促销类型 - 切换折扣规则 */
 const  changePromotionType = () => {
   switch (form.value.promotionType) {
-    case PromotionTypeEnum.FULL_REDUCE:
+    case PromotionTypeEnum.FULL_DISCOUNT:
       restAllRules()
-      form.value.salesPromotionRuleFullReduce = initSalesPromotionRuleFullReduce();
+      form.value.salesPromotionRuleFullDiscount = initSalesPromotionRuleFullDiscount();
       break;
     case PromotionTypeEnum.FULL_GIFT:
       restAllRules()
@@ -927,7 +916,7 @@ function reset() {
     isMemberOnly: IsMemberOnlyEnum.NO,
     tenantId: null,
     delFlag: null,
-    salesPromotionRuleFullReduce: initSalesPromotionRuleFullReduce(),
+    salesPromotionRuleFullDiscount: initSalesPromotionRuleFullDiscount(),
     salesPromotionRuleFullGift: initSalesPromotionRuleFullGift(),
     salesPromotionRuleQuantity: initSalesPromotionRuleQuantity(),
     salesPromotionRuleDiscount: initSalesPromotionRuleDiscount(),

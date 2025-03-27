@@ -411,11 +411,13 @@ import { ElMessage, ElMessageBox, ElNotification } from 'element-plus';
 import { getShiftRecordsIsActive, getLastShiftRecords, addSalesShiftRecords, continueSalesShiftRecords, getSalesShiftRecords, finishSalesShiftRecords } from '@/api/sales/SalesShiftRecords';
 import useUserStore from "@/store/modules/user";
 import {UserTypeEnum} from "@/views/system/tenant/tenantConstants.js";
-import { size } from 'lodash';
+import { clone, cloneDeep, size } from 'lodash';
 import ImageNormal from '@/components/ImageNormal/index.vue';
 import { Picture as IconPicture } from '@element-plus/icons-vue'
 import { addSalesOrder, updateSalesOrder } from "@/api/sales/salesOrder";
 import {authStoreManager} from "@/api/system/user.js"
+import SnowflakeID from '@/utils/SnowflakeID.js';
+import IndexedDBUtil from '@/indexedDB/index.js';
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
@@ -436,6 +438,10 @@ const currentSku = ref(null)
 const currentWarehouse = ref(null);
 const canEditPrice = ref('1');  // 表格子组件编辑单价disable控制
 const canEditDiscountRate = ref('1'); // 表格子组件编辑折扣disable控制
+
+const DB_NAME = "OrderDB";
+const STORE_NAME_ORDER = "order";
+const STORE_NAME_DETAIL = "orderDetail";
 
 /** 获取租户配置 */
 const getTenantConfig = async () => {
@@ -495,13 +501,27 @@ const data = reactive({
 
 const { form, rules } = toRefs(data);
 
+// 数据本地存储
+const indexedDBForm = () =>{
+  try {
+    // 先去掉 Proxy，转为普通对象
+    console.log("存储前的数据:", toRaw(form.value));
+    const rawData = toRaw(form.value);
+    // const clonedForm = structuredClone(rawData);
+    IndexedDBUtil.saveData(DB_NAME, STORE_NAME_ORDER, rawData);
+  } catch (error) {
+    console.error("存储数据失败:", error);
+  }
+}
 // 销售订单表单数据重置
 function reset() {
+  const snowflake = new SnowflakeID({ objectId: userStore.id});
+  const orderNo = snowflake.nextId();
   form.value = {
     orderId: null,
     orderDirection: OrderDirectionEnum.SALES,
     orderInitNo: null,
-    orderNo: null,
+    orderNo: orderNo,
     parentOrderId: null,
     orderSource: orderSourceEnum.CAJA,
     warehouseId: null,
@@ -539,6 +559,7 @@ function reset() {
     operateLog: null,
     salesOrderDetailList: []
   };
+
   proxy.resetForm("salesOrderRef");
   
 }
@@ -958,6 +979,7 @@ const handleAction = (action) => {
       console.log("挂单");
       playKeyHappySound()
       console.log("表单form的数据：*****", form.value)
+      indexedDBForm()
       break;
     case "splitOrder":
       console.log("拆单");
@@ -1172,9 +1194,10 @@ function calculateAmounts(detailPrice, taxRate, inTax) {
 function handleAddSalesOrderDetail(sku) {
   const obj = initOrderDetailData();
   const { skuId, skuCode, skuImage, skuName, assistName, skuType, skuValue, batchNo, unitVo, productRateVo, inTax, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6 } = sku;
-
+  const snowflake = new SnowflakeID();
+  const detailId = snowflake.nextId();
   // 1 基础信息赋值
-  obj.detailId = null;
+  obj.detailId = detailId;
   obj.detailType = DetailTypeEnum.MAIN;
   obj.detailMainSkuId = null;
   obj.skuId = skuId;
@@ -1269,6 +1292,7 @@ const updateDetailPriceAndDiscount = () => {
 
       console.log("订单明细计算结果：", item);
     });
+
   }
 };
 
@@ -1328,7 +1352,7 @@ const totalNetAmount = computed(() => {
 // 更新订单form数据
 const updateFormData = () => {
   form.value.cajaId = currentCaja.value.cajaId;
-  form.value.shiftId = currentShift.value.shiftId;
+  form.value.shiftId = shiftForm.value.shiftId;
   form.value.totalAmount = totalAmount.value;
   form.value.totalQuantity = totalQuantity.value;
   form.value.totalDiscountAmount = totalDiscountAmount.value;
@@ -1336,6 +1360,7 @@ const updateFormData = () => {
   form.value.totalBaseAmount = totalBaseAmount.value;
   form.value.totalTaxAmount = totalTaxAmount.value;
   form.value.totalNetAmount = totalNetAmount.value;
+
 };
 // 9 收款操作
 const handlerPayment = () => {

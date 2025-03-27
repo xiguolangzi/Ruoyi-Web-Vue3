@@ -19,9 +19,13 @@ export const IsMemberOnlyEnum = {
  * 1.3 活动类型
  */
 export const PromotionTypeEnum = {
-  FULL_REDUCE: 1,
+  // 满折扣
+  FULL_DISCOUNT: 1,
+  // 满赠
   FULL_GIFT: 2,
+  // 买x免y
   QUANTITY: 3,
+  // 折扣
   DISCOUNT: 4,
 }
 

@@ -79,7 +79,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="financePeriodList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="financePeriodList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" min-width="50"/>
       <el-table-column label="会计年度" align="center" prop="periodYear" />

@@ -46,7 +46,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="purchaseInvoiceReceiptsList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="purchaseInvoiceReceiptsList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="发票号" align="left"  prop="invoiceNo" />
       <el-table-column label="采购入库单号" align="left"  prop="receiptsNo" />

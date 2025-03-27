@@ -627,10 +627,10 @@ function handleSelectionChange(selection) {
 
 /** 新增按钮操作 */
 function handleAdd() {
-  const obj = {path: "/purchaseManage/receipts/edit", name:"editReceipts"}
+  const obj = {path: "/order/receipts/edit", name:"editReceipts"}
   proxy.$tab.closePage(obj).then(
     () => {
-      router.push({ path: "/purchaseManage/receipts/edit" })
+      router.push({ path: "/order/receipts/edit" })
     } 
   )
   
@@ -639,10 +639,10 @@ function handleAdd() {
 /** 修改按钮操作 */
 function handleUpdate(row) {
   const _receiptsId = row.receiptsId || ids.value
-  const obj = {path: "/purchaseManage/receipts/edit", name:"editReceipts"}
+  const obj = {path: "/order/receipts/edit", name:"editReceipts"}
   proxy.$tab.closePage(obj).then(
     () => {
-      router.push({ path: "/purchaseManage/receipts/edit", query: { receiptsId: _receiptsId } });
+      router.push({ path: "/order/receipts/edit", query: { receiptsId: _receiptsId } });
     } 
   )
 }

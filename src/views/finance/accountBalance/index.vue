@@ -68,7 +68,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="accountBalanceList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="accountBalanceList" @selection-change="handleSelectionChange" size="small">
       <el-table-column label="序号" align="center" type="index" width="55" />
       <el-table-column label="科目编码" align="center" prop="accountVo.accountCode" />
       <el-table-column label="科目名称" align="center" prop="accountVo.accountName" />

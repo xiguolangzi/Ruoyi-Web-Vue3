@@ -57,7 +57,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="skuNameList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="skuNameList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="主键ID" align="center" prop="id" />
       <el-table-column label="规格名称" align="center" prop="skuName" />

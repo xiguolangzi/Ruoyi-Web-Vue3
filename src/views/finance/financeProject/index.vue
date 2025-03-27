@@ -60,6 +60,7 @@
       row-key="projectId"
       :default-expand-all="isExpandAll"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
+      size="small"
     >
       <el-table-column label="会计项目名称" prop="projectName" min-width="120" show-overflow-tooltip/>
       <el-table-column label="上级项目名称" align="center" prop="parentName">

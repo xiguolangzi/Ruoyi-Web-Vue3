@@ -88,7 +88,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="voucherDetailList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="voucherDetailList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" align="center" type="index" width="55"/>
       <el-table-column label="凭证ID" align="center" prop="voucherId" />

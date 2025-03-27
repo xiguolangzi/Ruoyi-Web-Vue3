@@ -41,7 +41,7 @@
 
     <el-table class="table-container" v-if="refreshTable" v-loading="loading" border :data="accountList" row-key="accountId"
       :default-expand-all="isExpandAll" :tree-props="{children: 'children', hasChildren: 'hasChildren'}"
-      ref="accountTable" @cell-click="handleCellClick">
+      ref="accountTable" @cell-click="handleCellClick" size="small">
       <el-table-column label="科目编码" prop="accountCode" min-width="100" show-overflow-tooltip />
       <el-table-column label="科目名称" align="left" header-align="center" prop="accountName" min-width="100"
         show-overflow-tooltip />

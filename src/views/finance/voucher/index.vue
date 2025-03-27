@@ -46,7 +46,7 @@
     </el-row>
 
     <!-- 数据展示 -->
-    <el-table class="table-container" v-loading="loading" :data="voucherList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="voucherList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" :width="55" align="center" />
       <el-table-column label="会计年度" align="center" prop="periodYear" width="80px">
         <template #default="scope">

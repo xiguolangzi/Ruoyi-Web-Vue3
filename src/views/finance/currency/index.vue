@@ -75,7 +75,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="currencyList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="currencyList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="序号" type="index" align="center" prop="currencyId" width="50" />
       <el-table-column label="币种名称" align="center" prop="currencyName" />

@@ -83,7 +83,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="fundAccountList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="fundAccountList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column type="index" label="序号" width="50" align="center" />
       <el-table-column label="账户名称" align="center" prop="fundAccountName" min-width="150" show-overflow-tooltip/>

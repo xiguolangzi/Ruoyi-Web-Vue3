@@ -46,7 +46,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="skuList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="skuList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" v-if="controlUpdateAndDeleteSwitch" />
       <el-table-column type="index" label="序号" width="50" align="center" />
       <el-table-column label="sku图片" align="center" prop="skuImage" :width="100">

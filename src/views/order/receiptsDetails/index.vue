@@ -181,10 +181,10 @@ const { queryParams } = toRefs(data);
 const router = useRouter();
 function handleUpdate(row) {
   const _receiptsId = row.receiptsId || ids.value
-  const obj = {path: "/purchaseManage/receipts/edit", name:"editReceipts"}
+  const obj = {path: "/order/receipts/edit", name:"editReceipts"}
   proxy.$tab.closePage(obj).then(
     () => {
-      router.push({ path: "/purchaseManage/receipts/edit", query: { receiptsId: _receiptsId } });
+      router.push({ path: "/order/receipts/edit", query: { receiptsId: _receiptsId } });
     } 
   )
 }

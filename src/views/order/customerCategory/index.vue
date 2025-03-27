@@ -30,7 +30,7 @@
     </el-row>
 
     <el-table class="table-container" v-if="refreshTable" v-loading="loading" :data="customerCategoryList" row-key="categoryId"
-      :default-expand-all="isExpandAll" :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+      :default-expand-all="isExpandAll" :tree-props="{children: 'children', hasChildren: 'hasChildren'}" size="small">
       <el-table-column label="分类名称" align="center" prop="categoryName" />
       <el-table-column label="备注描述" align="center" prop="remark" />
       <el-table-column label="分类状态" align="center" prop="categoryStatus" width="80">

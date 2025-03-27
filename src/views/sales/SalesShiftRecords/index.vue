@@ -99,7 +99,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="SalesShiftRecordsList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="SalesShiftRecordsList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="交班编号" align="center" prop="shiftNo" />
       <el-table-column label="设备名称" align="center" prop="cajaId" min-width="150" show-overflow-tooltip/>

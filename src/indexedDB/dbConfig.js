@@ -1,3 +1,4 @@
+import { version } from "nprogress";
 
 // 配置库 ConfigDB
 export const dbConfig = [
@@ -29,5 +30,57 @@ export const dbConfig = [
       },
     ]
   },
+  {
+    dbName: 'OrderDB',
+    version: 1,
+    storeNameList: [
+      {
+        storeName: 'order',
+        options: {
+          keyPath: 'orderNo',
+          autoIncrement: true
+        },
+        indexList: [
+          {
+            name: 'orderNo',
+            keyPath: 'orderNo',
+            options: {
+              unique: true
+            }
+          },
+          {
+            name: 'customerId',
+            keyPath: 'customerId',
+            options: {
+              unique: false
+            }
+          },
+        ]
+      },
+      {
+        storeName: 'orderDetail',
+        options: {
+          keyPath: 'detailId',
+          autoIncrement: true
+        },
+        indexList: [
+          {
+            name: 'orderId',
+            keyPath: 'orderId',
+            options: {
+              unique: false
+            }
+          },
+          {
+            name: 'skuId',
+            keyPath: 'skuId',
+            options: {
+              unique: false
+            }
+          }
+        ]
+      }
+    ]
+  }
 
 ]

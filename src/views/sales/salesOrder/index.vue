@@ -19,16 +19,6 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="含税状态" prop="orderInTax">
-        <el-select v-model="queryParams.orderInTax" placeholder="请选择含税状态" clearable>
-          <el-option
-            v-for="dict in sales_order_in_tax"
-            :key="dict.value"
-            :label="dict.label"
-            :value="Number(dict.value)"
-          />
-        </el-select>
-      </el-form-item>
       <el-form-item label="仓库ID" prop="warehouseId">
         <el-input
           v-model="queryParams.warehouseId"
@@ -155,28 +145,22 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="salesOrderList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" size="small" v-loading="loading" :data="salesOrderList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键ID" align="center" prop="orderId" />
-      <el-table-column label="初始单号" align="center" prop="orderInitNo" />
-      <el-table-column label="订单编号" align="center" prop="orderNo" />
-      <el-table-column label="原始订单ID" align="center" prop="parentOrderId" />
+      <el-table-column label="订单方向" align="center" prop="orderDirection" />
+      <el-table-column label="初始单号" align="center" prop="orderInitNo" show-overflow-tooltip min-width="100"/>
+      <el-table-column label="原始订单ID" align="center" prop="parentOrderId" show-overflow-tooltip min-width="100" />
+      <el-table-column label="订单编号" align="center" prop="orderNo" show-overflow-tooltip min-width="100" />
       <el-table-column label="订单来源" align="center" prop="orderSource">
         <template #default="scope">
           <dict-tag :options="sales_order_source" :value="scope.row.orderSource"/>
         </template>
       </el-table-column>
-      <el-table-column label="含税状态" align="center" prop="orderInTax">
-        <template #default="scope">
-          <dict-tag :options="sales_order_in_tax" :value="scope.row.orderInTax"/>
-        </template>
-      </el-table-column>
       <el-table-column label="仓库ID" align="center" prop="warehouseId" />
       <el-table-column label="收银台ID" align="center" prop="cajaId" />
-      <el-table-column label="交班ID" align="center" prop="shiftId" />
       <el-table-column label="业务员ID" align="center" prop="salesmanId" />
       <el-table-column label="客户ID" align="center" prop="customerId" />
-      <el-table-column label="销售活动ID" align="center" prop="activityId" />
+      <el-table-column label="业务活动" align="center" prop="activityId" />
       <el-table-column label="订单类型" align="center" prop="orderType">
         <template #default="scope">
           <dict-tag :options="sales_order_type" :value="scope.row.orderType"/>
@@ -192,29 +176,32 @@
           <dict-tag :options="sales_order_is_hold" :value="scope.row.orderIsHold"/>
         </template>
       </el-table-column>
-      <el-table-column label="订单支付状态" align="center" prop="orderPayStatus">
+      <el-table-column label="支付状态" align="center" prop="orderPayStatus">
         <template #default="scope">
           <dict-tag :options="sales_order_pay_status" :value="scope.row.orderPayStatus"/>
         </template>
       </el-table-column>
+      <el-table-column label="总数量" align="center" prop="totalQuantity" />
       <el-table-column label="总金额" align="center" prop="totalAmount" />
       <el-table-column label="总折扣额" align="center" prop="totalDiscountAmount" />
-      <el-table-column label="促销活动减免金额" align="center" prop="totalPromotionReduceAmount" />
       <el-table-column label="销售总额" align="center" prop="totalSalesAmount" />
+      <el-table-column label="减免金额" align="center" prop="totalPromotionReduceAmount" />
       <el-table-column label="基础金额" align="center" prop="totalBaseAmount" />
       <el-table-column label="总税额" align="center" prop="totalTaxAmount" />
       <el-table-column label="应收总额" align="center" prop="totalNetAmount" />
+      <el-table-column label="现金收款" align="center" prop="cashAmount" />
+      <el-table-column label="银行收款" align="center" prop="bankAmount" />
+      <el-table-column label="找零" align="center" prop="changeAmount" />
+      <el-table-column label="抹零" align="center" prop="zeroAmount" />
       <el-table-column label="未核销金额" align="center" prop="remainAmount" />
       <el-table-column label="已核销金额" align="center" prop="verifiedAmount" />
-      <el-table-column label="促销活动赠送数量" align="center" prop="totalGiftQuantity" />
-      <el-table-column label="优惠抹零(交班计算)" align="center" prop="totalZeroAmount" />
+      <el-table-column label="赠送数量" align="center" prop="totalGiftQuantity" />
       <el-table-column label="备注信息" align="center" prop="remark" />
-      <el-table-column label="租户id" align="center" prop="tenantId" />
       <el-table-column label="操作记录" align="center" prop="operateLog" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" show-overflow-tooltip min-width="130">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['sales:salesOrder:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['sales:salesOrder:remove']">删除</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['sales:salesOrder:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -238,9 +225,6 @@
         </el-form-item>
         <el-form-item label="原始订单ID" prop="parentOrderId">
           <el-input v-model="form.parentOrderId" placeholder="请输入原始订单ID" />
-        </el-form-item>
-        <el-form-item label="订单来源" prop="orderSource">
-          <el-input v-model="form.orderSource" placeholder="请输入订单来源" />
         </el-form-item>
         <el-form-item label="含税状态" prop="orderInTax">
           <el-input v-model="form.orderInTax" placeholder="请输入含税状态" />
@@ -278,7 +262,7 @@
             <el-radio
               v-for="dict in sales_order_status"
               :key="dict.value"
-              :label="Number(dict.value)"
+              :value="Number(dict.value)"
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -290,7 +274,7 @@
             <el-radio
               v-for="dict in sales_order_pay_status"
               :key="dict.value"
-              :label="Number(dict.value)"
+              :value="Number(dict.value)"
             >{{dict.label}}</el-radio>
           </el-radio-group>
         </el-form-item>
@@ -405,9 +389,9 @@
               <el-input v-model="scope.row.assistName" placeholder="请输入辅助名称" />
             </template>
           </el-table-column>
-          <el-table-column label="批次ID" prop="batchId" width="150">
+          <el-table-column label="批次号" prop="batchNo" width="150">
             <template #default="scope">
-              <el-input v-model="scope.row.batchId" placeholder="请输入批次ID" />
+              <el-input v-model="scope.row.batchNo" placeholder="请输入批次号" />
             </template>
           </el-table-column>
           <el-table-column label="序列号" prop="detailSn" width="150">
@@ -500,6 +484,8 @@
 <script setup name="SalesOrder">
 import { listSalesOrder, getSalesOrder, delSalesOrder, addSalesOrder, updateSalesOrder } from "@/api/sales/salesOrder";
 import useUserStore from "@/store/modules/user";
+import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum,DetailTypeEnum } from './cashOperation/cashOperationEnum.js';
+import SnowflakeID from '@/utils/SnowflakeID.js';
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -528,7 +514,6 @@ const data = reactive({
     orderNo: null,
     parentOrderId: null,
     orderSource: null,
-    orderInTax: null,
     warehouseId: null,
     cajaId: null,
     shiftId: null,
@@ -539,19 +524,7 @@ const data = reactive({
     orderStatus: null,
     orderIsHold: null,
     orderPayStatus: null,
-    totalAmount: null,
-    totalDiscountAmount: null,
-    totalPromotionReduceAmount: null,
-    totalSalesAmount: null,
-    totalBaseAmount: null,
-    totalTaxAmount: null,
-    totalNetAmount: null,
-    remainAmount: null,
-    verifiedAmount: null,
-    totalGiftQuantity: null,
-    totalZeroAmount: null,
     tenantId: null,
-    operateLog: null
   },
   rules: {
     tenantId: [
@@ -582,34 +555,40 @@ function cancel() {
 
 // 表单重置
 function reset() {
+  const snowflake = new SnowflakeID({ objectId: userStore.id});
+  const orderNo = snowflake.nextId();
   form.value = {
     orderId: null,
-    orderInitNo: null,
+    orderDirection: OrderDirectionEnum.SALES,
+    orderInitNo: orderNo,
     orderNo: null,
     parentOrderId: null,
-    orderSource: null,
-    orderInTax: null,
+    orderSource: orderSourceEnum.CAJA,
     warehouseId: null,
     cajaId: null,
     shiftId: null,
     salesmanId: null,
     customerId: null,
     activityId: null,
-    orderType: null,
-    orderStatus: null,
-    orderIsHold: null,
-    orderPayStatus: null,
-    totalAmount: null,
-    totalDiscountAmount: null,
-    totalPromotionReduceAmount: null,
-    totalSalesAmount: null,
-    totalBaseAmount: null,
-    totalTaxAmount: null,
-    totalNetAmount: null,
-    remainAmount: null,
-    verifiedAmount: null,
-    totalGiftQuantity: null,
-    totalZeroAmount: null,
+    orderType: OrderTypeEnum.PRE_ORDER,
+    orderStatus: OrderStatusEnum.INIT,
+    orderIsHold: OrderIsHoldEnum.NORMAL,
+    orderPayStatus: OrderPayStatusEnum.SETTLE,
+    totalQuantity: 0,
+    totalAmount: 0,
+    totalDiscountAmount: 0,
+    totalSalesAmount: 0,
+    totalPromotionReduceAmount: 0,
+    totalBaseAmount: 0,
+    totalTaxAmount: 0,
+    totalNetAmount: 0,
+    cashAmount: 0,
+    bankAmount: 0,
+    changeAmount: 0,
+    zeroAmount: 0,
+    remainAmount: 0,
+    verifiedAmount: 0,
+    totalGiftQuantity: 0,
     remark: null,
     createBy: null,
     createTime: null,
@@ -617,7 +596,7 @@ function reset() {
     updateTime: null,
     tenantId: null,
     delFlag: null,
-    operateLog: null
+    operateLog: null,
   };
   salesOrderDetailList.value = [];
   proxy.resetForm("salesOrderRef");
@@ -702,30 +681,34 @@ function rowSalesOrderDetailIndex({ row, rowIndex }) {
 /** 销售订单明细添加按钮操作 */
 function handleAddSalesOrderDetail() {
   let obj = {};
-  obj.detailType = "";
-  obj.detailMainSkuId = "";
-  obj.skuId = "";
-  obj.skuCode = "";
-  obj.skuType = "";
-  obj.skuValue = "";
-  obj.skuName = "";
-  obj.assistName = "";
-  obj.batchId = "";
-  obj.detailSn = "";
-  obj.detailPrice = "";
-  obj.detailQuantity = "";
-  obj.detailAmount = "";
-  obj.detailDiscountRate = "";
-  obj.detailDiscountAmount = "";
-  obj.detailSalesAmount = "";
-  obj.detailBaseAmount = "";
-  obj.detailTaxRate = "";
-  obj.detailTaxAmount = "";
-  obj.detailNetAmount = "";
-  obj.promotionId = "";
-  obj.promotionName = "";
-  obj.remark = "";
-  obj.tenantId = "";
+  obj.detailId= null,
+  obj.detailType= DetailTypeEnum.MAIN,
+  obj.detailMainSkuId= null,
+  obj.skuId=null,
+  obj.skuCode=null,
+  obj.skuName=null,
+  obj.assistName= null,
+  obj.skuType= null,
+  obj.skuValue= null,
+  obj.batchNo=null,
+  obj.detailSn= null,
+  obj.detailPrice= 0,
+  obj.detailQuantity= 1,
+  obj.detailAmount= 0,
+  obj.detailDiscountRate= 0,
+  obj.detailDiscountAmount= 0,
+  obj.detailSalesAmount= 0,
+  obj.detailBaseAmount= 0,
+  obj.detailTaxRate= 0,
+  obj.detailTaxAmount=0,
+  obj.detailNetAmount= 0,
+  obj.promotionId= null,
+  obj.promotionName= null,
+  obj.remark= null,
+  obj.detailIsRefunded= DetailIsRefundedEnum.NORMAL,
+  obj.locationId= null,
+  obj.locationWeight= null,
+  obj.inTax= 0,
   salesOrderDetailList.value.push(obj);
 }
 

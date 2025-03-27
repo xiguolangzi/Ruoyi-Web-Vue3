@@ -44,7 +44,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="productComboList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="productComboList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="套餐图片" align="center" :width="88" show-overflow-tooltip>
         <template #default="scope">

@@ -40,8 +40,8 @@
     </el-row>
 
     <el-table class="table-container" v-if="refreshTable" v-loading="loading" :data="warehouseLocationList"
-      row-key="locationId" :default-expand-all="isExpandAll"
-      :tree-props="{children: 'children', hasChildren: 'hasChildren'}" size="small">
+      row-key="locationId" :default-expand-all="isExpandAll" size="small"
+      :tree-props="{children: 'children', hasChildren: 'hasChildren'}" >
       <el-table-column label="库位编码" prop="locationCode" min-width="150" show-overflow-tooltip="" />
       <el-table-column label="库位名称" align="center" prop="locationName" min-width="120" show-overflow-tooltip="" />
       <el-table-column label="库位类型" align="center" prop="locationType">

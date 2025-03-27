@@ -69,7 +69,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="purchaseOrderList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="purchaseOrderList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="订单编号" align="center" prop="orderNo" min-width="180" show-overflow-tooltip >
         <template #default="scope">

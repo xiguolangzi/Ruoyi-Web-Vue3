@@ -484,7 +484,7 @@
 <script setup name="SalesOrder">
 import { listSalesOrder, getSalesOrder, delSalesOrder, addSalesOrder, updateSalesOrder } from "@/api/sales/salesOrder";
 import useUserStore from "@/store/modules/user";
-import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum,DetailTypeEnum } from './cashOperation/cashOperationEnum.js';
+import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum,DetailTypeEnum } from './cashOperationUtil/cashOperationEnum.js';
 import SnowflakeID from '@/utils/SnowflakeID.js';
 
 // 租户ID字段过滤使用

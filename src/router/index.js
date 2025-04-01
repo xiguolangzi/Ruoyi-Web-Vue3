@@ -224,11 +224,11 @@ export const dynamicRoutes = [
     path: '/cashier',
     component: Layout,
     hidden: true,
-    permissions: ['sales:cashier:add'],
+    permissions: ['sales:cashier:edit'],
     children: [
       {
         path: '/cashier/cashOperation',
-        component: () => import('@/views/sales/salesOrder/cashOperation/cashOperation'),
+        component: () => import('@/views/sales/salesOrder/cashOperation'),
         name: 'cashOperation',
         meta: { title: '收银台' }
       }

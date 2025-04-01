@@ -1,6 +1,23 @@
 <template>
   <el-table ref="tableRef" :data="tableData" border show-summary :summary-method="getSummaries" :stripe="true"
-    size="small" style="width: 100%; height: 100%;" @cell-click="handleCellClick">
+    size="small" style="width: 100%; height: 100%;" @cell-click="handleCellClick" :row-class-name="setRowClassName">
+    <!-- 动态控制展开列显示 -->
+    <el-table-column v-if="hasComboItems" type="expand" width="50">
+      <template #default="scope">
+        <div class="combo-details" v-if="scope.row.skuType == 2">
+          <h3>套餐明细</h3>
+          <el-table :data="scope.row.detailComboList" border size="small" table-layout="auto" :stripe="true">
+            <el-table-column prop="skuCode" label="SKU条码" />
+            <el-table-column prop="skuName" label="SKU名称" />
+            <el-table-column prop="price" label="单价" />
+            <el-table-column prop="quantity" label="数量" />
+            <el-table-column prop="amount" label="金额" />
+          </el-table>
+        </div>
+      </template>
+    </el-table-column>
+
+    <!-- 正常显示的列 -->
     <el-table-column type="index" label="序号" align="center" width="55" />
     <el-table-column prop="skuCode" label="商品编码" align="center" min-width="120" show-overflow-tooltip>
       <template v-slot="scope">
@@ -32,17 +49,18 @@
     <el-table-column prop="detailPrice" align="center" label="单价">
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailPrice')" :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
-          v-model.number="scope.row.detailPrice" size="small" @blur="handleBlur(scope.row, 'detailPrice')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="number" :disabled="editPrice != '0'"/>
+          v-model.number="scope.row.detailPrice" size="small" @blur="handleBlur(scope.row, 'detailPrice')"
+          @focus="handleFocus" @change="updateAmount(scope.row)" style="width: 100%;" type="number"
+          :disabled="editPrice != '0'" />
         <span v-else>{{ formatTwo(scope.row.detailPrice) + ' €' }}</span>
       </template>
     </el-table-column>
     <el-table-column prop="detailQuantity" align="center" label="数量">
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailQuantity')"
-          :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" v-model.number="scope.row.detailQuantity" size="small"
-          @blur="handleBlur(scope.row, 'detailQuantity')" @focus="handleFocus" @change="updateAmount(scope.row)"
-          style="width: 100%;" type="number" />
+          :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" v-model.number="scope.row.detailQuantity"
+          size="small" @blur="handleBlur(scope.row, 'detailQuantity')" @focus="handleFocus"
+          @change="updateAmount(scope.row)" style="width: 100%;" type="number" />
         <span v-else>{{ scope.row.detailQuantity || 0 }}</span>
       </template>
     </el-table-column>
@@ -51,7 +69,7 @@
         <el-input v-if="isEditing(scope.row, 'detailDiscountRate')"
           :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" v-model.number="scope.row.detailDiscountRate"
           size="small" @blur="handleBlur(scope.row, 'detailDiscountRate')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="number" :disabled="editDiscountRate != '0'"/>
+          @change="updateAmount(scope.row)" style="width: 100%;" type="number" :disabled="editDiscountRate != '0'" />
         <span v-else>{{ scope.row.detailDiscountRate || 0 }} %</span>
       </template>
     </el-table-column>
@@ -80,17 +98,15 @@
     </el-table-column>
     <el-table-column prop="inTax" align="center" label="是否含税">
       <template #default="scope">
-        <el-switch v-model="scope.row.inTax" 
-          :active-value="OrderInTaxEnum.TAX"
-          :inactive-value="OrderInTaxEnum.NO_TAX"
-          active-text="含税" inactive-text="不含税" inline-prompt style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;" 
-          disabled v-hasPermi="['sales:salesCaja:admin']"
-        />
+        <el-switch v-model="scope.row.inTax" :active-value="OrderInTaxEnum.TAX" :inactive-value="OrderInTaxEnum.NO_TAX"
+          active-text="含税" inactive-text="不含税" inline-prompt
+          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;" disabled
+          v-hasPermi="['sales:salesCaja:admin']" />
       </template>
     </el-table-column>
     <el-table-column label="操作" align="center" width="50">
       <template #default="scope">
-        <el-button type="danger" size="small" :icon="Delete" circle  @click="handleDeleteRow(scope.$index)"  />
+        <el-button type="danger" size="small" :icon="Delete" circle @click="handleDeleteRow(scope.$index)" />
       </template>
     </el-table-column>
   </el-table>
@@ -121,6 +137,16 @@ const props = defineProps({
     default: false,
   },
 });
+
+// 添加计算属性判断是否有套餐商品
+const hasComboItems = computed(() => {
+  return props.tableData.some(item => item.skuType == 2)
+})
+
+const setRowClassName = ({ row }) => {
+  // 如果是普通商品（skuType=1），添加一个类名隐藏展开按钮
+  return row.skuType === 1 ? 'no-expand-row' : '';
+};
 
 
 const emit = defineEmits(['handleClickChangeImage', 'deleteRow']);
@@ -341,12 +367,16 @@ defineExpose({
   focusLastRowQuantity,
 });
 
+
 </script>
 
 <style lang="scss" scoped>
-// :deep(.el-popover) {
-//   position: absolute;
-//   left: -50px !important;
-//   top: -10px !important;
-// }
+.combo-details{
+  width: 100%;
+  padding: 5px 50px;
+}
+/* 非 scoped 模式测试 */
+:deep(.el-table__body tr.no-expand-row td.el-table__expand-column) {
+  visibility: collapse;
+}
 </style>

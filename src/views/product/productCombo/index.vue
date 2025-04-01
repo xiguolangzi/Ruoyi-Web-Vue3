@@ -9,7 +9,8 @@
       </el-form-item>
       <el-form-item label="套餐状态:" prop="comboStatus">
         <el-select v-model="queryParams.comboStatus" placeholder="请选择套餐状态" clearable>
-          <el-option v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
+          <el-option v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.label"
+            :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="套餐税率:" prop="rateId">
@@ -44,7 +45,8 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="productComboList" @selection-change="handleSelectionChange" size="small">
+    <el-table class="table-container" v-loading="loading" :data="productComboList"
+      @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="套餐图片" align="center" :width="88" show-overflow-tooltip>
         <template #default="scope">
@@ -52,7 +54,7 @@
         </template>
       </el-table-column>
       <el-table-column label="套餐条码" align="center" prop="comboCode" />
-      <el-table-column label="套餐名称" align="left" header-align="center" show-overflow-tooltip >
+      <el-table-column label="套餐名称" align="left" header-align="center" show-overflow-tooltip>
         <template #default="scope">
           <div>
             <strong> 主名称：</strong>
@@ -63,7 +65,7 @@
             <span>{{ scope.row.assistName }}</span>
           </div>
         </template>
-     </el-table-column>
+      </el-table-column>
       <el-table-column label="套餐价格" align="center" prop="comboPrice">
         <template #default="scope">
           <span>{{ formatTwo(scope.row.comboPrice) }} €</span>
@@ -85,20 +87,20 @@
             <strong> 创建人：</strong>
             <span>{{ scope.row.createBy }}</span>
           </div>
-          <div> 
-             <strong> 时间：</strong>
-             <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
+          <div>
+            <strong> 时间：</strong>
+            <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
           </div>
         </template>
       </el-table-column>
 
       <el-table-column label="修改信息" align="left" header-align="center" show-overflow-tooltip>
         <template #default="scope">
-          <div> 
+          <div>
             <strong> 修改人：</strong>
             <span>{{ scope.row.updateBy }}</span>
           </div>
-          <div> 
+          <div>
             <strong> 时间：</strong>
             <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
           </div>
@@ -125,7 +127,8 @@
         <el-tab-pane label="基础信息" name="basic">
           <el-form ref="productComboRef" :model="form" :rules="rules" label-width="100px">
             <el-form-item label="套餐条码:" prop="comboCode">
-              <el-input v-model="form.comboCode" placeholder="请输入套餐条码" type="text" inputmode="numeric" maxlength="20" show-word-limit :rows="1" @keypress="onlyNumber"/>
+              <el-input v-model="form.comboCode" placeholder="请输入套餐条码" type="text" inputmode="numeric" maxlength="20"
+                show-word-limit :rows="1" @keypress="onlyNumber" />
             </el-form-item>
             <el-row :gutter="20">
               <el-col :span="12">
@@ -141,20 +144,12 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            
+
             <!-- 套餐价格数据 -->
             <el-row>
               <el-form-item v-for="(item, index) in inputFields" :key="item.prop" :label="item.label" :prop="item.prop">
-                <el-input-number 
-                  v-model="form[item.prop]" 
-                  :placeholder="item.placeholder" 
-                  :max="99999" 
-                  :min="0" 
-                  :precision="2"
-                  :controls="false"
-                  ref="inputRefs"
-                  @focus="handleFocus2(index)"
-                >
+                <el-input-number v-model="form[item.prop]" :placeholder="item.placeholder" :max="99999" :min="0"
+                  :precision="2" :controls="false" ref="inputRefs" @focus="handleFocus2(index)">
                   <template #suffix>
                     <span>€</span>
                   </template>
@@ -166,12 +161,18 @@
               <el-form-item label="套餐税率:" prop="rateId">
                 <el-select v-model="form.rateId" placeholder="请选择套餐税率" clearable>
                   <el-option v-for="items in rateList" :key="items.rateId" :label="items.rateValue + '%'"
-                    :value="items.rateId" :disabled="items.rateStatus != RateStatusEnum.ENABLE" />
+                    :value="items.rateId" />
                 </el-select>
+              </el-form-item>
+              <el-form-item label="是否含税:" prop="inTax">
+                <el-switch v-model="form.inTax" :active-value="0" :inactive-value="1" active-text="含税"
+                  inactive-text="不含税" inline-prompt
+                  style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;" />
               </el-form-item>
               <el-form-item label="套餐状态:" prop="comboStatus">
                 <el-radio-group v-model="form.comboStatus">
-                  <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.value" :value="Number(dict.value)">{{
+                  <el-radio v-for="dict in sys_tenant_status" :key="dict.value" :label="dict.value"
+                    :value="Number(dict.value)">{{
                     dict.label }}</el-radio>
                 </el-radio-group>
               </el-form-item>
@@ -203,8 +204,20 @@
                     :value="Number(dict.value)">{{ dict.label }}</el-radio>
                 </el-radio-group>
               </el-form-item>
-              <el-form-item label="可选数量:" style="margin-right: 20px;" v-if="item.isOptional && item.isOptional != '1'">
-                <el-input-number v-model="item.isOptionalQuantity" :min="0" />
+              <el-form-item label="设置类型:" style="margin-right: 20px;"
+                v-if="item.isOptional && item.isOptional != ComboItemIsOptionalEnum.NoOptional">
+                <el-select v-model="item.setType" placeholder="请选择设置类型" clearable>
+                  <el-option v-for="dict in erp_combo_set_type" :key="dict.value" :label="dict.label"
+                    :value="Number(dict.value)" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="最多选项:" style="margin-right: 20px;"
+                v-if="item.isOptional && item.isOptional != ComboItemIsOptionalEnum.NoOptional && item.setType == ComboItemSetTypeEnum.MaxOption">
+                <el-input-number v-model="item.isOptionalQuantity" :min="0" :max="999" v-focusSelect />
+              </el-form-item>
+              <el-form-item label="最大数量:" style="margin-right: 20px;"
+                v-if="item.isOptional && item.isOptional != ComboItemIsOptionalEnum.NoOptional && item.setType == ComboItemSetTypeEnum.maxQuantity">
+                <el-input-number v-model="item.maxQuantity" :min="0" :max="999" v-focusSelect />
               </el-form-item>
             </el-row>
 
@@ -223,19 +236,17 @@
               </el-table-column>
               <el-table-column label="SKU 名称" align="center" show-overflow-tooltip>
                 <template #default="scope">
-                  <span>{{ scope.row.productSkuVo?.skuName }}</span>
+                  <span>{{ scope.row.skuName }}</span>
                 </template>
               </el-table-column>
               <el-table-column label="SKU 规格" align="center" show-overflow-tooltip>
                 <template #default="scope">
-                  <div v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
-                    <strong v-if="item[0] !== '' && item[0] !== 'skuName'">
-                      {{ item[0] }}:
-                    </strong>
-                    <span v-if="item[0] !== '' && item[1] !== 'skuValue'">
-                      {{ item[1] }}
-                    </span>
-                    <span v-if="item[0] == '' || item[0] == 'skuName'"> -- -- </span>
+                  <div v-if="getSkuValue(scope.row.skuValue) === 'default'">
+                    -- <!-- 直接显示默认 SKU -->
+                  </div>
+                  <div v-else v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
+                    <strong>{{ item[0] }}:</strong>
+                    <span>{{ item[1] }}</span>
                   </div>
                 </template>
               </el-table-column>
@@ -294,10 +305,10 @@ import useUserStore from "@/store/modules/user";
 import { computed } from "vue";
 import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
 import { listProductRate } from "@/api/product/productRate";
-import { RateStatusEnum} from "./productComboEnum.js"
+import { InTaxEnum, ComboStatusEnum, ComboItemIsOptionalEnum, ComboItemSetTypeEnum } from "./productComboEnum.js"
 
 const { proxy } = getCurrentInstance();
-const { sys_tenant_status, erp_product_combo_optional } = proxy.useDict('sys_tenant_status', 'erp_product_combo_optional');
+const { sys_tenant_status, erp_product_combo_optional, erp_combo_set_type } = proxy.useDict('sys_tenant_status', 'erp_product_combo_optional', 'erp_combo_set_type');
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -384,12 +395,19 @@ const addComboItem = () => {
     itemId: null,
     comboId: null,
     itemName: null,
-    isOptional: '2',
+    setType: ComboItemSetTypeEnum.maxQuantity,
+    isOptional: ComboItemIsOptionalEnum.Optional,
     isOptionalQuantity: 1,
+    maxQuantity: 0,
     productComboItemDetailList: [{
       detailId: null,
       itemId: null,
       skuId: null,
+      skuCode: null,
+      skuValue: null,
+      skuName: null,
+      assistName: null,
+      skuType: null,
       detailPrice: 0.00,
       quantity: 0,
       detailAmount: 0.00,
@@ -404,11 +422,16 @@ const removeComboItem = (index) => {
 const addSkuDetail = (itemIndex) => {
   form.value.productComboItemList[itemIndex].productComboItemDetailList.push({
     detailId: null,
-    itemId: null,
-    skuId: null,
-    detailPrice: 0.00,
-    quantity: 0,
-    detailAmount: 0.00,
+      itemId: null,
+      skuId: null,
+      skuCode: null,
+      skuValue: null,
+      skuName: null,
+      assistName: null,
+      skuType: null,
+      detailPrice: 0.00,
+      quantity: 0,
+      detailAmount: 0.00,
   });
 };
 
@@ -518,7 +541,12 @@ const calculateDetailAmount = (row) => {
 const skuList = ref([])
 /** 商品 - 获取列表 */
 const getSkuList = () => {
-  listSkuByAddOrder().then(response => {
+  const quarryParams = {
+    pageNum: 1,
+    pageSize: 2000,
+    skuType: 1, // 普通商品类型
+  };
+  listSkuByAddOrder(quarryParams).then(response => {
     skuList.value = response.rows || []
   }).catch(error => {
     console.error("获取SKU列表失败：", error);
@@ -550,13 +578,13 @@ const formattedSkuList = computed(() => {
 const handleSkuChange = (row) => {
   const selectedSku = skuList.value.find((sku) => sku.skuId === row.skuId);
   if (selectedSku) {
-    // 确保 row.productSkuVo 已初始化
-    if (!row.productSkuVo) {
-      row.productSkuVo = {};
-    }
     row.detailPrice = selectedSku.skuPrice; // 自动填充 SKU 价格
-    row.productSkuVo.skuName = selectedSku.skuName;
-    row.productSkuVo.skuValue = selectedSku.skuValue;
+    row.skuCode = selectedSku.skuCode;
+    row.skuName = selectedSku.skuName;
+    row.assistName = selectedSku.assistName
+    row.skuValue = selectedSku.skuValue;
+    row.skuType = selectedSku.skuType;
+    row.skuImage = selectedSku.skuImage;
     row.quantity = 0;
     row.detailAmount = 0;
   }
@@ -580,7 +608,7 @@ function reset() {
     comboName: null,
     assistName: null,
     comboPrice: 0.00,
-    comboStatus: '0',
+    comboStatus: ComboStatusEnum.Enable,
     createTime: null,
     createBy: null,
     updateTime: null,
@@ -588,20 +616,28 @@ function reset() {
     remark: null,
     tenantId: null,
     delFlag: null,
+    inTax: InTaxEnum.InTax,
+    categoryId: null,
     productComboItemList: [{
       itemId: null,
       comboId: null,
       itemName: null,
-      isOptional: '1',
+      setType: ComboItemSetTypeEnum.maxQuantity,
+      isOptional: ComboItemIsOptionalEnum.NoOptional,
       isOptionalQuantity: null,
+      maxQuantity: null,
       productComboItemDetailList: [{
-        detailId: null,
         itemId: null,
         skuId: null,
-        detailPrice: 0.0,
+        skuCode: null,
+        skuValue: null,
+        skuName: null,
+        assistName: null,
+        skuType: null,
+        detailPrice: 0.00,
         quantity: 0,
-        detailAmount: 0.0
-      },]
+        detailAmount: 0.00,
+        },]
     }]
   };
   proxy.resetForm("productComboRef");

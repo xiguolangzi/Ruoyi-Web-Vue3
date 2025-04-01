@@ -7,8 +7,9 @@
 
         <!-- 上部分：流水展示 -->
         <el-main class="main-data-container">
-          <EditableTable ref="editableTableRef" :tableData="form.salesOrderDetailList" :editPrice="canEditPrice" :editDiscountRate="canEditDiscountRate"
-            @handleClickChangeImage="changeCurrentSkuData" @deleteRow="handleDeleteRow"/>
+          <EditableTable ref="editableTableRef" :tableData="form.salesOrderDetailList" :editPrice="canEditPrice"
+            :editDiscountRate="canEditDiscountRate" @handleClickChangeImage="changeCurrentSkuData"
+            @deleteRow="handleDeleteRow" />
         </el-main>
 
         <!-- 下部分：商品输入框和汇总信息 -->
@@ -17,7 +18,7 @@
             <el-row class="footer-row">
               <!-- 第一个区域：商品搜索和图片展示 -->
               <el-col class="footer-col" :style="{ width: '190px', flex: 'none' }">
-                <div class="footer-col-content" >
+                <div class="footer-col-content">
                   <SkuSelect ref="skuSelectRef" @selectedData="selectedSkuData" />
                   <div class="sku-image-container">
                     <ImageNormal v-if="currentSku" :src="currentSku.skuImage" />
@@ -26,7 +27,7 @@
                 </div>
               </el-col>
 
-              
+
 
               <!-- 第2个区域：订单配置数据 -->
               <el-col class="footer-col" style="flex: 1;">
@@ -38,10 +39,10 @@
                         <el-button type="primary" size="small">挂单</el-button>
                       </el-badge>
                     </div>
-                    
+
                   </div>
                   <el-descriptions :column="2" size="small" style="width: 100%;">
-                    <el-descriptions-item label="客户名称:" :span="2" >
+                    <el-descriptions-item label="客户名称:" :span="2">
                       <span class="highlight-text">{{currentCustomer?.customerName || '--'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="税号:" :min-width="100">
@@ -53,18 +54,18 @@
                     <el-descriptions-item label="地址:" :span="2">
                       <span class="highlight-text">{{currentCustomer?.invoiceAddress || '--'}}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="仓库:" >
+                    <el-descriptions-item label="仓库:">
                       <span class="highlight-text">{{currentWarehouse?.warehouseName || '--'}}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="业务员:" >
+                    <el-descriptions-item label="业务员:">
                       <span class="highlight-text">{{currentSalesman?.userName || '--'}}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="业务活动:" >
+                    <el-descriptions-item label="业务活动:">
                       <span class="highlight-text">{{currentSalesActivity?.activityName || '--'}}</span>
                     </el-descriptions-item>
-                    
+
                   </el-descriptions>
-                  
+
 
                 </div>
               </el-col>
@@ -77,27 +78,28 @@
                     <span> {{ form.orderDirection == OrderDirectionEnum.SALES ? "销售订单：" : "退货订单: " }} </span>
                     <span style="font-size: 12px; margin-right: 10px; color: #409eff;">{{ form.orderNo }}</span>
                   </div>
-                  <el-descriptions :column="2"   size="small" style="margin-top: 10px;">
+                  <el-descriptions :column="2" size="small" style="margin-top: 10px;">
                     <el-descriptions-item label="金额:">
                       <span class="highlight-text">{{ formatTwo(totalAmount) + ' €'}} </span>
                     </el-descriptions-item>
                     <el-descriptions-item label="折扣:">
                       <span class="highlight-text">{{ formatTwo(totalDiscountAmount) + ' €' }}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="减免:" >
+                    <el-descriptions-item label="减免:">
                       <span class="highlight-text">{{ formatTwo(form.totalPromotionReduceAmount) + ' €' }}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="赠送:" >
+                    <el-descriptions-item label="赠送:">
                       <span class="highlight-text">{{ form.totalGiftQuantity}}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="基础:" >
+                    <el-descriptions-item label="基础:">
                       <span class="highlight-text">{{ formatTwo(totalBaseAmount) + ' €'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="税额:" :span="2">
                       <span class="highlight-text">{{ formatTwo(totalTaxAmount) + ' €'}}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="应收金额:" :span="2" class-name="total-label2" label-class-name="total-content2">
-                      <span >{{ formatTwo(totalNetAmount) + ' €'}}</span>
+                    <el-descriptions-item label="应收金额:" :span="2" class-name="total-label2"
+                      label-class-name="total-content2">
+                      <span>{{ formatTwo(totalNetAmount) + ' €'}}</span>
                     </el-descriptions-item>
                   </el-descriptions>
                 </div>
@@ -160,6 +162,7 @@
 
     </el-container>
 
+    <!-- 交班信息 对话框 -->
     <el-dialog v-model="dialogVisible" title="交班信息" width="600" style="margin-top: 100px !important;"
       :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false">
       <el-tabs type="border-card" class="full-height-tabs" v-model="activeTab">
@@ -260,7 +263,7 @@
           <el-row class="shift-dialog">
             <el-button type="primary" @click="handlerDoShift">{{ shiftForm.shiftId ? '完成交班' : '开始值班'}}</el-button>
             <el-button type="success" @click="handlerCloseDialog" v-if="shiftForm.shiftId">继续值班</el-button>
-            <el-button type="danger" @click="handlerCloseTab" v-if="!shiftForm.shiftId">退出值班</el-button>
+            <el-button type="danger" @click="handlerCloseTab" v-if="shiftForm.shiftId">退出值班</el-button>
           </el-row>
 
         </el-tab-pane>
@@ -374,7 +377,9 @@
       </el-tabs>
     </el-dialog>
 
-    <el-dialog v-model="dialogVisible2" title="店长认证:" append-to-body width="400">
+    <!-- 店长认证 对话框 -->
+    <el-dialog v-model="dialogVisible2" title="店长认证:" width="400" :close-on-click-modal="false"
+      :close-on-press-escape="false" :show-close="false">
       <el-form :model="userForm" ref="userFormRef">
         <el-form-item label="用户名" prop="userName">
           <el-input v-model="userForm.userName" placeholder="请输入用户名" />
@@ -388,6 +393,10 @@
         <el-button type="primary" @click="checkAuthStoreManager">确定</el-button>
       </template>
     </el-dialog>
+
+    <!-- 套餐确认 对话框 -->
+    <ComboConfirmDialog ref="comboDialog" @add-combo-details="handleAddComboDetails" />
+
   </div>
 
 
@@ -397,13 +406,13 @@
 <script setup name="cashOperation">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import TouchKeyboard from '@/components/TouchKeyboard/index.vue';
-import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum,DetailTypeEnum } from './cashOperationEnum.js';
+import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum,DetailTypeEnum } from './cashOperationUtil/cashOperationEnum.js';
 import CustomerSelect from '@/components/Common/CustomerSelect.vue';
 import SalesmanSelect from '@/components/Common/SalesmanSelect.vue';
 import SalesActivitySelect from '@/components/Common/SalesActivitySelect.vue';
 import WarehouseSelect from '@/components/Common/WarehouseSelect.vue';
 import SkuSelect from '@/components/Common/SkuSelect.vue';
-import EditableTable from './EditableTable.vue';
+import EditableTable from './cashOperationUtil/EditableTable.vue';
 import {playKeyHappySound} from '@/utils/playKeySound.js';
 import { getDeviceFingerprint } from "@/utils/fingerprintJS";
 import { getSalesCajaByMacAddress } from "@/api/sales/salesCaja";
@@ -418,6 +427,9 @@ import { addSalesOrder, updateSalesOrder } from "@/api/sales/salesOrder";
 import {authStoreManager} from "@/api/system/user.js"
 import SnowflakeID from '@/utils/SnowflakeID.js';
 import IndexedDBUtil from '@/indexedDB/index.js';
+import { getProductCombo} from "@/api/product/productCombo";
+import { ComboItemIsOptionalEnum } from "@/views/product/productCombo/productComboEnum.js"
+import ComboConfirmDialog from './cashOperationUtil/ComboConfirmDialog.vue';
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
@@ -426,6 +438,7 @@ const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order
 const userStore = useUserStore();
 const dialogVisible = ref(false) // 交班窗口
 const dialogVisible2 = ref(false) // 店长认证
+const dialogVisible3 = ref(false) // 套餐确认
 const userForm = ref({});  // 店长信息
 const activeTab = ref('first')  // 交班默认tab窗口
 const keyboardRef = ref(null);  // 键盘组件实例
@@ -466,6 +479,9 @@ const handleDeleteRow = (index) => {
   
 };
 
+/**
+ * 店长认证
+ */
 const checkAuthStoreManager = () => {
   authStoreManager(userForm.value).then(()=>{
     form.value.salesOrderDetailList.splice(userForm.value.index, 1); // 删除指定行
@@ -484,8 +500,6 @@ const checkAuthStoreManager = () => {
     console.error("店长权限校验",e)
   }) 
 }
-
-
 
 // ------------------------------------- 10 form 订单表单 start -------------------------------------
 const data = reactive({
@@ -520,8 +534,8 @@ function reset() {
   form.value = {
     orderId: null,
     orderDirection: OrderDirectionEnum.SALES,
-    orderInitNo: null,
-    orderNo: orderNo,
+    orderInitNo: orderNo,
+    orderNo: null,
     parentOrderId: null,
     orderSource: orderSourceEnum.CAJA,
     warehouseId: null,
@@ -565,6 +579,7 @@ function reset() {
 }
 
 onMounted(() => {
+  console.log("mounted***************66666");
   reset();
 });
 // ------------------------------------- 10 form 订单表单 End -------------------------------------
@@ -1190,10 +1205,17 @@ function calculateAmounts(detailPrice, taxRate, inTax) {
   return { detailBaseAmount, detailTaxAmount, detailNetAmount };
 }
 
+const comboDialog = ref()
+
+// 添加处理回调
+const handleAddComboDetails = (comboDetail) => {
+  form.value.salesOrderDetailList.push(comboDetail)
+}
+
 /** 销售订单明细添加按钮操作 */
 function handleAddSalesOrderDetail(sku) {
   const obj = initOrderDetailData();
-  const { skuId, skuCode, skuImage, skuName, assistName, skuType, skuValue, batchNo, unitVo, productRateVo, inTax, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6 } = sku;
+  const { skuId, skuCode, skuImage, skuName, assistName, skuType, comboId, skuValue, batchNo, unitVo, productRateVo, inTax, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6 } = sku;
   const snowflake = new SnowflakeID();
   const detailId = snowflake.nextId();
   // 1 基础信息赋值
@@ -1206,6 +1228,7 @@ function handleAddSalesOrderDetail(sku) {
   obj.skuName = skuName;
   obj.assistName = assistName;
   obj.skuType = skuType;
+  obj.comboId = comboId;
   obj.skuValue = skuValue;
   obj.batchNo = batchNo;
   obj.detailSn = null;
@@ -1236,8 +1259,14 @@ function handleAddSalesOrderDetail(sku) {
   obj.detailTaxAmount = detailTaxAmount;
   obj.detailNetAmount = detailNetAmount;
   
-  // 4 添加到订单明细列表
-  form.value.salesOrderDetailList.push(obj);
+  // 4 套餐确认
+  if (skuType == 2) {
+    comboDialog.value.showComboDialog(obj) 
+  } else {
+    // 5 添加到订单明细列表
+    form.value.salesOrderDetailList.push(obj); 
+  }
+  
 }
 
 // 根据客户信息 折扣/价格 更新明细价格/折扣 根据是否含税计算最终金额

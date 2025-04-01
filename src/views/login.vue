@@ -1,7 +1,7 @@
 <template>
   <div class="login">
     <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
-      <h3 class="title">Ok云管理系统</h3>
+      <h3 class="title">{{title}}</h3>
       <LangSelect class="set-language"></LangSelect>
       <el-form-item prop="taxNumber">
         <el-autocomplete
@@ -89,6 +89,7 @@ const userStore = useUserStore()
 const route = useRoute();
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const title = import.meta.env.VITE_APP_TITLE;
 
 const loginForm = ref({
   taxNumber:"",

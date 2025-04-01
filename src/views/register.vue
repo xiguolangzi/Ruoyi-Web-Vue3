@@ -1,7 +1,7 @@
 <template>
   <div class="register">
     <el-form ref="registerRef" :model="registerForm" :rules="registerRules" class="register-form">
-      <h3 class="title">OK云管理系统</h3>
+      <h3 class="title">{{ title }}</h3>
       <el-form-item prop="username">
         <el-input 
           v-model="registerForm.username" 
@@ -81,6 +81,7 @@ import { getCodeImg, register } from "@/api/login";
 
 const router = useRouter();
 const { proxy } = getCurrentInstance();
+const title = import.meta.env.VITE_APP_TITLE;
 
 const registerForm = ref({
   username: "",

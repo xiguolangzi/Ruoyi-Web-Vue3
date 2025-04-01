@@ -39,9 +39,9 @@
           <el-switch v-model="scope.row.configValue" active-value="0"
             inactive-value="1" inline-prompt :active-text="actionText(scope.row)" :inactive-text="inactionText(scope.row)"
             style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"
-            @change="handleChangeStatus(scope.row)" v-if="scope.row.showType == ShowTypeEnum.SWITCH" />
+            @change="handleChangeStatus(scope.row)" v-if="scope.row.showType == ShowTypeEnum.SWITCH" size="small"/>
           <el-input v-model="scope.row.configValue" @change="handleChangeStatus(scope.row)"
-            v-if="scope.row.showType == ShowTypeEnum.INPUT" />
+            v-if="scope.row.showType == ShowTypeEnum.INPUT" size="small"/>
         </template>
       </el-table-column>
       <el-table-column label="配置名称" align="center" prop="configName" />
@@ -62,9 +62,9 @@
         v-if="userStore.userType == '00'">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
-            v-hasPermi="['config:tenantConfig:edit']">修改</el-button>
+            v-hasPermi="['config:tenantConfig:edit']" size="small">修改</el-button>
           <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
-            v-hasPermi="['config:tenantConfig:remove']">删除</el-button>
+            v-hasPermi="['config:tenantConfig:remove']" size="small">删除</el-button>
         </template>
       </el-table-column>
     </el-table>

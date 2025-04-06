@@ -76,7 +76,7 @@
                   <!-- 订单状态+订单号 -->
                   <div class="section-title">
                     <span> {{ form.orderDirection == OrderDirectionEnum.SALES ? "销售订单：" : "退货订单: " }} </span>
-                    <span style="font-size: 12px; margin-right: 10px; color: #409eff;">{{ form.orderNo }}</span>
+                    <span style="font-size: 12px; margin-right: 10px; color: #409eff;">{{ form.orderInitNo }}</span>
                   </div>
                   <el-descriptions :column="2" size="small" style="margin-top: 10px;">
                     <el-descriptions-item label="金额:">
@@ -371,7 +371,7 @@
           <el-row class="shift-dialog">
             <el-button type="primary" @click="handlerDoShift">{{ shiftForm.shiftId ? '完成交班' : '开始值班'}}</el-button>
             <el-button type="success" @click="handlerCloseDialog" v-if="shiftForm.shiftId">继续值班</el-button>
-            <el-button type="danger" @click="handlerCloseTab" v-if="!shiftForm.shiftId">退出值班</el-button>
+            <el-button type="danger" @click="handlerCloseTab" >退出值班</el-button>
           </el-row>
         </el-tab-pane>
       </el-tabs>
@@ -397,6 +397,9 @@
     <!-- 套餐确认 对话框 -->
     <ComboConfirmDialog ref="comboDialog" @add-combo-details="handleAddComboDetails" />
 
+    <!-- 收款确认 对话框 -->
+    <PaymentDialog ref="paymentDialog"  @paymentComplete="handlePaymentComplete" @continueUpdateOrder="handleContinueUpdateOrder"/>
+
   </div>
 
 
@@ -406,7 +409,7 @@
 <script setup name="cashOperation">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import TouchKeyboard from '@/components/TouchKeyboard/index.vue';
-import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum,DetailTypeEnum } from './cashOperationUtil/cashOperationEnum.js';
+import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum } from './cashOperationUtil/cashOperationEnum.js';
 import CustomerSelect from '@/components/Common/CustomerSelect.vue';
 import SalesmanSelect from '@/components/Common/SalesmanSelect.vue';
 import SalesActivitySelect from '@/components/Common/SalesActivitySelect.vue';
@@ -430,9 +433,10 @@ import IndexedDBUtil from '@/indexedDB/index.js';
 import { getProductCombo} from "@/api/product/productCombo";
 import { ComboItemIsOptionalEnum } from "@/views/product/productCombo/productComboEnum.js"
 import ComboConfirmDialog from './cashOperationUtil/ComboConfirmDialog.vue';
+import PaymentDialog from './cashOperationUtil/PaymentDialog.vue';
 
 const { proxy } = getCurrentInstance();
-const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
+const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type');
 
 // 获取当前用户信息
 const userStore = useUserStore();
@@ -454,7 +458,6 @@ const canEditDiscountRate = ref('1'); // 表格子组件编辑折扣disable控�
 
 const DB_NAME = "OrderDB";
 const STORE_NAME_ORDER = "order";
-const STORE_NAME_DETAIL = "orderDetail";
 
 /** 获取租户配置 */
 const getTenantConfig = async () => {
@@ -505,6 +508,7 @@ const checkAuthStoreManager = () => {
 const data = reactive({
   form: {
     salesOrderDetailList: [], // 初始化为空数组
+    salesOrderPaymentList: [],
   },
   rules: {
     tenantId: [
@@ -530,11 +534,11 @@ const indexedDBForm = () =>{
 // 销售订单表单数据重置
 function reset() {
   const snowflake = new SnowflakeID({ objectId: userStore.id});
-  const orderNo = snowflake.nextId();
+  const orderInitNo = snowflake.nextId();
   form.value = {
     orderId: null,
     orderDirection: OrderDirectionEnum.SALES,
-    orderInitNo: orderNo,
+    orderInitNo: orderInitNo,
     orderNo: null,
     parentOrderId: null,
     orderSource: orderSourceEnum.CAJA,
@@ -571,7 +575,8 @@ function reset() {
     tenantId: null,
     delFlag: null,
     operateLog: null,
-    salesOrderDetailList: []
+    salesOrderDetailList: [],
+    salesOrderPaymentList: [],
   };
 
   proxy.resetForm("salesOrderRef");
@@ -956,20 +961,20 @@ const toggleFullScreen = () => {
 
 // ------------------ 2 侧边栏按钮区域 start  -------------------
 const actions = [
-  { label: "全屏", action: "toggleFullScreen", keyDown:"F1" },
-  { label: "交班", action: "shift", keyDown: "F2" },
-  { label: "挂单", action: "holdOrder", keyDown: "F3" },
-  { label: "取单", action: "holdOrder", keyDown: "F4" },
-  { label: "收款", action: "handlerPayment", keyDown: "F5" },
-  { label: "钱箱", action: "openCashDrawer", keyDown: "F6" },
-  { label: "重打", action: "reprint", keyDown: "F7" },
-  { label: "无价打印", action: "reprint", keyDown: "F8" },
-  { label: "赠品", action: "reprint", keyDown: "F9" },
-  { label: "通用商品", action: "reprint", keyDown: "F10" },
-  { label: "整单折扣", action: "reprint", keyDown: "F11" },
-  { label: "折上折", action: "reprint", keyDown: "F12" },
-  { label: "拆单", action: "splitOrder", keyDown: "Ctrl + O" },
-  { label: "退货", action: "reprint", keyDown: "Ctrl + Alt" }
+  { label: "全屏", action: "toggleFullScreen", keyDown:"F3" },
+  { label: "交班", action: "shift", keyDown: "F4" },
+  { label: "挂单", action: "holdOrder", keyDown: "F5" },
+  { label: "取单", action: "holdOrder", keyDown: "F6" },
+  { label: "收款", action: "handlerPayment", keyDown: "F7" },
+  { label: "钱箱", action: "openCashDrawer", keyDown: "F8" },
+  { label: "重打", action: "reprint", keyDown: "F9" },
+  { label: "无价打印", action: "reprint", keyDown: "F10" },
+  { label: "赠品", action: "reprint", keyDown: "F11" },
+  { label: "通用商品", action: "reprint", keyDown: "F12" },
+  { label: "整单折扣", action: "reprint", keyDown: "Ctrl + F1" },
+  { label: "折上折", action: "reprint", keyDown: "Ctrl + F2" },
+  { label: "拆单", action: "splitOrder", keyDown: "Ctrl + F3" },
+  { label: "退货", action: "reprint", keyDown: "Ctrl + F4" }
 ];
 
 const handleAction = (action) => {
@@ -1216,11 +1221,10 @@ const handleAddComboDetails = (comboDetail) => {
 function handleAddSalesOrderDetail(sku) {
   const obj = initOrderDetailData();
   const { skuId, skuCode, skuImage, skuName, assistName, skuType, comboId, skuValue, batchNo, unitVo, productRateVo, inTax, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6 } = sku;
-  const snowflake = new SnowflakeID();
-  const detailId = snowflake.nextId();
+  //const snowflake = new SnowflakeID();
+  //const detailId = snowflake.nextId();
   // 1 基础信息赋值
-  obj.detailId = detailId;
-  obj.detailType = DetailTypeEnum.MAIN;
+  //obj.detailId = detailId;
   obj.detailMainSkuId = null;
   obj.skuId = skuId;
   obj.skuCode = skuCode;
@@ -1391,20 +1395,59 @@ const updateFormData = () => {
   form.value.totalNetAmount = totalNetAmount.value;
 
 };
+
+
+/**
+ * 完成支付操作
+ */
+const handlePaymentComplete = () => {
+  console.log('支付完成:')
+  // TODO:初始化当前表单数据
+  reset()
+}
+
+/**
+ *  继续修改订单
+ */
+const handleContinueUpdateOrder = (orderData) => {
+  console.log('收款子组件继续修改订单传递给父组件的数据:', orderData)
+  form.value = orderData
+}
+
+const paymentDialog = ref(null)
 // 9 收款操作
 const handlerPayment = () => {
-  updateDetailPriceAndDiscount()
-  updateFormData()
-  // 添加订单信息 -> 返回计算后的订单信息
-  addSalesOrder(form.value).then((res) => {
-    if(res.code == 200 && res.data){
-      form.value = res.data;
-    } else {
-      ElMessage.error(res.msg);
-    }
-  }).catch(error => {
-    ElMessage.error(error.message);
-  });
+  updateDetailPriceAndDiscount();   // 根据客户信息 折扣/价格 更新明细价格/折扣 根据是否含税计算最终金额
+  updateFormData();   // 更新订单form统计数据
+  console.log("传递给收款子组件的订单数据*******************：", form.value);
+  if(form.value.orderId){
+    // 修改订单信息 -> 返回计算后的订单信息
+    updateSalesOrder(form.value).then((res) => {
+      if(res.code == 200 && res.data){
+        form.value = res.data;
+        // 打开收款界面
+        paymentDialog.value.openPaymentDialog(form.value)
+
+      } else {
+        ElMessage.error(res.msg);
+      }
+    }).catch(error => {
+      ElMessage.error(error.message);
+    });
+
+  } else {
+    // 添加订单信息 -> 返回计算后的订单信息
+    addSalesOrder(form.value).then((res) => {
+      console.log("添加订单信息返回：", res.data);
+        form.value = res.data;
+        // 打开收款界面
+        paymentDialog.value.openPaymentDialog(form.value)
+      }
+    ).catch(error => {
+      ElMessage.error("收款操作异常：",error.message);
+    });
+  }
+  
 };
 
 // ----------------------------------------- 8 计算表格数据 end ----------------------

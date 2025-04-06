@@ -37,8 +37,8 @@ export const dbConfig = [
       {
         storeName: 'order',
         options: {
-          keyPath: 'orderNo',
-          autoIncrement: true
+          keyPath: 'orderInitNo',
+          autoIncrement: false
         },
         indexList: [
           {
@@ -55,29 +55,6 @@ export const dbConfig = [
               unique: false
             }
           },
-        ]
-      },
-      {
-        storeName: 'orderDetail',
-        options: {
-          keyPath: 'detailId',
-          autoIncrement: true
-        },
-        indexList: [
-          {
-            name: 'orderId',
-            keyPath: 'orderId',
-            options: {
-              unique: false
-            }
-          },
-          {
-            name: 'skuId',
-            keyPath: 'skuId',
-            options: {
-              unique: false
-            }
-          }
         ]
       }
     ]

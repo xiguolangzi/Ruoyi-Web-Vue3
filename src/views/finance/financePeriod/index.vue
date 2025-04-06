@@ -17,7 +17,7 @@
             v-for="dict in finance_period_month"
             :key="dict.value"
             :label="dict.label"
-            :value="Number(dict.value)"
+            :value="dict.value"
           />
          </el-select>
       </el-form-item>
@@ -151,7 +151,7 @@
               v-for="dict in finance_period_month"
               :key="dict.value"
               :label="dict.label"
-              :value="Number(dict.value)"
+              :value="dict.value"
             />
          </el-select>
         </el-form-item>

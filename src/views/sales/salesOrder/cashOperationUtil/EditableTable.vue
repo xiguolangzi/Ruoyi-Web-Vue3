@@ -166,9 +166,6 @@ const handleDeleteRow = (index) => {
 };
 
 
-
-
-
 // 计算合计行
 const getSummaries = (param) => {
   const { columns, data } = param;

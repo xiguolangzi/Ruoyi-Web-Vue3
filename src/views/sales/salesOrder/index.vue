@@ -185,7 +185,6 @@
       <el-table-column label="总金额" align="center" prop="totalAmount" />
       <el-table-column label="总折扣额" align="center" prop="totalDiscountAmount" />
       <el-table-column label="销售总额" align="center" prop="totalSalesAmount" />
-      <el-table-column label="减免金额" align="center" prop="totalPromotionReduceAmount" />
       <el-table-column label="基础金额" align="center" prop="totalBaseAmount" />
       <el-table-column label="总税额" align="center" prop="totalTaxAmount" />
       <el-table-column label="应收总额" align="center" prop="totalNetAmount" />
@@ -195,7 +194,6 @@
       <el-table-column label="抹零" align="center" prop="zeroAmount" />
       <el-table-column label="未核销金额" align="center" prop="remainAmount" />
       <el-table-column label="已核销金额" align="center" prop="verifiedAmount" />
-      <el-table-column label="赠送数量" align="center" prop="totalGiftQuantity" />
       <el-table-column label="备注信息" align="center" prop="remark" />
       <el-table-column label="操作记录" align="center" prop="operateLog" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" show-overflow-tooltip min-width="130">
@@ -284,9 +282,6 @@
         <el-form-item label="总折扣额" prop="totalDiscountAmount">
           <el-input v-model="form.totalDiscountAmount" placeholder="请输入总折扣额" />
         </el-form-item>
-        <el-form-item label="促销活动减免金额" prop="totalPromotionReduceAmount">
-          <el-input v-model="form.totalPromotionReduceAmount" placeholder="请输入促销活动减免金额" />
-        </el-form-item>
         <el-form-item label="销售总额" prop="totalSalesAmount">
           <el-input v-model="form.totalSalesAmount" placeholder="请输入销售总额" />
         </el-form-item>
@@ -304,9 +299,6 @@
         </el-form-item>
         <el-form-item label="已核销金额" prop="verifiedAmount">
           <el-input v-model="form.verifiedAmount" placeholder="请输入已核销金额" />
-        </el-form-item>
-        <el-form-item label="促销活动赠送数量" prop="totalGiftQuantity">
-          <el-input v-model="form.totalGiftQuantity" placeholder="请输入促销活动赠送数量" />
         </el-form-item>
         <el-form-item label="优惠抹零(交班计算)" prop="totalZeroAmount">
           <el-input v-model="form.totalZeroAmount" placeholder="请输入优惠抹零(交班计算)" />
@@ -335,23 +327,6 @@
         <el-table :data="salesOrderDetailList" :row-class-name="rowSalesOrderDetailIndex" @selection-change="handleSalesOrderDetailSelectionChange" ref="salesOrderDetail">
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column label="序号" align="center" prop="index" width="50"/>
-          <el-table-column label="明细类型" prop="detailType" width="150">
-            <template #default="scope">
-              <el-select v-model="scope.row.detailType" placeholder="请选择明细类型">
-                <el-option
-                  v-for="dict in sales_order_detail_type"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="Number(dict.value)"
-                ></el-option>
-              </el-select>
-            </template>
-          </el-table-column>
-          <el-table-column label="父级sku" prop="detailMainSkuId" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailMainSkuId" placeholder="请输入父级sku" />
-            </template>
-          </el-table-column>
           <el-table-column label="skuId" prop="skuId" width="150">
             <template #default="scope">
               <el-input v-model="scope.row.skuId" placeholder="请输入skuId" />
@@ -484,14 +459,14 @@
 <script setup name="SalesOrder">
 import { listSalesOrder, getSalesOrder, delSalesOrder, addSalesOrder, updateSalesOrder } from "@/api/sales/salesOrder";
 import useUserStore from "@/store/modules/user";
-import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum,DetailTypeEnum } from './cashOperationUtil/cashOperationEnum.js';
+import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum } from './cashOperationUtil/cashOperationEnum.js';
 import SnowflakeID from '@/utils/SnowflakeID.js';
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
-const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
+const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
 
 const salesOrderList = ref([]);
 const salesOrderDetailList = ref([]);
@@ -578,7 +553,6 @@ function reset() {
     totalAmount: 0,
     totalDiscountAmount: 0,
     totalSalesAmount: 0,
-    totalPromotionReduceAmount: 0,
     totalBaseAmount: 0,
     totalTaxAmount: 0,
     totalNetAmount: 0,
@@ -588,7 +562,6 @@ function reset() {
     zeroAmount: 0,
     remainAmount: 0,
     verifiedAmount: 0,
-    totalGiftQuantity: 0,
     remark: null,
     createBy: null,
     createTime: null,
@@ -682,8 +655,6 @@ function rowSalesOrderDetailIndex({ row, rowIndex }) {
 function handleAddSalesOrderDetail() {
   let obj = {};
   obj.detailId= null,
-  obj.detailType= DetailTypeEnum.MAIN,
-  obj.detailMainSkuId= null,
   obj.skuId=null,
   obj.skuCode=null,
   obj.skuName=null,

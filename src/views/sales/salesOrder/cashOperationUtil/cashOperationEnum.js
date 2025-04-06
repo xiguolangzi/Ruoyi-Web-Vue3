@@ -4,7 +4,6 @@
  */
 export const initOrderDetailData = () => ({
   detailId: null,
-  detailType: DetailTypeEnum.MAIN,
   detailMainSkuId: null,
   skuId: null,
   skuCode: null,
@@ -149,15 +148,7 @@ export const OrderPayStatusEnum = {
   ARREARS: 2
 }
 
-/**
- * 订单明细类型：
- * 1-主体SKU 2-套餐附属SKU 3-活动附属SKU
- */
-export const DetailTypeEnum = {
-  MAIN: 1,
-  COMBO_ASSIST: 2,
-  PROMOTION_ASSIST: 3
-}
+
 
 /**
  * 订单明细是否已退货
@@ -167,5 +158,7 @@ export const DetailIsRefundedEnum = {
   NORMAL: 0,
   REFUNDED: 1
 }
+
+
 
 

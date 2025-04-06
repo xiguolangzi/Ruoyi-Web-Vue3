@@ -44,3 +44,12 @@ export function delSalesOrder(orderId) {
     method: 'delete'
   })
 }
+
+// 完成支付接口
+export function completePayment(data) {
+  return request({
+    url: '/sales/salesOrder/completePayment',
+    method: 'post',
+    data: data
+  })
+}

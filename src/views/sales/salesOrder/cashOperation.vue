@@ -1221,10 +1221,6 @@ const handleAddComboDetails = (comboDetail) => {
 function handleAddSalesOrderDetail(sku) {
   const obj = initOrderDetailData();
   const { skuId, skuCode, skuImage, skuName, assistName, skuType, comboId, skuValue, batchNo, unitVo, productRateVo, inTax, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6 } = sku;
-  //const snowflake = new SnowflakeID();
-  //const detailId = snowflake.nextId();
-  // 1 基础信息赋值
-  //obj.detailId = detailId;
   obj.detailMainSkuId = null;
   obj.skuId = skuId;
   obj.skuCode = skuCode;

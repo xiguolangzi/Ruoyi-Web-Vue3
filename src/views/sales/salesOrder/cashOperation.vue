@@ -453,8 +453,8 @@ const currentSalesman = ref(null)
 const currentSalesActivity = ref(null)
 const currentSku = ref(null)
 const currentWarehouse = ref(null);
-const canEditPrice = ref('1');  // 表格子组件编辑单价disable控制
-const canEditDiscountRate = ref('1'); // 表格子组件编辑折扣disable控制
+const canEditPrice = ref(1);  // 表格子组件编辑单价disable控制
+const canEditDiscountRate = ref(1); // 表格子组件编辑折扣disable控制
 
 const DB_NAME = "OrderDB";
 const STORE_NAME_ORDER = "order";

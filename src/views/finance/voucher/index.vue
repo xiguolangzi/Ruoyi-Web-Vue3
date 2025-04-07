@@ -9,7 +9,7 @@
       </el-form-item>
       <el-form-item label="会计月份" prop="periodMonth">
         <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份" >
-          <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
+          <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="凭证类型" prop="voucherType">

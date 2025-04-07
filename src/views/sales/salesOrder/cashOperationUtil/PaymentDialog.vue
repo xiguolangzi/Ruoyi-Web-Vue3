@@ -86,8 +86,7 @@
       
       <div class="dialog-footer">
           <el-button-group>
-            <el-button @click="handleClose" type="danger" :disabled="orderData.salesOrderPaymentList.length > 0">取消收款</el-button>
-            <el-button @click="handleContinueUpdateOrder" type="warning">修改订单</el-button>
+            <el-button @click="handleClose" type="danger" >取消收款</el-button>
             <el-button 
               type="primary" 
               @click="handlePartialPayment"
@@ -102,6 +101,13 @@
             >
               完全收款
             </el-button>
+            <el-button 
+              type="primary" 
+              @click="handlePrintTicket"
+              :disabled="isCompletedPayment"
+            >
+              打印小票
+            </el-button>
           </el-button-group>
         </div>
       
@@ -111,7 +117,8 @@
         <span >支付历史</span>
       </el-divider>
 
-        <el-table :data="orderData.salesOrderPaymentList" border size="small" style="width: 100%" show-summary v-if="orderData.salesOrderPaymentList?.length > 0">
+        <el-table :data="orderData.salesOrderPaymentList" border size="small" style="width: 100%" 
+        show-summary :summary-method="getSummaries" v-if="orderData.salesOrderPaymentList?.length > 0">
           <el-table-column prop="payMethod" label="支付方式" align="center" >
             <template #default="scope">
               <dict-tag :options="sales_order_pay_method" :value="scope.row.payMethod"/>
@@ -143,30 +150,38 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
-import {PaymentMethodEnum, initOrderPaymentData, OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
+import {PaymentMethodEnum, OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
 import { Delete } from '@element-plus/icons-vue';
-import {completePayment} from '@/api/sales/salesOrder.js'
+import {completePayment} from '@/api/sales/salesOrder.js';
+import {paymentAutoPrintEnum, canRemainAmountEnum} from "./tenantConfigEnum.js"
 
 
 const { proxy } = getCurrentInstance();
 const {sales_order_pay_method} = proxy.useDict("sales_order_pay_method")
 
-const emit = defineEmits(['paymentComplete','continueUpdateOrder'])
+const props = defineProps({
+  orderData: {
+    type: Object,
+    required: true,
+    default: () => {},
+  },
+  paymentAutoPrint: {
+    type: String,
+    default: false,
+  },
+  canRemainAmount: {
+    type: String,
+    default: false,
+  },
+});
+
+const emit = defineEmits(['paymentComplete'])
+
+
 
 // 对话框状态
 const paymentDialogVisible = ref(false)
-// 订单数据
-const orderData = ref({
-  orderInitNo: null,
-  totalNetAmount: 0,
-  verifiedAmount: 0,
-  remainAmount: 0,
-  cashAmount: 0,
-  bankAmount: 0,
-  zeroAmount: 0,
-  changeAmount: 0,
-  salesOrderPaymentList: []
-})
+
 // 支付表单
 const paymentForm = ref({
   cashAmount: 0,
@@ -176,9 +191,9 @@ const paymentFormRef = ref(null)
 
 // 计算属性 - 已核销金额
 const verifiedAmount = computed(() => {
-  return (orderData.value.salesOrderPaymentList || []).reduce((sum, payment) => {
+  return (props.orderData.salesOrderPaymentList || []).reduce((sum, payment) => {
     return sum + (Number(payment.payAmount) || 0 )
-  }, 0) + orderData.value.zeroAmount
+  }, 0) + props.orderData.zeroAmount
 })
 
 // 当前收款金额
@@ -189,7 +204,7 @@ const currentPaymentAmount = computed(() => {
 
 // 未核销金额
 const remainAmount = computed(() => {
-  const total = Number(orderData.value.totalNetAmount) || 0
+  const total = Number(props.orderData.totalNetAmount) || 0
   const verified = verifiedAmount.value
   const current = currentPaymentAmount.value
   return total - verified - current
@@ -215,7 +230,11 @@ const isPartialPayment = computed(() => {
 
 // 完成收款 - 状态
 const isCompletedPayment = computed(() => {
-  if(remainAmount.value <= 0){
+  // 欠款收银配置
+  if(props.canRemainAmount == canRemainAmountEnum.OPEN && props.orderData.totalNetAmount > 0){
+    return false
+  }
+  if(remainAmount.value <= 0 && props.orderData.totalNetAmount > 0){
     return false
   }else{
     return true
@@ -224,19 +243,7 @@ const isCompletedPayment = computed(() => {
 
 
 // 打开支付对话框
-const openPaymentDialog = (order) => {
-  orderData.value = {
-    ...orderData.value,
-    ...order,
-    totalNetAmount: order.totalNetAmount || 0,
-    verifiedAmount: order.verifiedAmount || 0,
-    remainAmount: order.remainAmount || 0,
-    cashAmount: order.cashAmount || 0,
-    bankAmount: order.bankAmount || 0,
-    zeroAmount: order.zeroAmount || 0,
-    changeAmount: order.changeAmount || 0,
-    salesOrderPaymentList: order.salesOrderPaymentList || []
-  }
+const openPaymentDialog = () => {
   paymentDialogVisible.value = true
   resetPaymentForm()
 }
@@ -245,68 +252,64 @@ const openPaymentDialog = (order) => {
  * 部分收款处理
  */
 const handlePartialPayment = () => {
-  // 创建支付记录
-  const payments = []
-  
+
+  // 1 将收款表单数据添加到收款记录
   if (paymentForm.value.cashAmount > 0) {
-    payments.push(createPaymentRecord(PaymentMethodEnum.CASH, paymentForm.value.cashAmount))
+    props.orderData.salesOrderPaymentList.push(createPaymentRecord(PaymentMethodEnum.CASH, paymentForm.value.cashAmount))
   }
-  
   if (paymentForm.value.bankAmount > 0) {
-    payments.push(createPaymentRecord(PaymentMethodEnum.BANK, paymentForm.value.bankAmount))
+    props.orderData.salesOrderPaymentList.push(createPaymentRecord(PaymentMethodEnum.BANK, paymentForm.value.bankAmount))
   }
-  
-  // 更新支付记录列表
-  orderData.value.salesOrderPaymentList = [
-    ...orderData.value.salesOrderPaymentList,
-    ...payments
-  ]
-
-
-  // 部分支付
-  orderData.value.orderPayStatus = OrderPayStatusEnum.NOT_COMPLETED;
-  orderData.value.verifiedAmount = verifiedAmount.value; 
-  orderData.value.remainAmount = orderData.value.totalNetAmount - verifiedAmount.value;
-  orderData.value.cashAmount = getTotalByType(PaymentMethodEnum.CASH);
-  orderData.value.bankAmount = getTotalByType(PaymentMethodEnum.BANK);
-  orderData.value.changeAmount = changeAmount.value;
-
+  // 2 重置收款表单
   resetPaymentForm()
+  // 3 更新订单统计金额数据
+  props.orderData.verifiedAmount = verifiedAmount.value; 
+  props.orderData.remainAmount = props.orderData.totalNetAmount - verifiedAmount.value;
+  props.orderData.cashAmount = getTotalByType(PaymentMethodEnum.CASH);
+  props.orderData.bankAmount = getTotalByType(PaymentMethodEnum.BANK);
+  props.orderData.changeAmount = changeAmount.value;
   ElMessage.success('部分收款已记录，请继续收款')
-  console.log('部分收款:----订单数据',orderData.value)
-
+  console.log('部分收款:----订单数据',props.orderData)
 }
 
 /**
  * 完成收款处理
  */
 const handleCompletedPayment = () => {
-  // 1 创建支付记录
-  const payments = []
+  // 1 更新支付记录列表
   if (paymentForm.value.cashAmount > 0) {
-    payments.push(createPaymentRecord(PaymentMethodEnum.CASH, paymentForm.value.cashAmount))
+    props.orderData.salesOrderPaymentList.push(toRaw(createPaymentRecord(PaymentMethodEnum.CASH, paymentForm.value.cashAmount)))
   }
   if (paymentForm.value.bankAmount > 0) {
-    payments.push(createPaymentRecord(PaymentMethodEnum.BANK, paymentForm.value.bankAmount))
+    props.orderData.salesOrderPaymentList.push(toRaw(createPaymentRecord(PaymentMethodEnum.BANK, paymentForm.value.bankAmount)))
   }
-  // 2 更新支付记录列表
-  orderData.value.salesOrderPaymentList = [
-    ...orderData.value.salesOrderPaymentList,
-    ...payments
-  ]
-  // 3 如果已支付完成
-  orderData.value.orderPayStatus = OrderPayStatusEnum.PAID;
-  orderData.value.verifiedAmount = orderData.value.totalNetAmount;
-  orderData.value.remainAmount = 0;
-  orderData.value.cashAmount = getTotalByType(PaymentMethodEnum.CASH);
-  orderData.value.bankAmount = getTotalByType(PaymentMethodEnum.BANK);
-  orderData.value.changeAmount = changeAmount.value;
-  
-
-  // TODO:调用支付接口 -> 更新订单信息、支付信息、库存扣减
-  completePayment(orderData.value).then(() => {
-    // TODO:通知父级组件付款完成 -> 初始化订单表单数据
-    console.log('付款完成:----订单数据',orderData.value)
+  // 2 重置收款表单
+  resetPaymentForm()
+  // 3 更新订单统计金额数据
+  props.orderData.verifiedAmount = verifiedAmount.value - changeAmount.value;
+  props.orderData.remainAmount = remainAmount.value <= 0 ? 0 : remainAmount.value;
+  props.orderData.cashAmount = getTotalByType(PaymentMethodEnum.CASH);
+  props.orderData.bankAmount = getTotalByType(PaymentMethodEnum.BANK);
+  props.orderData.changeAmount = changeAmount.value;
+  if(remainAmount.value <= 0){
+    props.orderData.orderPayStatus = OrderPayStatusEnum.PAID;
+  } else {
+   props.orderData.orderPayStatus = OrderPayStatusEnum.NOT_COMPLETED;
+   // 存在未收欠款的订单需要绑定客户
+   if(!props.orderData.customerId){
+    ElMessage.error("欠款订单需要绑定客户信息！当前订单未绑定客户信息，请检查！");
+    return;
+   }
+  }
+  // 4 调用支付接口 -> 更新订单信息、支付信息、库存扣减
+  completePayment(props.orderData).then(() => {
+    // 是否自动打印
+    if (props.paymentAutoPrint == paymentAutoPrintEnum.OPEN) {
+      // 打印功能
+      handlePrintTicket()
+    }
+    // 通知父级组件付款完成 -> 初始化订单表单数据
+    console.log('付款完成:----订单数据',props.orderData)
     emit('paymentComplete')
     handleClose()
   }).catch(error => {
@@ -326,29 +329,27 @@ const createPaymentRecord = (method, amount) => {
   return {
     paymentId: null,
     paymentNo: null,
-    orderId: orderData.value.orderId,
-    orderInitNo: orderData.value.orderInitNo,
-    orderNo: orderData.value.orderNo,
+    orderId: props.orderData.orderId,
+    orderInitNo: props.orderData.orderInitNo,
+    orderNo: props.orderData.orderNo,
     payMethod: method,
     payAmount: amount,
-    payTime: new Date(),
+    payTime: null, // 存储为字符串而非Date对象
     transactionNo: null
   }
 }
 
-//
+// 删除行
 const handleDeleteRow = (index) => {
-  orderData.value.salesOrderPaymentList.splice(index, 1); // 删除指定行
+  props.orderData.salesOrderPaymentList.splice(index, 1); // 删除指定行
 }
-
 
 // 根据支付方式获取总金额
 const getTotalByType = (method) => {
-  return (orderData.value.salesOrderPaymentList || [])
+  return (props.orderData.salesOrderPaymentList || [])
     .filter(p => p.payMethod == method)
     .reduce((sum, p) => sum + (Number(p.payAmount) || 0), 0)
 }
-
 
 // 重置表单
 const resetPaymentForm = () => {
@@ -366,14 +367,36 @@ const handleClose = () => {
   resetPaymentForm()
 }
 
+
 /**
- * 继续修改订单
+ * 打印小票
  */
-const handleContinueUpdateOrder = () => {
-  // TODO: 通知父级组件继续修改订单
-  emit('continueUpdateOrder', orderData.value)
-  handleClose()
+const handlePrintTicket = () => {
+  // TODO: 打印小票
+  console.log('打印小票',props.orderData)
 }
+
+// 计算合计行
+const getSummaries = (param) => {
+  const { columns, data } = param;
+  const sums = [];
+
+  columns.forEach((column, index) => {
+    if (index === 0) {
+      sums[index] = '合计';
+      return;
+    }
+    if (column.property === 'payAmount') {
+      // 计算金额合计
+      sums[index] = data.reduce((sum, row) => sum + (Number(row.detailSalesAmount) || 0), 0).toFixed(2) + ' €';
+    } else {
+      // 其他列不合计
+      sums[index] = '';
+    }
+  });
+
+  return sums;
+};
 
 defineExpose({ openPaymentDialog })
 </script>

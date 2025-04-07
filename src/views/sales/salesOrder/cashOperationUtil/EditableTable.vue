@@ -51,7 +51,7 @@
         <el-input v-if="isEditing(scope.row, 'detailPrice')" :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
           v-model.number="scope.row.detailPrice" size="small" @blur="handleBlur(scope.row, 'detailPrice')"
           @focus="handleFocus" @change="updateAmount(scope.row)" style="width: 100%;" type="number"
-          :disabled="editPrice != '0'" />
+          :disabled="editPrice != canEditPriceEnum.ALLOW" />
         <span v-else>{{ formatTwo(scope.row.detailPrice) + ' €' }}</span>
       </template>
     </el-table-column>
@@ -69,7 +69,7 @@
         <el-input v-if="isEditing(scope.row, 'detailDiscountRate')"
           :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" v-model.number="scope.row.detailDiscountRate"
           size="small" @blur="handleBlur(scope.row, 'detailDiscountRate')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="number" :disabled="editDiscountRate != '0'" />
+          @change="updateAmount(scope.row)" style="width: 100%;" type="number" :disabled="editDiscountRate != canEditDiscountRateEnum.ALLOW" />
         <span v-else>{{ scope.row.detailDiscountRate || 0 }} %</span>
       </template>
     </el-table-column>
@@ -106,7 +106,7 @@
     </el-table-column>
     <el-table-column label="操作" align="center" width="50">
       <template #default="scope">
-        <el-button type="danger" size="small" :icon="Delete" circle @click="handleDeleteRow(scope.$index)" />
+        <el-button type="danger" size="small" :icon="Delete" circle @click="handleDeleteRow(scope.$index, scope.row)" />
       </template>
     </el-table-column>
   </el-table>
@@ -118,6 +118,7 @@ import ImageNormal from '@/components/ImageNormal/index.vue';
 import { OrderInTaxEnum } from './cashOperationEnum.js';
 import { Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
+import {canEditPriceEnum, canEditDiscountRateEnum} from './tenantConfigEnum.js';
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
@@ -161,8 +162,8 @@ const handleClickChangeImage = (row) => {
 /**
  * 删除行
  */
-const handleDeleteRow = (index) => {
-  emit('deleteRow', index); // 通知父组件删除指定行
+const handleDeleteRow = (index,row) => {
+  emit('deleteRow', index, row); // 通知父组件删除指定行
 };
 
 

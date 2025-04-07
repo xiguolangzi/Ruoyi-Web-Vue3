@@ -115,9 +115,9 @@
         <el-tabs type="border-card" class="full-height-tabs">
           <el-tab-pane label="工具">
             <div class="tool-keyboard">
-              <TouchKeyboard ref="keyboardRef" v-if="cajaShowKeyboard == 0" />
+              <TouchKeyboard ref="keyboardRef" v-if="cajaShowKeyboard == cajaShowKeyboardEnum.SHOW" />
             </div>
-            <el-divider v-if="cajaShowKeyboard == 0" />
+            <el-divider v-if="cajaShowKeyboard == cajaShowKeyboardEnum.SHOW" />
             <div class="tool-button">
               <el-button v-for="(action, index) in actions" :key="index" size="small" type="primary" plain
                 class="action-button" @click="handleAction(action)">
@@ -189,7 +189,7 @@
             <el-descriptions-item label="结束时间: ">
               {{ shiftForm.shiftEndTime ?? '--' }}
             </el-descriptions-item>
-            <el-descriptions-item label="本次总收入: " :span="2" label-class-name="total-label" class-name="total-content">
+            <el-descriptions-item label="交易总收入: " :span="2" label-class-name="total-label" class-name="total-content">
               <strong class="strong-font">{{ formatTwo(shiftForm.totalSalesAmount) + ' €' }}</strong>
             </el-descriptions-item>
             <el-descriptions-item label="现金收款: ">
@@ -208,9 +208,14 @@
                 {{ formatTwo(shiftForm.totalRefundBank) + ' €' }}
               </span>
             </el-descriptions-item>
-            <el-descriptions-item label="现金找零: " :span="2">
+            <el-descriptions-item label="现金找零: " >
               <span :style="{ color: shiftForm.totalChange < 0 ? '#ff4949' : 'inherit' }">
                 {{ formatTwo(shiftForm.totalChange) + ' €' }}
+              </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="银行总收入: " label-class-name="total-label" class-name="total-content">
+              <span :style="{ color: totalBank < 0 ? '#ff4949' : 'inherit' }">
+                {{ formatTwo(totalBank) + ' €' }}
               </span>
             </el-descriptions-item>
             <el-descriptions-item label="现金总收入: " label-class-name="total-label" class-name="total-content">
@@ -218,9 +223,9 @@
                 {{ formatTwo(totalCash) + ' €' }}
               </span>
             </el-descriptions-item>
-            <el-descriptions-item label="银行总收入: " label-class-name="total-label" class-name="total-content">
-              <span :style="{ color: totalBank < 0 ? '#ff4949' : 'inherit' }">
-                {{ formatTwo(totalBank) + ' €' }}
+            <el-descriptions-item label="未收欠款: " label-class-name="total-label" class-name="total-content">
+              <span :style="{ color: shiftForm.totalRemainAmount < 0 ? '#ff4949' : 'inherit' }">
+                {{ formatTwo(shiftForm.totalRemainAmount) + ' €' }}
               </span>
             </el-descriptions-item>
             <el-descriptions-item label="优惠抹零: " :span="2">
@@ -398,7 +403,7 @@
     <ComboConfirmDialog ref="comboDialog" @add-combo-details="handleAddComboDetails" />
 
     <!-- 收款确认 对话框 -->
-    <PaymentDialog ref="paymentDialog"  @paymentComplete="handlePaymentComplete" @continueUpdateOrder="handleContinueUpdateOrder"/>
+    <PaymentDialog ref="paymentDialog" :orderData="form" :paymentAutoPrint="paymentAutoPrint" :canRemainAmount="canRemainAmount"  @paymentComplete="handlePaymentComplete" />
 
   </div>
 
@@ -434,6 +439,9 @@ import { getProductCombo} from "@/api/product/productCombo";
 import { ComboItemIsOptionalEnum } from "@/views/product/productCombo/productComboEnum.js"
 import ComboConfirmDialog from './cashOperationUtil/ComboConfirmDialog.vue';
 import PaymentDialog from './cashOperationUtil/PaymentDialog.vue';
+import {canEditPriceEnum, canEditDiscountRateEnum, paymentAutoPrintEnum, canRemainAmountEnum, canDeleteOrderDetailEnum, cajaShowKeyboardEnum} from './cashOperationUtil/tenantConfigEnum.js';
+import { addSalesOrderLog } from "@/api/sales/salesOrderLog";
+
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type');
@@ -442,7 +450,6 @@ const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order
 const userStore = useUserStore();
 const dialogVisible = ref(false) // 交班窗口
 const dialogVisible2 = ref(false) // 店长认证
-const dialogVisible3 = ref(false) // 套餐确认
 const userForm = ref({});  // 店长信息
 const activeTab = ref('first')  // 交班默认tab窗口
 const keyboardRef = ref(null);  // 键盘组件实例
@@ -453,21 +460,39 @@ const currentSalesman = ref(null)
 const currentSalesActivity = ref(null)
 const currentSku = ref(null)
 const currentWarehouse = ref(null);
-const canEditPrice = ref(1);  // 表格子组件编辑单价disable控制
-const canEditDiscountRate = ref(1); // 表格子组件编辑折扣disable控制
+const canEditPrice = ref(canEditPriceEnum.NOT_ALLOW);  // 表格子组件编辑单价disable控制
+const canEditDiscountRate = ref(canEditDiscountRateEnum.NOT_ALLOW); // 表格子组件编辑折扣disable控制
+const paymentAutoPrint = ref(paymentAutoPrintEnum.OPEN);  // 是否开启完成支付自动打印
+const canRemainAmount = ref(canRemainAmountEnum.OPEN); // 是否开启欠款支付
+const canDeleteOrderDetail = ref(canDeleteOrderDetailEnum.OPEN);  // 是否开启删除订单行
+const cajaShowKeyboard = ref(cajaShowKeyboardEnum.SHOW); // 是否展示触摸键盘配置
 
 const DB_NAME = "OrderDB";
 const STORE_NAME_ORDER = "order";
 
+
+// **************** 获取配置 end *******************
 /** 获取租户配置 */
 const getTenantConfig = async () => {
   const config = await proxy.getTenantConfig("editPrice");
-  canEditPrice.value = config?.configValue || '1';
+  canEditPrice.value = config?.configValue || canEditPriceEnum.NOT_ALLOW;
   const config2 = await proxy.getTenantConfig("editDiscountRate");
-  canEditDiscountRate.value = config2?.configValue || '1';
+  canEditDiscountRate.value = config2?.configValue || canEditDiscountRateEnum.NOT_ALLOW;
+  const config3 = await proxy.getTenantConfig("paymentAutoPrint");
+  paymentAutoPrint.value = config3?.configValue || paymentAutoPrintEnum.OPEN;
+  const config4 = await proxy.getTenantConfig("canRemainAmount");
+  canRemainAmount.value = config4?.configValue || canRemainAmountEnum.OPEN;
+  const config5 = await proxy.getTenantConfig("canDeleteOrderDetail");
+  canDeleteOrderDetail.value = config5?.configValue || canDeleteOrderDetailEnum.OPEN;
+  const config6 = await proxy.getTenantConfig("cajaShowKeyboard");
+  cajaShowKeyboard.value = config.configValue || cajaShowKeyboardEnum.SHOW;
 }
 getTenantConfig()
 
+/**
+ * 处理skuSelect组件选中事件
+ * @param data 
+ */
 const changeCurrentSkuData = (data) => {
   currentSku.value = data || null;
 }
@@ -475,18 +500,67 @@ const changeCurrentSkuData = (data) => {
 /**
  * 处理删除行
  */
-const handleDeleteRow = (index) => {
+const handleDeleteRow = (index, row) => {
+  if(canDeleteOrderDetail.value == canDeleteOrderDetailEnum.OPEN){
+    handleAddSalesOrderLog(operateLogTypeEnum.DELETE_ORDER_DETAIL, row)
+    form.value.salesOrderDetailList.splice(index, 1); // 删除指定行
+    return;
+  }
   // 门店权限校验
   dialogVisible2.value = true;
   userForm.value.index = index;
+  userForm.value.orderDetail = row || {};
   
 };
+
+const operateLogTypeEnum = {
+  DELETE_ORDER_DETAIL: 1,
+  DELETE_ORDER: 2
+}
+
+/**
+ * 插入订单操作日志 删除日志
+ */
+const handleAddSalesOrderLog = (operateLogType, detailData) =>{
+  const logParams = {
+    orderInitNo: form.value.orderInitNo,
+    cajaId: currentCaja.value.cajaId,
+    cajaName: currentCaja.value.cajaName,
+    operationType: operateLogType,
+    skuId: null,
+    skuCode: null,
+    skuName: null,
+    price: null,
+    quantity: null,
+    amount: null,
+    totalNetAmount: null,
+  }
+  if(operateLogType == operateLogTypeEnum.DELETE_ORDER_DETAIL){
+    logParams.skuId = detailData.skuId;
+    logParams.skuCode = detailData.skuCode;
+    logParams.skuName = detailData.skuName;
+    logParams.price = detailData.detailPrice;
+    logParams.quantity = detailData.detailQuantity;
+    logParams.amount = detailData.detailAmount;
+    logParams.totalNetAmount = detailData.detailNetAmount
+  }
+  if(operateLogType == operateLogTypeEnum.DELETE_ORDER){
+    logParams.totalNetAmount = form.value.totalNetAmount;
+  }
+  console.log("logParams***********:",logParams)
+  addSalesOrderLog(logParams).then(()=>{
+    console.log("插入订单操作日志成功")
+  }).catch((e)=>{
+    console.error("插入订单操作日志失败:",e)
+  })
+}
 
 /**
  * 店长认证
  */
 const checkAuthStoreManager = () => {
   authStoreManager(userForm.value).then(()=>{
+    handleAddSalesOrderLog(operateLogTypeEnum.DELETE_ORDER_DETAIL, row)
     form.value.salesOrderDetailList.splice(userForm.value.index, 1); // 删除指定行
     dialogVisible2.value = false
     userForm.value = {}
@@ -519,18 +593,64 @@ const data = reactive({
 
 const { form, rules } = toRefs(data);
 
-// 数据本地存储
+// 挂单 - 数据本地存储
 const indexedDBForm = () =>{
   try {
     // 先去掉 Proxy，转为普通对象
-    console.log("存储前的数据:", toRaw(form.value));
-    const rawData = toRaw(form.value);
-    // const clonedForm = structuredClone(rawData);
-    IndexedDBUtil.saveData(DB_NAME, STORE_NAME_ORDER, rawData);
+    const data = {
+      ...toRaw(form.value),
+      salesOrderDetailList: toRaw(form.value.salesOrderDetailList),
+      salesOrderPaymentList: toRaw(form.value.salesOrderPaymentList)
+    }
+    IndexedDBUtil.saveData(DB_NAME, STORE_NAME_ORDER, data);
   } catch (error) {
     console.error("存储数据失败:", error);
   }
 }
+
+/**
+ * 订单数据持久化 localStory
+ */
+const localStorageForm = () =>{
+  try {
+    // 先去掉 Proxy，转为普通对象
+    const data = {
+      ...toRaw(form.value),
+      salesOrderDetailList: toRaw(form.value.salesOrderDetailList),
+      salesOrderPaymentList: toRaw(form.value.salesOrderPaymentList)
+    }
+    localStorage.setItem('currentOrderForm', JSON.stringify(data));
+  } catch (error) {
+    console.error("存储数据失败:", error);
+  }
+}
+/**
+ * 获取本地存储数据
+ */
+const getLocalStorageForm = () =>{
+  try {
+    const data = localStorage.getItem('currentOrderForm');
+    if (data) {
+      const parsedData = JSON.parse(data);
+      form.value = parsedData;
+      form.value.salesOrderDetailList = parsedData.salesOrderDetailList;
+      form.value.salesOrderPaymentList = parsedData.salesOrderPaymentList;
+    }
+  } catch(error) {
+    console.error("获取数据失败:", error);
+  }
+}
+/**
+ * 删除本地存储数据
+ */
+const removeLocalStorageForm = () =>{
+  try {
+    localStorage.removeItem('currentOrderForm');
+  } catch (error) {
+    console.error("删除数据失败:", error);
+  }
+}
+
 // 销售订单表单数据重置
 function reset() {
   const snowflake = new SnowflakeID({ objectId: userStore.id});
@@ -580,8 +700,18 @@ function reset() {
   };
 
   proxy.resetForm("salesOrderRef");
+  getLocalStorageForm(); //  获取本地存储数据
   
 }
+
+// form.value 变化 则 本地存储数据
+watch(
+  () => form.value,
+  (newValue, oldValue) => {
+    localStorageForm(); // 订单数据持久化 localStory
+  },
+  { deep: true }
+);
 
 onMounted(() => {
   console.log("mounted***************66666");
@@ -590,49 +720,7 @@ onMounted(() => {
 // ------------------------------------- 10 form 订单表单 End -------------------------------------
 
 
-// -------------- 7 订单数据处理 start --------------------
-
-
-
-/** 提交按钮 */
-function submitForm() {
-  proxy.$refs["salesOrderRef"].validate(valid => {
-    if (valid) {
-      form.value.salesOrderDetailList = salesOrderDetailList.value;
-      if (form.value.orderId != null) {
-        updateSalesOrder(form.value).then(response => {
-          proxy.$modal.msgSuccess("修改成功");
-          open.value = false;
-          getList();
-        });
-      } else {
-        addSalesOrder(form.value).then(response => {
-          proxy.$modal.msgSuccess("新增成功");
-          open.value = false;
-          getList();
-        });
-      }
-    }
-  });
-}
-
-
-// --------------- 7 订单数据处理 end --------------------
-
-// **************** 获取配置 start *******************
-
-/** 是否展示触摸键盘配置 */
-const cajaShowKeyboard = ref(0)
-const getCajaShowKeyboard = async () => {
-  const config = await proxy.getTenantConfig("cajaShowKeyboard");
-  cajaShowKeyboard.value = config.configValue || 0;
-}
-getCajaShowKeyboard()
-
-// **************** 获取配置 end *******************
-
-
-// -------------- 5 交班业务 start  ---------------------
+// -------------------------------- 5 交班业务 start  ----------------------------------
 
 /** 交班业务  */
 const checkSalesShiftRecords = () => {
@@ -804,6 +892,7 @@ const shiftForm = ref({
   totalBank: 0,
   totalChange: 0,
   totalZero: 0,
+  totalRemainAmount: 0,
   totalRefundCash: 0,
   totalRefundBank: 0,
   currentExpectedCash: 0,
@@ -861,11 +950,13 @@ watch(currentCashAmount, (newValue) => {
   shiftForm.value.currentCashAmount = newValue;
 });
 
-/** 计算现金总收入 */
+/**
+ * 计算现金总收入 = 销售现金(正数) + 退货现金(负数) - 找零现金(正数)
+ */
 const totalCash = computed(() => {
   return (
     shiftForm.value.totalCash +
-    shiftForm.value.totalRefundCash +
+    shiftForm.value.totalRefundCash -
     shiftForm.value.totalChange
   ).toFixed(2);
 });
@@ -985,15 +1076,8 @@ const handleAction = (action) => {
       toggleFullScreen();
       break;
     case "shift":
-      playKeyHappySound()
-      getSalesShiftRecords(shiftForm.value.shiftId).then((response) => {
-        if(response.data.isActive){
-          // 更新交班记录
-          shiftForm.value = response.data;
-        } 
-      });
-      // 弹出交班对话框
-      handlerOpenDialog()
+      playKeyHappySound();
+      handleShift();
       break;
     case "holdOrder":
       console.log("挂单");
@@ -1178,7 +1262,7 @@ const focusSkuInput = () => {
 /** 交班 */
 const handleShift = () => {
   getSalesShiftRecords(shiftForm.value.shiftId).then((response) => {
-    if (response.data.isActive) {
+    if (response.data.shiftStatus == ShiftStatusEnum.ACTIVE) {
       // 更新交班记录
       shiftForm.value = response.data;
     }
@@ -1399,16 +1483,10 @@ const updateFormData = () => {
 const handlePaymentComplete = () => {
   console.log('支付完成:')
   // TODO:初始化当前表单数据
+  removeLocalStorageForm()
   reset()
 }
 
-/**
- *  继续修改订单
- */
-const handleContinueUpdateOrder = (orderData) => {
-  console.log('收款子组件继续修改订单传递给父组件的数据:', orderData)
-  form.value = orderData
-}
 
 const paymentDialog = ref(null)
 // 9 收款操作
@@ -1422,7 +1500,7 @@ const handlerPayment = () => {
       if(res.code == 200 && res.data){
         form.value = res.data;
         // 打开收款界面
-        paymentDialog.value.openPaymentDialog(form.value)
+        paymentDialog.value.openPaymentDialog()
 
       } else {
         ElMessage.error(res.msg);
@@ -1437,7 +1515,7 @@ const handlerPayment = () => {
       console.log("添加订单信息返回：", res.data);
         form.value = res.data;
         // 打开收款界面
-        paymentDialog.value.openPaymentDialog(form.value)
+        paymentDialog.value.openPaymentDialog()
       }
     ).catch(error => {
       ElMessage.error("收款操作异常：",error.message);

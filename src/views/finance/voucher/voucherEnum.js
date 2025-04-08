@@ -22,7 +22,9 @@ export const VoucherTypeEnum = {
   VOUCHER_TYPE_SHIFT: 10,
 }
 
-/** 凭证状态 */
+/**
+ * 凭证状态：1-草稿 2-待审核 3-已审核 4-已过账 5-已作废
+ */
 export const VoucherStatusEnum = {
   // 草稿
   VOUCHER_STATUS_DRAFT: 1,

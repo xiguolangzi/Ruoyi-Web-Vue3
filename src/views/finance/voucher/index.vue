@@ -3,23 +3,26 @@
     <!-- 过滤条件 -->
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" :label-width="68">
       <el-form-item label="会计年度" prop="periodYear">
-        <el-select v-model="queryParams.periodYear" placeholder="请选择会计年度" >
-          <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
+        <el-select v-model="queryParams.periodYear" placeholder="请选择会计年度">
+          <el-option v-for="dict in finance_period_year" :key="dict.value" :label="dict.label"
+            :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="会计月份" prop="periodMonth">
-        <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份" >
+        <el-select v-model="queryParams.periodMonth" placeholder="请选择会计月份">
           <el-option v-for="dict in finance_period_month" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
       </el-form-item>
       <el-form-item label="凭证类型" prop="voucherType">
         <el-select v-model="queryParams.voucherType" placeholder="请选择凭证类型" clearable>
-          <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
+          <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label"
+            :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="凭证状态" prop="voucherStatus">
         <el-select v-model="queryParams.voucherStatus" placeholder="请选择凭证状态" clearable>
-          <el-option v-for="dict in finance_voucher_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
+          <el-option v-for="dict in finance_voucher_status" :key="dict.value" :label="dict.label"
+            :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item style="margin-left: 20px;">
@@ -46,7 +49,8 @@
     </el-row>
 
     <!-- 数据展示 -->
-    <el-table class="table-container" v-loading="loading" :data="voucherList" @selection-change="handleSelectionChange" size="small">
+    <el-table class="table-container" v-loading="loading" :data="voucherList" @selection-change="handleSelectionChange"
+      size="small">
       <el-table-column type="selection" :width="55" align="center" />
       <el-table-column label="会计年度" align="center" prop="periodYear" width="80px">
         <template #default="scope">
@@ -83,7 +87,8 @@
           <dict-tag :options="finance_voucher_status" :value="scope.row.voucherStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="凭证备注" align="left" header-align="center" prop="remark" min-width="150px" show-overflow-tooltip />
+      <el-table-column label="凭证备注" align="left" header-align="center" prop="remark" min-width="150px"
+        show-overflow-tooltip />
       <el-table-column label="制单人" align="center" prop="createBy" show-overflow-tooltip />
       <el-table-column label="制单时间" align="center" prop="createTime" show-overflow-tooltip>
         <template #default="scope">
@@ -96,11 +101,12 @@
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      
+
     </el-table>
 
     <!-- 分页控件 -->
-    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
+    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+      @pagination="getList" />
 
 
     <!-- 添加或修改会计凭证对话框 -->
@@ -117,50 +123,44 @@
               <!-- 草稿状态 -->
               <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT"
                 @click="handleSave" :loading="loading" :disabled="isInDisabledTypes"
-                v-hasPermi="['finance:voucher:edit']"
-              >
+                v-hasPermi="['finance:voucher:edit']">
                 保存
               </el-button>
-              <el-button type="danger" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT && insertStatus == false"
+              <el-button type="danger"
+                v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_DRAFT && insertStatus == false"
                 @click="handleVoided" :loading="loading" :disabled="isInDisabledTypes"
-                v-hasPermi="['finance:voucher:edit']"
-              >
+                v-hasPermi="['finance:voucher:edit']">
                 作废
               </el-button>
 
               <!-- 待审核状态 -->
-               <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED"
+              <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED"
                 @click="handleAudited" :loading="loading" :disabled="isInDisabledTypes"
-                v-hasPermi="['finance:voucher:audited']"
-              >
+                v-hasPermi="['finance:voucher:audited']">
                 审核
               </el-button>
               <el-button type="warning" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_WAIT_AUDITED"
                 @click="handleContinueEdit" :loading="loading" :disabled="isInDisabledTypes"
-                v-hasPermi="['finance:voucher:edit']"
-              >
+                v-hasPermi="['finance:voucher:edit']">
                 继续编辑
               </el-button>
 
               <!-- 审核状态 -->
               <el-button type="primary" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_AUDITED"
                 @click="handlePosted" :loading="loading" :disabled="isInDisabledTypes"
-                v-hasPermi="['finance:voucher:posted']"
-              >
+                v-hasPermi="['finance:voucher:posted']">
                 过账
               </el-button>
               <el-button type="warning" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_AUDITED"
                 @click="handleUnAudited" :loading="loading" :disabled="isInDisabledTypes"
-                v-hasPermi="['finance:voucher:audited']"
-              >
+                v-hasPermi="['finance:voucher:audited']">
                 反审核
               </el-button>
 
               <!-- 已过帐状态 -->
               <el-button type="success" v-if="form.voucherStatus === VoucherStatusEnum.VOUCHER_STATUS_POSTED"
                 @click="handleUnPosted" :loading="loading" :disabled="isInDisabledTypes"
-                v-hasPermi="['finance:voucher:posted']"
-              >
+                v-hasPermi="['finance:voucher:posted']">
                 反过账
               </el-button>
 
@@ -202,7 +202,7 @@
             <el-form-item label="凭证类型" prop="voucherType">
               <el-select v-model="form.voucherType" placeholder="凭证类型" clearable style="width: 100%">
                 <el-option v-for="dict in finance_voucher_type" :key="dict.value" :label="dict.label"
-                  :value="Number(dict.value)" :disabled="isDisabledSelectType(Number(dict.value))" ></el-option>
+                  :value="Number(dict.value)" :disabled="isDisabledSelectType(Number(dict.value))"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
@@ -217,7 +217,8 @@
         <el-row :gutter="20">
           <el-col :span="23">
             <el-form-item label="凭证备注" prop="remark">
-              <el-input v-model="form.remark" placeholder="凭证备注" type="text" maxlength="30px" show-word-limit></el-input>
+              <el-input v-model="form.remark" placeholder="凭证备注" type="text" maxlength="30px"
+                show-word-limit></el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -239,15 +240,15 @@
           <template #default="scope">
             <el-tooltip :content="scope.row.summary" placement="top" :disabled="scope.row.summary===null">
               <el-input v-model="scope.row.summary" placeholder="摘要" type="text" :maxlength="20" show-word-limit
-                style="width: 100%;" :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
+                style="width: 100%;" :disabled="form.voucherStatus != VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
             </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column label="科目名称" prop="accountId" align="center" min-width="150px" show-overflow-tooltip>
           <template #default="scope">
             <el-tree-select v-model="scope.row.accountId" :data="accountTree" :props="treeProps" value-key="accountId"
-              placeholder="请选择科目" style="width: 100%;" @node-click="(data) => handleAccountChange(scope.row, data)" filterable
-              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT">
+              placeholder="请选择科目" style="width: 100%;" @node-click="(data) => handleAccountChange(scope.row, data)"
+              filterable :disabled="form.voucherStatus != VoucherStatusEnum.VOUCHER_STATUS_DRAFT">
             </el-tree-select>
           </template>
         </el-table-column>
@@ -257,8 +258,7 @@
               placeholder="借方金额" :max='99999999' :min='0' :precision='2' :step='0' :controls="false"
               @change="calculateTotalAmount" style="width: 100%;" @focus="handleFocus(scope.$index, 'debitAmount')"
               @click="handleFocus(scope.$index, 'debitAmount')"
-              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" 
-            >
+              :disabled="form.voucherStatus != VoucherStatusEnum.VOUCHER_STATUS_DRAFT">
               <template #suffix>
                 <span>€</span>
               </template>
@@ -267,27 +267,28 @@
         </el-table-column>
         <el-table-column label="贷方金额" prop="creditAmount" align="center">
           <template #default="scope">
-            <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'creditAmount')" v-model="scope.row.creditAmount"
-              placeholder="贷方金额" :max='99999999' :min='0' :precision='2' :step='0' :controls="false"
-              @change="calculateTotalAmount" style="width: 100%;" @focus="handleFocus(scope.$index, 'creditAmount')" @click="handleFocus(scope.$index, 'creditAmount')"
-              :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" 
-            >
+            <el-input-number :ref="(el) => setInputRef(el, scope.$index, 'creditAmount')"
+              v-model="scope.row.creditAmount" placeholder="贷方金额" :max='99999999' :min='0' :precision='2' :step='0'
+              :controls="false" @change="calculateTotalAmount" style="width: 100%;"
+              @focus="handleFocus(scope.$index, 'creditAmount')" @click="handleFocus(scope.$index, 'creditAmount')"
+              :disabled="form.voucherStatus != VoucherStatusEnum.VOUCHER_STATUS_DRAFT">
               <template #suffix>
                 <span>€</span>
               </template>
             </el-input-number>
           </template>
         </el-table-column>
-        
+
         <el-table-column label="辅助项" prop="assistType" align="center" min-width="50" show-overflow-tooltip>
           <template #default="scope">
-            <dict-tag :options="finance_assist_type" :value="scope.row.assistType" :disabled="form.voucherStatus !== VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
+            <dict-tag :options="finance_assist_type" :value="scope.row.assistType"
+              :disabled="form.voucherStatus != VoucherStatusEnum.VOUCHER_STATUS_DRAFT" />
           </template>
         </el-table-column>
         <el-table-column label="辅助值" prop="assistName" align="center" min-width="50" show-overflow-tooltip>
           <template #default="scope">
-            <span class="link-type" @click="openSetAssistDialog(scope.row)" >
-              {{ getAssistNameById(scope.row) }}
+            <span class="link-type" @click="openSetAssistDialog(scope.row)">
+              {{ scope.row.assistName }}
             </span>
           </template>
         </el-table-column>
@@ -318,7 +319,7 @@
           <el-row :gutter="20">
             <el-col :span="12">
               <el-form-item label="辅助项类型:" prop="assistType">
-                <el-select v-model="assistForm.assistType" placeholder="请选择辅助项类型" @change="getAssistValueList"
+                <el-select v-model="assistForm.assistType" placeholder="请选择辅助项类型" @change="handleInitAssist"
                   style="width: 100%;">
                   <el-option v-for="dict in currentAssistTypesDict" :key="dict.value" :label="dict.label"
                     :value="Number(dict.value)" />
@@ -329,34 +330,17 @@
               <!-- 辅助项 - 客户 -->
               <el-form-item :label="assistTypeLabel" prop="assistName"
                 v-if="assistForm.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER">
-                <el-select v-model="assistForm.assistId" :placeholder="assistTypeLabel" @change="setAssistForm"
-                  style="width: 100%;" filterable>
-                  <el-option v-for="item in customerList" :key="item.customerId" :label="item.customerName"
-                    :value="item.customerId">
-                    <span>{{ '客户名称：' + item.customerName + ' ---- ' + '客户编码：' + item.customerCode }}</span>
-                  </el-option>
-                </el-select>
+                <CustomerSelect v-model="assistForm.assistId" @selectedData="selectedCustomerData" />
               </el-form-item>
               <!-- 辅助项 - 供应商 -->
               <el-form-item :label="assistTypeLabel" prop="assistName"
                 v-if="assistForm.assistType == AssistTypeEnum.ASSIST_TYPE_SUPPLIER">
-                <el-select v-model="assistForm.assistId" :placeholder="assistTypeLabel" style="width: 120px;"
-                  @change="setAssistForm" filterable>
-                  <el-option v-for="item in supplierList" :key="item.supplierId" :label="item.supplierName"
-                    :value="item.supplierId">
-                    <span>{{ '供应商名称：' + item.supplierName + ' ---- ' + '供应商编码：' + item.supplierCode }}</span>
-                  </el-option>
-                </el-select>
+                <SupplierSelect v-model="assistForm.assistId" @selectedData="selectedSupplierData" />
               </el-form-item>
               <!-- 辅助项 - 员工 -->
               <el-form-item :label="assistTypeLabel" prop="assistName"
                 v-if="assistForm.assistType == AssistTypeEnum.ASSIST_TYPE_EMPLOYEE">
-                <el-select v-model="assistForm.assistId" :placeholder="assistTypeLabel" style="width: 120px;"
-                  @change="setAssistForm" filterable>
-                  <el-option v-for="item in userList" :key="item.userId" :label="item.userName" :value="item.userId">
-                    <span>{{ '登录名：' + item.userName + ' ---- ' + '昵称：' + item.nickName }}</span>
-                  </el-option>
-                </el-select>
+                <UserSelect v-model="assistForm.assistId" @selectedData="selectedUserData" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -417,10 +401,10 @@ import useUserStore from "@/store/modules/user";
 import { listAccount } from "@/api/finance/account";
 import { ElMessage } from "element-plus";
 import { computed, nextTick, ref } from "vue";
-import { listSupplier} from "@/api/order/supplier";
-import { listCustomer} from "@/api/order/customer";
-import { listUser } from "@/api/system/user";
 import { VoucherTypeEnum, VoucherStatusEnum, VoucherOperateType, AssistTypeEnum } from "./voucherEnum.js"
+import CustomerSelect from '@/components/Common/CustomerSelect.vue';
+import SupplierSelect from '@/components/Common/SupplierSelect.vue';
+import UserSelect from '@/components/Common/UserSelect.vue';
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -580,8 +564,8 @@ const handleAccountChange = (row,data) =>{
   resetInnerDialog()
   // 检查是否有辅助项
   nextTick(() => {
-    const account2 = accountList.value.find(account => account.accountId == data.accountId)
-    if (!account2 || !row) {
+    const currentAccount = accountList.value.find(account => account.accountId == data.accountId)
+    if (!currentAccount || !row) {
       // 方法未正常获取到 row 或 data  -> 直接退出操作
       ElMessage.error("出现未知错误, 导致退出，请从新编辑凭证!")
       cancel()
@@ -589,14 +573,14 @@ const handleAccountChange = (row,data) =>{
     }
 
     // 如果存在 account
-    if (!account2.assistTypes || account2.assistTypes.length === 0) {
+    if (!currentAccount.assistTypes || currentAccount.assistTypes.length === 0) {
       // 没有辅助项，初始化辅助内容
       initRowData(row);
     } else {
       initRowData(row);
       currentRow.value = row; // 记录当前行
       // 设置辅助内容
-      currentAssistTypesDict.value = finance_assist_type.value.filter(item => account2.assistTypes.includes(item.value)) || [];
+      currentAssistTypesDict.value = finance_assist_type.value.filter(item => currentAccount.assistTypes.includes(Number(item.value))) || [];
       innerVisible.value = true;
     }
 
@@ -621,9 +605,9 @@ const openSetAssistDialog = (row) => {
 
   currentRow.value = row; // 记录当前行
   console.log("回显的行数据：",row)
-  const account3 = accountList.value.find(account => account.accountId == row.accountId)
+  const currentAccount = accountList.value.find(account => account.accountId == row.accountId)
   // 设置辅助内容
-  currentAssistTypesDict.value = finance_assist_type.value.filter(item => account3.assistTypes.includes(item.value)) || [];
+  currentAssistTypesDict.value = finance_assist_type.value.filter(item => currentAccount.assistTypes.includes(Number(item.value))) || [];
   // 回显赋值设置
   assistForm.value.assistId = currentRow.value.assistId
   assistForm.value.assistType = currentRow.value.assistType
@@ -633,134 +617,28 @@ const openSetAssistDialog = (row) => {
 
 }
 
-// 辅助项数据列表
-const supplierList = ref([])  // 1 供应商
-const customerList = ref([])  // 2 客户
-const userList = ref([])      // 3 员工 
-// 辅助项数据映射
-const customerMap = ref({});
-const supplierMap = ref({});
-const userMap = ref({});
-// 通用的列表映射函数
-const generateMap = (list, key, name) => {
-  return list.reduce((map, item) => {
-    map[item[key]] = item[name];
-    return map;
-  }, {});
-};
-// 自动更新映射表的函数
-const updateMaps = () => {
-  customerMap.value = generateMap(customerList.value, 'customerId', 'customerName');
-  supplierMap.value = generateMap(supplierList.value, 'supplierId', 'supplierName');
-  userMap.value = generateMap(userList.value, 'userId', 'userName');
-};
-// 初始化列表和映射表
-const initLists = async () => {
-  try {
-    // 并行调用接口
-    const [customerResponse, supplierResponse, userResponse] = await Promise.all([
-      listCustomer(),
-      listSupplier(),
-      listUser()
-    ]);
-
-    // 更新列表
-    customerList.value = customerResponse.rows;
-    supplierList.value = supplierResponse.rows;
-    userList.value = userResponse.rows;
-
-    // 更新映射表
-    updateMaps();
-  } catch (error) {
-    console.error('初始化列表时发生错误:', error);
-  }
-};
-
-// 获取辅助名称的函数
-const getAssistNameById = (row) => {
-  if (row.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER) {
-    return customerMap.value[row.assistId] || '';
-  }
-  if (row.assistType == AssistTypeEnum.ASSIST_TYPE_SUPPLIER) {
-    return supplierMap.value[row.assistId] || '';
-  }
-  if (row.assistType == AssistTypeEnum.ASSIST_TYPE_EMPLOYEE) {
-    return userMap.value[row.assistId] || '';
-  }
-  return '';
-};
-
-// 组件加载时初始化
-initLists();
-
 // ----------------- 3 设置 辅助项类型：供应商 客户 员工
 // 设置展示字段名
 const assistTypeLabel = ref("辅助项内容")
 
 /** 获取当前辅助项类型对应内容的列表 */
-const getAssistValueList = () =>{
+const handleInitAssist = () =>{
   // 切换辅助项类型 -> 重置 辅助项值
   assistForm.value.assistName = null
   assistForm.value.assistId = null
-
-  console.log("当前选中的辅助项类型是：",assistForm.value.assistType)
-  // 供应商
-  if(assistForm.value.assistType == AssistTypeEnum.ASSIST_TYPE_SUPPLIER){
-    assistTypeLabel.value = "选择供应商"
-    console.log("----------",supplierList.value)
-    if(supplierList.value.length == 0 || supplierList.value == []){
-      listSupplier()
-      .then(
-        response => { supplierList.value = response.rows }
-      )
-      .catch(
-        error => {ElMessage.error("获取供应商列表时出错:",error)}
-      )
-    }
-  }
-  // 客户
-  if(assistForm.value.assistType == AssistTypeEnum.ASSIST_TYPE_CUSTOMER){
-    assistTypeLabel.value = "选择客户"
-    if(customerList.value.length == 0 || customerList.value == []){
-      listCustomer()
-      .then(
-        response => {customerList.value = response.rows }
-      )
-      .catch(
-        error => {ElMessage.error("获取客户列表时出错:",error)}
-      )
-    }
-  }
-  // 员工
-  if(assistForm.value.assistType == AssistTypeEnum.ASSIST_TYPE_EMPLOYEE){
-    assistTypeLabel.value = "选择员工"
-    if(userList.value.length == 0 || userList.value == []){
-      listUser()
-      .then(
-        response => {userList.value = response.rows }
-      )
-      .catch(
-        error => {ElMessage.error("获取客户列表时出错:",error)}
-      )
-    }
-  }
 }
 
 // ----------------- 4 选择辅助项并赋值 : 供应商 客户 员工
 // 选中的辅助项内容 -> name 
-const setAssistForm = () => {
-  if(assistForm.value.assistType === AssistTypeEnum.ASSIST_TYPE_SUPPLIER){
-    assistForm.value.assistName = supplierMap.value[assistForm.value.assistId] || '' ;
-    console.log("选择的供应商：",assistForm.value)
-  } else if (assistForm.value.assistType === AssistTypeEnum.ASSIST_TYPE_CUSTOMER){
-    assistForm.value.assistName = customerMap.value[assistForm.value.assistId] || '' ; 
-    console.log("选择的客户：",assistForm.value)
-  } else if (assistForm.value.assistType === AssistTypeEnum.ASSIST_TYPE_EMPLOYEE){
-    assistForm.value.assistName = userMap.value[assistForm.value.assistId] || '' ;
-    console.log("选择的员工：",assistForm.value)
-  }
+const selectedCustomerData = (data) => {
+  assistForm.value.assistName = data.customerName
 }
-
+const selectedSupplierData = (data) => {
+  assistForm.value.assistName = data.supplierName
+}
+const selectedUserData = (data) => {
+  assistForm.value.assistName = data.userName
+}
 
 
 // ----------------- 5 提交赋值给当前行的明细

@@ -268,7 +268,7 @@
           <el-row class="shift-dialog">
             <el-button type="primary" @click="handlerDoShift">{{ shiftForm.shiftId ? '完成交班' : '开始值班'}}</el-button>
             <el-button type="success" @click="handlerCloseDialog" v-if="shiftForm.shiftId">继续值班</el-button>
-            <el-button type="danger" @click="handlerCloseTab" v-if="shiftForm.shiftId">退出值班</el-button>
+            <el-button type="danger" @click="handlerCloseTab" >退出值班</el-button>
           </el-row>
 
         </el-tab-pane>

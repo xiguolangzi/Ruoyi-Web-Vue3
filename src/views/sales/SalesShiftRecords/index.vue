@@ -47,16 +47,22 @@
       @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="交班编号" align="center" prop="shiftNo" min-width="120" show-overflow-tooltip />
-      <el-table-column label="caja" align="center" prop="cajaName" min-width="120" show-overflow-tooltip />
-      <el-table-column label="收银员" align="center" prop="userName" />
-      <el-table-column label="上次交班编号" align="center" prop="lastShiftNo" min-width="150" show-overflow-tooltip />
-      <el-table-column label="上次交班余额" align="center" prop="lastShiftCashAmount" min-width="110" show-overflow-tooltip />
-      <el-table-column label="开始时间" align="center" prop="shiftStartTime">
+      <el-table-column label="caja" align="center" prop="cajaName" min-width="100" show-overflow-tooltip />
+      <el-table-column label="收银员" align="center" prop="userName" show-overflow-tooltip />
+      <el-table-column label="上次编号" align="center" prop="lastShiftNo" show-overflow-tooltip />
+      <el-table-column label="上次余额" align="center" prop="lastShiftCashAmount" show-overflow-tooltip>
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.lastShiftCashAmount < 0 }">
+            {{ formatTwo(scope.row.lastShiftCashAmount) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="开始时间" align="center" prop="shiftStartTime" width="130">
         <template #default="scope">
           <span>{{ parseTime(scope.row.shiftStartTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="结束时间" align="center" prop="shiftEndTime">
+      <el-table-column label="结束时间" align="center" prop="shiftEndTime" width="130">
         <template #default="scope">
           <span>{{ parseTime(scope.row.shiftEndTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
@@ -157,9 +163,9 @@
           <dict-tag :options="erp_sales_shift_status" :value="scope.row.shiftStatus" />
         </template>
       </el-table-column>
-      <el-table-column label="备注信息" align="center" prop="remark" />
-      <el-table-column label="最后修改人" align="center" prop="updateBy" />
-      <el-table-column label="最后修改时间" align="center" prop="updateTime">
+      <el-table-column label="备注信息" align="center" prop="remark" show-overflow-tooltip />
+      <el-table-column label="修改人" align="center" prop="updateBy" />
+      <el-table-column label="修改时间" align="center" prop="updateTime" width="130">
         <template #default="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>

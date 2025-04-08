@@ -12,7 +12,8 @@
     :multiple="multiple"
     :placeholder="placeholder"
     style="width: 180px"
-    :teleported='false' 
+    :teleported='false'
+    :fit-input-width="false"
     @change="handleChange"
   />
 </template>
@@ -27,7 +28,7 @@ import { MaxLengthEnum } from '@/api/constants/commonConstants.js'
 // 父组件接受参数
 const props = defineProps({
   modelValue: [String, Number, Array],
-  placeholder: { type: String, default: "手机号/邮箱" },
+  placeholder: { type: String, default: "手机号/邮箱/税号" },
   multiple: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false }
 });
@@ -43,7 +44,7 @@ const pageSize = MaxLengthEnum.maxQuerySize;
 const total = ref(0);
 
 /** 搜索函数 */
-const fetchCustomers = async (query = "") => {
+const fetchData = async (query = "") => {
   console.log("搜索关键词:", query);
   // 打印开始请求的事件 毫秒级别
   console.log("开始请求时间:", new Date().getTime());
@@ -96,7 +97,7 @@ const fetchCustomers = async (query = "") => {
 };
 
 // **防抖搜索**
-const handleSearch = debounce(fetchCustomers, DebounceTime);
+const handleSearch = debounce(fetchData, DebounceTime);
 
 /** 1 当前输入值发生变化触发的函数 */
 const onSearch = (query) => {
@@ -128,7 +129,7 @@ const handleChange = (val) => {
 watch(
   () => props.modelValue,
   (newValue) => {
-    if (newValue) fetchCustomers();
+    if (newValue) fetchData();
   },
   { immediate: true }
 );

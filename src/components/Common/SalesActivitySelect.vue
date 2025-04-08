@@ -12,7 +12,8 @@
     :multiple="multiple"
     :placeholder="placeholder"
     style="width: 180px"
-    :teleported='false' 
+    :teleported='false'
+    :fit-input-width="false" 
     @change="handleChange"
   />
 </template>

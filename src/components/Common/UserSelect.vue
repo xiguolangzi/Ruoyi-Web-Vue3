@@ -12,7 +12,7 @@
     :multiple="multiple"
     :placeholder="placeholder"
     style="width: 180px"
-    :teleported='false'
+    :teleported='false' 
     :fit-input-width="false" 
     @change="handleChange"
   />
@@ -22,7 +22,7 @@
 // 每次需要修改  1 - 6 处备注的信息
 import { ref, watch } from "vue";
 // 1 api 接口
-import { listWarehouse } from "@/api/product/warehouse.js";
+import { listUser } from "@/api/system/user.js";
 import { debounce } from "lodash-es";
 import { StatusEnum, DebounceTime, KeywordLength } from './CommonEnum.js'
 import { MaxLengthEnum } from '@/api/constants/commonConstants.js'
@@ -30,7 +30,7 @@ import { MaxLengthEnum } from '@/api/constants/commonConstants.js'
 // 2 组件参数
 const props = defineProps({
   modelValue: [String, Number, Array],
-  placeholder: { type: String, default: "仓库名称" },
+  placeholder: { type: String, default: "手机号/名称" },
   multiple: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false }
 });
@@ -55,26 +55,35 @@ const fetchData = async (query = "") => {
   try {
     // 3 请求参数
     const queryParams = {
-      warehouseName: query,
+      phoneNumber: null,
+      userName: null,
       pageNum: pageNum.value,
       pageSize
     };
 
+    // 3.1 判断query参数
+    if (/^\d{6,11}$/.test(query)) {
+      // 手机号
+      queryParams.phoneNumber = query;
+    } else {
+      // 其他情况
+      queryParams.userName = query;
+    }
     console.log("请求参数:", queryParams);
 
     // 4 发起请求
-    const response = await listWarehouse(queryParams);
+    const response = await listUser(queryParams);
     dataList.value = response.rows.map(item => ({
       // 5 同步视图参数
-      value: item.warehouseId,
-      label: `${item.warehouseName}`,
-      disabled: item.warehouseStatus != StatusEnum.ENABLE,
+      value: item.userId,
+      label: `${item.phoneNumber} - ${item.userName}`,
+      disabled: item.status != StatusEnum.ENABLE,
       data: item // 保留完整数据
     }));
     total.value = response.total || 0;
   } catch (error) {
     // 6 错误提示
-    console.error("获取仓库列表失败:", error);
+    console.error("获取员工列表失败:", error);
   } finally {
     loading.value = false;
   }

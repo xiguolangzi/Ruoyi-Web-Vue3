@@ -2,64 +2,28 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="交班编号" prop="shiftNo">
-        <el-input
-          v-model="queryParams.shiftNo"
-          placeholder="请输入交班编号"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.shiftNo" placeholder="请输入交班编号" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="交班的caja" prop="cajaId">
-         <el-select
-            v-model="queryParams.cajaId"
-            filterable
-            clearable
-            placeholder="请选择设备"
-            @keyup.enter="handleQuery"
-        >
-            <el-option
-            v-for="item in cajaList"
-            :key="item.cajaId"
-            :label="item.cajaName"
-            :value="item.cajaId"
-            />
+        <el-select v-model="queryParams.cajaId" filterable clearable placeholder="请选择设备" @keyup.enter="handleQuery">
+          <el-option v-for="item in cajaList" :key="item.cajaId" :label="item.cajaName" :value="item.cajaId" />
         </el-select>
       </el-form-item>
       <el-form-item label="收银员" prop="userId">
-        <el-select
-            v-model="queryParams.userId"
-            filterable
-            clearable
-            placeholder="请选择收银员"
-            @keyup.enter="handleQuery"
-        >
-            <el-option
-            v-for="item in userList"
-            :key="item.userId"
-            :label="item.userName"
-            :value="item.userId"
-            />
+        <el-select v-model="queryParams.userId" filterable clearable placeholder="请选择收银员" @keyup.enter="handleQuery">
+          <el-option v-for="item in userList" :key="item.userId" :label="item.userName" :value="item.userId" />
         </el-select>
       </el-form-item>
       <el-form-item label="交班状态" prop="shiftStatus">
         <el-select v-model="queryParams.shiftStatus" placeholder="请选择交班状态" clearable>
-          <el-option v-for="dict in erp_sales_shift_status" :key="dict.value" :label="dict.label" :value="Number(dict.value)" />
+          <el-option v-for="dict in erp_sales_shift_status" :key="dict.value" :label="dict.label"
+            :value="Number(dict.value)" />
         </el-select>
       </el-form-item>
       <el-form-item label="交班开始时间" prop="shiftStartTime" style="width: 350px;">
-        <el-date-picker
-          v-model="dateRange"
-          type="daterange"
-          value-format="YYYY-MM-DD"
-          unlink-panels
-          :clearable="false"
-          range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          :default-value="dateRange"
-          @change="handleRangeChange"
-          style="width: 100%;"
-        />
+        <el-date-picker v-model="dateRange" type="daterange" value-format="YYYY-MM-DD" unlink-panels :clearable="false"
+          range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" :default-value="dateRange"
+          @change="handleRangeChange" style="width: 100%;" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -69,230 +33,216 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['sales:SalesShiftRecords:add']"
-        >新增</el-button>
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
+          v-hasPermi="['sales:SalesShiftRecords:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['sales:SalesShiftRecords:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['sales:SalesShiftRecords:export']"
-        >导出</el-button>
+        <el-button type="warning" plain icon="Download" @click="handleExport"
+          v-hasPermi="['sales:SalesShiftRecords:export']">导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="SalesShiftRecordsList" @selection-change="handleSelectionChange" size="small">
+    <el-table class="table-container" v-loading="loading" :data="SalesShiftRecordsList"
+      @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="交班编号" align="center" prop="shiftNo" />
-      <el-table-column label="设备名称" align="center" prop="cajaId" min-width="150" show-overflow-tooltip/>
-      <el-table-column label="收银员ID" align="center" prop="userId" />
-      <el-table-column label="上次交班编号"  align="center" prop="lastShiftNo" min-width="150" show-overflow-tooltip/>
-      <el-table-column label="开始现金余额" align="center" prop="lastShiftCashAmount" min-width="110" show-overflow-tooltip />
+      <el-table-column label="交班编号" align="center" prop="shiftNo" min-width="120" show-overflow-tooltip />
+      <el-table-column label="caja" align="center" prop="cajaName" min-width="120" show-overflow-tooltip />
+      <el-table-column label="收银员" align="center" prop="userName" />
+      <el-table-column label="上次交班编号" align="center" prop="lastShiftNo" min-width="150" show-overflow-tooltip />
+      <el-table-column label="上次交班余额" align="center" prop="lastShiftCashAmount" min-width="110" show-overflow-tooltip />
       <el-table-column label="开始时间" align="center" prop="shiftStartTime">
         <template #default="scope">
-          <span>{{ parseTime(scope.row.shiftStart, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.shiftStartTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
       <el-table-column label="结束时间" align="center" prop="shiftEndTime">
         <template #default="scope">
-          <span>{{ parseTime(scope.row.shiftEnd, '{y}-{m}-{d}') }}</span>
+          <span>{{ parseTime(scope.row.shiftEndTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="现金收入" align="center" prop="salesCash" />
-      <el-table-column label="银行收入" align="center" prop="salesBank" />
-      <el-table-column label="优惠金额" align="center" prop="salesDiscount" />
-      <el-table-column label="退款总额" align="center" prop="salesRefunds" />
-      <el-table-column label="找零总额" align="center" prop="salesChange" />
-      <el-table-column label="应交金额" align="center" prop="currentExpectedCash" />
-      <el-table-column label="补充金额" align="center" prop="currentReplenishCash" />
-      <el-table-column label="上交金额" align="center" prop="currentDepositCash" />
-      <el-table-column label="实交金额" align="center" prop="currentActualCash" />
-      <el-table-column label="长短款" align="center" prop="currentBalanceDifference" />
-      <el-table-column label="交班状态" align="center" prop="shiftStatus" >
+      <el-table-column label="交易总收入" align="center" prop="totalSalesAmount">
         <template #default="scope">
-          <dict-tag :options="erp_sales_shift_status" :value="scope.row.shiftStatus"/>
+          <span :class="{ 'text-danger': scope.row.totalSalesAmount < 0 }">
+            {{ formatTwo(scope.row.totalSalesAmount) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="银行收款" align="center" prop="totalBank">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.totalBank < 0 }">
+            {{ formatTwo(scope.row.totalBank) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="退货银行" align="center" prop="totalRefundBank">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.totalRefundBank < 0 }">
+            {{ formatTwo(scope.row.totalRefundBank) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="未收欠款" align="center" prop="totalRemainAmount">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.totalRemainAmount < 0 }">
+            {{ formatTwo(scope.row.totalRemainAmount) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="优惠抹零" align="center" prop="totalZero">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.totalZero < 0 }">
+            {{ formatTwo(scope.row.totalZero) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="现金收款" align="center" prop="totalCash">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.totalCash < 0 }">
+            {{ formatTwo(scope.row.totalCash) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="现金找零" align="center" prop="totalChange">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.totalChange < 0 }">
+            {{ formatTwo(scope.row.totalChange) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="退货现金" align="center" prop="totalRefundCash">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.totalRefundCash < 0 }">
+            {{ formatTwo(scope.row.totalRefundCash) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="应交现金" align="center" prop="currentExpectedCash">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.currentExpectedCash < 0 }">
+            {{ formatTwo(scope.row.currentExpectedCash) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="补充现金" align="center" prop="currentReplenishCash">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.currentReplenishCash < 0 }">
+            {{ formatTwo(scope.row.currentReplenishCash) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="上交现金" align="center" prop="currentDepositCash">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.currentDepositCash < 0 }">
+            {{ formatTwo(scope.row.currentDepositCash) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="长短款现金" align="center" prop="currentBalanceDifference">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.currentBalanceDifference < 0 }">
+            {{ formatTwo(scope.row.currentBalanceDifference) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="交班现金余额" align="center" prop="currentCashAmount">
+        <template #default="scope">
+          <span :class="{ 'text-danger': scope.row.currentCashAmount < 0 }">
+            {{ formatTwo(scope.row.currentCashAmount) + ' €' }}
+          </span>
+        </template>
+      </el-table-column>
+      <el-table-column label="交班状态" align="center" prop="shiftStatus">
+        <template #default="scope">
+          <dict-tag :options="erp_sales_shift_status" :value="scope.row.shiftStatus" />
         </template>
       </el-table-column>
       <el-table-column label="备注信息" align="center" prop="remark" />
+      <el-table-column label="最后修改人" align="center" prop="updateBy" />
+      <el-table-column label="最后修改时间" align="center" prop="updateTime">
+        <template #default="scope">
+          <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="danger" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['sales:SalesShiftRecords:edit']">修改</el-button>
+          <el-button link type="danger" icon="Edit" @click="handleUpdate(scope.row)"
+            v-hasPermi="['sales:SalesShiftRecords:edit']">修改</el-button>
         </template>
       </el-table-column>
     </el-table>
-    
-    <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+
+    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+      @pagination="getList" />
 
     <!-- 添加或修改交班记录对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="SalesShiftRecordsRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="交班编号" prop="shiftNo">
-          <el-input v-model="form.shiftNo" placeholder="请输入交班编号" />
+          <el-input v-model="form.shiftNo" placeholder="请输入交班编号" disabled />
         </el-form-item>
-        <el-form-item label="交班的caja" prop="cajaId">
-          <el-input v-model="form.cajaId" placeholder="请输入交班的caja" />
+        <el-form-item label="caja" prop="cajaName">
+          <el-input v-model="form.cajaName" placeholder="请输入caja" disabled />
         </el-form-item>
-        <el-form-item label="收银员ID" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入收银员ID" />
+        <el-form-item label="收银员ID" prop="userName">
+          <el-input v-model="form.userName" placeholder="请输入收银员ID" disabled />
         </el-form-item>
         <el-form-item label="上次交班编号" prop="lastShiftNo">
-          <el-input v-model="form.lastShiftNo" placeholder="请输入上次交班编号" />
+          <el-input v-model="form.lastShiftNo" placeholder="请输入上次交班编号" disabled />
         </el-form-item>
         <el-form-item label="上次现金余额" prop="lastShiftCashAmount">
-          <el-input v-model="form.lastShiftCashAmount" placeholder="请输入上次现金余额" />
+          <el-input v-model="form.lastShiftCashAmount" placeholder="请输入上次现金余额" disabled />
         </el-form-item>
         <el-form-item label="开始交班时间" prop="shiftStartTime">
-          <el-date-picker clearable
-            v-model="form.shiftStart"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择交班开始时间">
-          </el-date-picker>
+          <el-date-picker clearable v-model="form.shiftStartTime" type="date" value-format="YYYY-MM-DD"
+            placeholder="请选择交班开始时间" disabled />
         </el-form-item>
         <el-form-item label="结束交班时间" prop="shiftEndTime">
-          <el-date-picker clearable
-            v-model="form.shiftEnd"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择交班结束时间">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="现金收入" prop="salesCash">
-          <el-input v-model="form.salesCash" placeholder="请输入本次值班-现金收入" />
-        </el-form-item>
-        <el-form-item label="银行收入" prop="salesBank">
-          <el-input v-model="form.salesBank" placeholder="请输入本次值班-银行收入" />
-        </el-form-item>
-        <el-form-item label="优惠金额" prop="salesDiscount">
-          <el-input v-model="form.salesDiscount" placeholder="请输入本次值班-优惠金额" />
-        </el-form-item>
-        <el-form-item label="退款总额" prop="salesRefunds">
-          <el-input v-model="form.salesRefunds" placeholder="请输入本次值班-退款总额" />
-        </el-form-item>
-        <el-form-item label="找零总额" prop="salesChange">
-          <el-input v-model="form.salesChange" placeholder="请输入本次值班-找零总额" />
+          <el-date-picker clearable v-model="form.shiftEndTime" type="date" value-format="YYYY-MM-DD"
+            placeholder="请选择交班结束时间" disabled />
         </el-form-item>
 
-        <el-form-item label="交班-应交金额" prop="currentExpectedCash">
-          <el-input v-model="form.currentExpectedCash" placeholder="请输入本次值班-应交金额" />
+        <el-form-item label="应交现金" prop="currentExpectedCash">
+          <span :class="{ 'text-danger': form.currentExpectedCash < 0 }">
+            {{ formatTwo(form.currentExpectedCash) + ' €' }}
+          </span>
         </el-form-item>
-        <el-form-item label="交班-补充金额" prop="currentReplenishCash">
-          <el-input v-model="form.currentReplenishCash" placeholder="请输入本次值班-补充金额" />
+
+        <el-form-item label="补充现金" prop="currentReplenishCash">
+          <el-input-number v-model="form.currentReplenishCash" placeholder="请输入补充现金" :step="0" :controls="false"
+            :min="0" :max="999999" v-focusSelect @change="handleComputeCurrentCashAmount">
+            <template #suffix>
+              <span>€</span>
+            </template>
+          </el-input-number>
         </el-form-item>
-        <el-form-item label="交班-上交金额" prop="currentDepositCash">
-          <el-input v-model="form.currentDepositCash" placeholder="请输入本次值班-上交金额" />
+        <el-form-item label="上交现金" prop="currentDepositCash">
+          <el-input-number v-model="form.currentDepositCash" placeholder="请输入交班现金" :step="0" :controls="false"
+            :min="-999999" :max="0" v-focusSelect @change="handleComputeCurrentCashAmount">
+            <template #suffix>
+              <span>€</span>
+            </template>
+          </el-input-number>
         </el-form-item>
-        <el-form-item label="交班-实交金额" prop="currentActualCash">
-          <el-input v-model="form.currentActualCash" placeholder="请输入本次值班-实交金额" />
+        <el-form-item label="长短款现金" prop="currentBalanceDifference">
+          <el-input-number v-model="form.currentBalanceDifference" placeholder="请输入交班现金" :step="0" :controls="false"
+            :min="-999999" :max="999999" v-focusSelect @change="handleComputeCurrentCashAmount">
+            <template #suffix>
+              <span>€</span>
+            </template>
+          </el-input-number>
         </el-form-item>
-        <el-form-item label="交班-长短款" prop="currentBalanceDifference">
-          <el-input v-model="form.currentBalanceDifference" placeholder="请输入本次值班-长短款" />
+
+        <el-form-item label="交班现金余额" prop="currentCashAmount">
+          <span :class="{ 'text-danger': form.currentCashAmount < 0 }">
+            {{ formatTwo(form.currentCashAmount) + ' €' }}
+          </span>
         </el-form-item>
+
         <el-form-item label="备注信息" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" :maxlength="100" show-word-limit
+            :rows="2" />
         </el-form-item>
-        <el-divider content-position="center">现金盘点记录信息</el-divider>
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-button type="primary" icon="Plus" @click="handleAddSalesCountingCash">添加</el-button>
-          </el-col>
-          <el-col :span="1.5">
-            <el-button type="danger" icon="Delete" @click="handleDeleteSalesCountingCash">删除</el-button>
-          </el-col>
-        </el-row>
-        <el-table :data="salesCountingCashList" :row-class-name="rowSalesCountingCashIndex" @selection-change="handleSalesCountingCashSelectionChange" ref="salesCountingCash">
-          <el-table-column type="selection" width="50" align="center" />
-          <el-table-column label="序号" align="center" prop="index" width="50"/>
-          <el-table-column label="面值为500的数量" prop="cashValue500" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue500" placeholder="请输入面值为500的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为200的数量" prop="cashValue200" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue200" placeholder="请输入面值为200的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为100的数量" prop="cashValue100" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue100" placeholder="请输入面值为100的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为50的数量" prop="cashValue50" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue50" placeholder="请输入面值为50的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为20的数量" prop="cashValue20" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue20" placeholder="请输入面值为20的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为10的数量" prop="cashValue10" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue10" placeholder="请输入面值为10的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为5的数量" prop="cashValue5" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue5" placeholder="请输入面值为5的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为2的数量" prop="cashValue2" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue2" placeholder="请输入面值为2的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为1的数量" prop="cashValue1" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue1" placeholder="请输入面值为1的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为0.5的数量" prop="cashValue05" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue05" placeholder="请输入面值为0.5的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为0.2的数量" prop="cashValue02" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue02" placeholder="请输入面值为0.2的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="面值为0.1的数量" prop="cashValue01" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.cashValue01" placeholder="请输入面值为0.1的数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="现金盘点总金额" prop="totalAmount" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.totalAmount" placeholder="请输入现金盘点总金额" />
-            </template>
-          </el-table-column>
-        </el-table>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -328,6 +278,15 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
+
+const handleComputeCurrentCashAmount = () => {
+  form.value.currentCashAmount =
+    form.value.currentExpectedCash +
+    form.value.currentReplenishCash +
+    form.value.currentDepositCash +
+    form.value.currentBalanceDifference;
+
+};
 
 const data = reactive({
   form: {},
@@ -492,12 +451,6 @@ function handleSelectionChange(selection) {
   multiple.value = !selection.length;
 }
 
-/** 新增按钮操作 */
-function handleAdd() {
-  reset();
-  open.value = true;
-  title.value = "添加交班记录";
-}
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
@@ -617,5 +570,9 @@ getList();
 .pagination {
   flex-shrink: 0; /* 分页栏固定在底部 */
   margin-top: auto; /* 将分页栏推到容器底部 */
+}
+
+.text-danger {
+  color: #f56c6c;
 }
 </style>

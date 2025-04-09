@@ -70,7 +70,7 @@ import { getProductCombo } from "@/api/product/productCombo";
 import { ComboItemIsOptionalEnum, ComboItemSetTypeEnum } from "@/views/product/productCombo/productComboEnum.js"
 import { ElMessage } from 'element-plus';
 
-const emit = defineEmits(['add-combo-details'])
+const emit = defineEmits(['addComboDetails'])
 
 // 状态管理
 const comboDialogVisible = ref(false)                     // 控制弹窗显示
@@ -206,7 +206,7 @@ const showComboDialog = (obj) => {
     console.error("获取套餐失败！：", e)
     resetState()
     // 处理套餐明细失败后，不影响添加订单明细
-    emit('add-combo-details', obj);
+    emit('addComboDetails', obj);
   })
   
 }
@@ -253,7 +253,7 @@ const handleAddDetailConfirmCombo = () => {
   console.log("添加套餐明细：", comboDetailData)
 
   // 6. 触发事件通知父组件
-  emit('add-combo-details', comboDetailData)
+  emit('addComboDetails', comboDetailData)
 
   // 7. 重置状态
   resetState()

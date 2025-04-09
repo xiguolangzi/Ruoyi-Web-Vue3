@@ -50,7 +50,7 @@
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailPrice')" :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
           v-model.number="scope.row.detailPrice" size="small" @blur="handleBlur(scope.row, 'detailPrice')"
-          @focus="handleFocus" @change="updateAmount(scope.row)" style="width: 100%;" type="number"
+          @focus="handleFocus" @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_PRICE)" style="width: 100%;" type="number"
           :disabled="editPrice != canEditPriceEnum.ALLOW" />
         <span v-else>{{ formatTwo(scope.row.detailPrice) + ' €' }}</span>
       </template>
@@ -60,7 +60,7 @@
         <el-input v-if="isEditing(scope.row, 'detailQuantity')"
           :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" v-model.number="scope.row.detailQuantity"
           size="small" @blur="handleBlur(scope.row, 'detailQuantity')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="number" />
+          @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_QUANTITY)" style="width: 100%;" type="number" />
         <span v-else>{{ scope.row.detailQuantity || 0 }}</span>
       </template>
     </el-table-column>
@@ -69,7 +69,7 @@
         <el-input v-if="isEditing(scope.row, 'detailDiscountRate')"
           :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" v-model.number="scope.row.detailDiscountRate"
           size="small" @blur="handleBlur(scope.row, 'detailDiscountRate')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="number" :disabled="editDiscountRate != canEditDiscountRateEnum.ALLOW" />
+          @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_DISCOUNT_RATE)" style="width: 100%;" type="number" :disabled="editDiscountRate != canEditDiscountRateEnum.ALLOW" />
         <span v-else>{{ scope.row.detailDiscountRate || 0 }} %</span>
       </template>
     </el-table-column>
@@ -82,7 +82,7 @@
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailSn')" :ref="(el) => setInputRef(el, scope.row, 'detailSn')"
           v-model="scope.row.detailSn" size="small" @blur="handleBlur(scope.row, 'detailSn')" @focus="handleFocus"
-          @change="updateAmount(scope.row)" style="width: 100%;" type="text" :maxlength="20" />
+          @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_SN)" style="width: 100%;" type="text" :maxlength="20" />
         <span v-else>{{ scope.row.detailSn }}</span>
       </template>
     </el-table-column>
@@ -119,6 +119,8 @@ import { OrderInTaxEnum } from './cashOperationEnum.js';
 import { Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import {canEditPriceEnum, canEditDiscountRateEnum} from './tenantConfigEnum.js';
+import { OperateLogTypeEnum } from "./operateLogTypeEnum.js"
+import { cloneDeep } from 'lodash';
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
@@ -150,7 +152,7 @@ const setRowClassName = ({ row }) => {
 };
 
 
-const emit = defineEmits(['handleClickChangeImage', 'deleteRow']);
+const emit = defineEmits(['handleClickChangeImage', 'deleteRow', 'addLog']);
 
 /**
  * 点击更新展示图片
@@ -164,6 +166,13 @@ const handleClickChangeImage = (row) => {
  */
 const handleDeleteRow = (index,row) => {
   emit('deleteRow', index, row); // 通知父组件删除指定行
+};
+
+/**
+ * 添加日志
+ */
+const handleAddLog = (logType, row, index) => {
+  emit('addLog', logType, row, index);
 };
 
 
@@ -212,16 +221,26 @@ function calculateAmounts(detailPrice, taxRate, inTax) {
   return { detailBaseAmount, detailTaxAmount, detailNetAmount };
 }
 
-// 计算金额
-const updateAmount = (row) => {
+
+/**
+ * 更新行数据
+ * @param index 索引
+ * @param row 行数据
+ * @param logType 数据类型
+ */
+const updateAmount = (index, row, logType) => {
+  // 存在orderId说明是存入后台确认后的修改
+  if (row.orderId) {
+    handleAddLog(logType, row, index)
+  }
+
+
   const price = Number(row.detailPrice) || 0;
   const quantity = Number(row.detailQuantity) || 0;
   const discount = Number(row.detailDiscountRate) || 0;
-  const detailTaxRate = Number(row.detailTaxRate)/100 || 0;
-  const inTax = row.inTax;
   
-  row.detailAmount = (price * quantity).toFixed(2);
-  row.detailDiscountAmount = ((price * quantity) * discount / 100).toFixed(4);
+  row.detailAmount = +(price * quantity).toFixed(2);
+  row.detailDiscountAmount = +((price * quantity) * discount / 100).toFixed(4);
   row.detailSalesAmount = row.detailAmount - row.detailDiscountAmount;
 
   // 3 含税/不含税
@@ -233,6 +252,7 @@ const updateAmount = (row) => {
   row.detailBaseAmount = detailBaseAmount;
   row.detailTaxAmount = detailTaxAmount;
   row.detailNetAmount = detailNetAmount;
+  
 };
 
 const tableRef = ref(null); // 表格实例
@@ -274,7 +294,7 @@ const handleCellClick = (row, column) => {
 
 // 处理输入框失焦
 const handleBlur = (row, prop) => {
-  updateAmount(row)
+  // 20250409 updateAmount(row)
   editingCell.value = null;
 };
 
@@ -285,7 +305,7 @@ const handleFocus = (event) => {
 
 // 键盘事件
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('keydown', handleKeyDown, { passive: true });
 });
 
 const handleKeyDown = (event) => {

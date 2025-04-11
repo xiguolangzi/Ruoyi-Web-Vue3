@@ -208,7 +208,7 @@
     </el-dialog>
 
     <!-- 详情抽屉弹窗 -->
-    <el-drawer v-model="drawer" direction="rtl" append-to-body>
+    <el-drawer v-model="drawer" direction="rtl" append-to-body >
       <template #header>
         <span>SKU 规格明细 详情</span>
       </template>

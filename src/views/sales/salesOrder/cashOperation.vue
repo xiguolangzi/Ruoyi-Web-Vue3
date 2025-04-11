@@ -491,7 +491,7 @@ const getTenantConfig = async () => {
   const config5 = await proxy.getTenantConfig("canDeleteOrderDetail");
   canDeleteOrderDetail.value = config5?.configValue || canDeleteOrderDetailEnum.OPEN;
   const config6 = await proxy.getTenantConfig("cajaShowKeyboard");
-  cajaShowKeyboard.value = config.configValue || cajaShowKeyboardEnum.SHOW;
+  cajaShowKeyboard.value = config6.configValue || cajaShowKeyboardEnum.SHOW;
 }
 getTenantConfig()
 

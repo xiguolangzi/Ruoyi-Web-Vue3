@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="所属仓库" prop="warehouseId">
-        <el-select v-model="queryParams.warehouseId" placeholder="请选择所属仓库" filterable>
+        <el-select v-model="queryParams.warehouseId" placeholder="请选择所属仓库" filterable @change="handleChangeWarehouseId">
           <el-option v-for="item in warehouseList" :key="item.warehouseId" :label="item.warehouseName"
             :value="item.warehouseId" />
         </el-select>
@@ -39,6 +39,7 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
+    <!-- 库位属性列表 -->
     <el-table class="table-container" v-if="refreshTable" v-loading="loading" :data="warehouseLocationList"
       row-key="locationId" :default-expand-all="isExpandAll" size="small"
       :tree-props="{children: 'children', hasChildren: 'hasChildren'}" >
@@ -80,7 +81,7 @@
         </template>
       </el-table-column>
       <el-table-column label="排序权重" align="center" prop="orderWeight" />
-      <el-table-column label="是否末级" align="center" prop="isLeaf">
+      <el-table-column label="库位节点" align="center" prop="isLeaf">
         <template #default="scope">
           <dict-tag :options="sys_yes_or_no" :value="scope.row.isLeaf" />
         </template>
@@ -104,10 +105,11 @@
     <!-- 添加或修改库位管理对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="warehouseLocationRef" :model="form" :rules="rules" label-width="80px">
+        <!-- 添加或修改 - 基础信息 -->
         <el-tabs type="border-card" class="full-height-tabs" v-model="activeTab">
           <el-tab-pane label="基础信息" name="basic">
             <el-form-item label="所属仓库" prop="warehouseId">
-              <el-select v-model="form.warehouseId" placeholder="请选择所属仓库" filterable @change="changeWarehouseId">
+              <el-select v-model="form.warehouseId" placeholder="请选择所属仓库" filterable @change="changeWarehouseId" disabled>
                 <el-option v-for="item in warehouseList" :key="item.warehouseId" :label="item.warehouseName"
                   :value="item.warehouseId" />
               </el-select>
@@ -126,19 +128,25 @@
               <el-input v-model="form.locationName" placeholder="请输入库位名称" type="textarea" maxlength="100"
                 show-word-limit :rows="1" />
             </el-form-item>
-            <el-form-item label="末级节点:" prop="isLeaf">
+            <el-form-item label="库位节点:" prop="isLeaf">
               <template #label>
-                <span>末级节点:</span>
-                <el-tooltip content="库位是末级节点，同时作为末级节点不允许添加下级节点" placement="top">
+                <span>库位节点:</span>
+                <el-tooltip content="库位节点是末级节点，同时作为末级节点不允许添加下级节点" placement="top">
                   <el-icon color="red"><question-filled /></el-icon>
                 </el-tooltip>
               </template>
-              <el-radio-group v-model="form.isLeaf">
+              <el-radio-group v-model="form.isLeaf" :disabled="isLocationDisabled">
                 <el-radio v-for="dict in sys_yes_or_no" :key="dict.value" :value="parseInt(dict.value)">{{
                   dict.label }}</el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item label="库位类型" prop="locationType" v-if="form.isLeaf != IsLeafEnum.NO">
+              <template #label>
+                <span>库位类型:</span>
+                <el-tooltip content="[ 固定库位 ] :用于高架2层，用于补货使用，上下架不可修改；[ 活动库位 ] :用于高架3层以上，普通存储使用，上下架可以修改绑定！" placement="top">
+                  <el-icon color="red"><question-filled /></el-icon>
+                </el-tooltip>
+              </template>
               <el-radio-group v-model="form.locationType">
                 <el-radio v-for="dict in erp_warehouse_location_type" :key="dict.value" :value="parseInt(dict.value)">{{
                   dict.label }}</el-radio>
@@ -168,7 +176,7 @@
                 :rows="2" />
             </el-form-item>
           </el-tab-pane>
-          <!-- 容量设置 -->
+          <!-- 添加或修改 - 容量设置 -->
           <el-tab-pane label="容量设置" name="store" v-if="form.isLeaf != IsLeafEnum.NO">
             <el-form-item label="长度:" prop="locationLength">
               <el-input-number v-model="form.locationLength" placeholder="请输入长度" style="width: 80%;" :min="0"
@@ -201,7 +209,7 @@
               </el-input-number>
             </el-form-item>
           </el-tab-pane>
-          <!-- 商品设置 -->
+          <!-- 添加或修改 - 商品设置 -->
           <el-tab-pane label="商品设置" name="setting" v-if="form.isLeaf != IsLeafEnum.NO">
             <el-form-item label="绑定SKU:" prop="skuId">
               <template #label>
@@ -295,6 +303,7 @@
         <span>SKU 规格明细 详情</span>
       </template>
       <el-form ref="warehouseLocationRef" :model="form" :rules="rules" label-width="80px" disabled>
+        <!-- 详情 - 基础信息 -->
         <el-tabs type="border-card" class="full-height-tabs" v-model="activeTab" >
           <el-tab-pane label="基础信息" name="basic">
             <el-form-item label="所属仓库" prop="warehouseId">
@@ -317,10 +326,10 @@
               <el-input v-model="form.locationName" placeholder="请输入库位名称" type="textarea" maxlength="100"
                 show-word-limit :rows="1" />
             </el-form-item>
-            <el-form-item label="末级节点:" prop="isLeaf">
+            <el-form-item label="库位节点:" prop="isLeaf">
               <template #label>
-                <span>末级节点:</span>
-                <el-tooltip content="库位是末级节点，同时作为末级节点不允许添加下级节点" placement="top">
+                <span>库位节点:</span>
+                <el-tooltip content="库位节点是末级节点，同时作为末级节点不允许添加下级节点" placement="top">
                   <el-icon color="red"><question-filled /></el-icon>
                 </el-tooltip>
               </template>
@@ -359,7 +368,7 @@
                 :rows="2" />
             </el-form-item>
           </el-tab-pane>
-          <!-- 容量设置 -->
+          <!-- 详情 - 容量设置 -->
           <el-tab-pane label="容量设置" name="store" v-if="form.isLeaf != IsLeafEnum.NO">
             <el-form-item label="长度:" prop="locationLength">
               <el-input-number v-model="form.locationLength" placeholder="请输入长度" style="width: 80%;" :min="0"
@@ -392,17 +401,8 @@
               </el-input-number>
             </el-form-item>
           </el-tab-pane>
-          <!-- 商品设置 -->
+          <!-- 详情 - 商品设置 -->
           <el-tab-pane label="商品设置" name="setting" v-if="form.isLeaf != IsLeafEnum.NO">
-            <!-- <el-form-item label="绑定SKU:" prop="skuId">
-              <template #label>
-                <span>绑定SKU:</span>
-                <el-tooltip content="一个库位只能绑定一个SKU" placement="top">
-                  <el-icon color="red"><question-filled /></el-icon>
-                </el-tooltip>
-              </template>
-              <SkuSelect v-model="form.skuId" />
-            </el-form-item> -->
             <el-form-item label="商品编码:" prop="productCode">
               {{ form.productSkuVo?.skuCode || ''  }}
             </el-form-item>
@@ -515,6 +515,10 @@ const handleCloseDrawerReset = () => {
   activeTab.value = 'basic';
 }
 
+const handleChangeWarehouseId = () => {
+  getList();
+}
+
 /** 包装信息计算 */
 const calculateVolume = () => {
   const length = form.value.locationLength || 0;
@@ -543,17 +547,6 @@ const updateParentNode = () => {
   getSelectedParentLocationNode()
 }
 
-/** 更新科目编码 - 同步排序 orderNum */
-const updateLocationCode = () => {
-  const orderNum = convertStringToNumber(form.value.locationCode)
-  const num = convertStringToNumber(form.value.locationCode);
-  if (num){
-    form.value.orderWeight = num;
-  }
-  if (orderNum){
-    form.value.orderNum = orderNum;
-  }
-}
 
 // --------------------------- 仓库处理业务 start -----------------------------
 /** 获取仓库列表 */
@@ -689,7 +682,7 @@ function reset() {
     locationHeight: null,
     volume: null,
     maxWeight: null,
-    warehouseId: null,
+    warehouseId: queryParams.value.warehouseId,
     skuId: null,
     batchNo: null,
     maxQuantity: null,

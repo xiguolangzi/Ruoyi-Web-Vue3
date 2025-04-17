@@ -1,18 +1,18 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="仓库名称" prop="warehouseName">
+      <el-form-item label="仓库编码" prop="warehouseCode">
         <el-input
-          v-model="queryParams.warehouseName"
-          placeholder="请输入仓库名称"
+          v-model="queryParams.warehouseCode"
+          placeholder="请输入仓库编码"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="仓库位置" prop="warehouseLocation">
+      <el-form-item label="仓库名称" prop="warehouseName">
         <el-input
-          v-model="queryParams.warehouseLocation"
-          placeholder="请输入仓库位置"
+          v-model="queryParams.warehouseName"
+          placeholder="请输入仓库名称"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -67,8 +67,13 @@
 
     <el-table class="table-container" v-loading="loading" :data="warehouseList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="仓库编码" align="center" prop="warehouseId" />
+      <el-table-column label="仓库编码" align="center" prop="warehouseCode" />
       <el-table-column label="仓库名称" align="center" prop="warehouseName" />
+      <el-table-column label="默认仓库" align="center" prop="defaultFlag" >
+        <template #default="scope">
+          <dict-tag :options="sys_yes_or_no" :value="scope.row.defaultFlag" />
+        </template>
+      </el-table-column>
       <el-table-column label="仓库位置" align="center" prop="warehouseLocation" />
       <el-table-column label="创建者" align="center" prop="createBy" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180">
@@ -101,11 +106,23 @@
     <!-- 添加或修改仓库对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="warehouseRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="仓库名称" prop="warehouseName">
-          <el-input v-model="form.warehouseName" placeholder="请输入仓库名称" />
+        <el-form-item label="仓库编码:" prop="warehouseCode">
+          <el-input v-model="form.warehouseCode" placeholder="请输入仓库编码" type="textarea" maxlength="30" show-word-limit :rows="1"/>
         </el-form-item>
-        <el-form-item label="仓库位置" prop="warehouseLocation">
-          <el-input v-model="form.warehouseLocation" placeholder="请输入仓库位置" />
+        <el-form-item label="仓库名称:" prop="warehouseName">
+          <el-input v-model="form.warehouseName" placeholder="请输入仓库名称" type="textarea" maxlength="100" show-word-limit :rows="1"/>
+        </el-form-item>
+        <el-form-item label="仓库位置:" prop="warehouseLocation">
+          <el-input v-model="form.warehouseLocation" placeholder="请输入仓库位置" type="textarea" maxlength="200" show-word-limit :rows="1"/>
+        </el-form-item>
+        <el-form-item label="备注描述:" prop="remark">
+          <el-input v-model="form.remark" placeholder="请输入备注描述" type="textarea" maxlength="200" show-word-limit :rows="2"/>
+        </el-form-item>
+        <el-form-item label="默认仓库" prop="defaultFlag">
+          <el-select v-model="form.defaultFlag" placeholder="是否默认仓库" clearable>
+            <el-option v-for="dict in sys_yes_or_no" :key="dict.value" :label="dict.label"
+              :value="Number(dict.value)" />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -125,6 +142,7 @@ import useUserStore from "@/store/modules/user";
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
+const {sys_yes_or_no} = proxy.useDict("sys_yes_or_no")
 
 const warehouseList = ref([]);
 const open = ref(false);
@@ -146,6 +164,9 @@ const data = reactive({
     tenantId: null,
   },
   rules: {
+    warehouseCode: [
+      { required: true, message: "仓库编码不能为空", trigger: "blur" }
+    ],
     warehouseName: [
       { required: true, message: "仓库名称不能为空", trigger: "blur" }
     ],
@@ -182,7 +203,8 @@ function reset() {
     createBy: null,
     createTime: null,
     updateBy: null,
-    updateTime: null
+    updateTime: null,
+    defaultFlag: 0
   };
   proxy.resetForm("warehouseRef");
 }

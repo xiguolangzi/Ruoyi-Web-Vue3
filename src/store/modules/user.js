@@ -22,7 +22,7 @@ const useUserStore = defineStore(
     actions: {
       // 登录
       login(userInfo) {
-        const taxNumber = userInfo.taxNumber.trim()
+        const tenantCode = userInfo.tenantCode.trim()
         const username = userInfo.username.trim()
         const password = userInfo.password
         const code = userInfo.code
@@ -41,7 +41,7 @@ const useUserStore = defineStore(
         // Promise 是 JavaScript 中处理异步操作的一种方式
         return new Promise((resolve, reject) => {
           // 调用 @/api/login 中的 login 方法
-          login(taxNumber, username, password, code, uuid).then(res => {
+          login(tenantCode, username, password, code, uuid).then(res => {
             // 设置 cookie中的token
             setToken(res.token)
             // 重置store中的token

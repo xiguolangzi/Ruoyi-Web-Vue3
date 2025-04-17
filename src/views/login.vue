@@ -3,13 +3,13 @@
     <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
       <h3 class="title">{{title}}</h3>
       <LangSelect class="set-language"></LangSelect>
-      <el-form-item prop="taxNumber">
+      <el-form-item prop="tenantCode">
         <el-autocomplete
-          v-model="loginForm.taxNumber"
+          v-model="loginForm.tenantCode"
           :fetch-suggestions="querySearch"
           clearable
           class="inline-input w-50"
-          placeholder="税号"
+          placeholder="公司编码"
           @select="handleSelect"
         >
           <template #prefix><svg-icon icon-class="CIF" class="el-input__icon input-icon" /></template>
@@ -92,7 +92,7 @@ const { proxy } = getCurrentInstance();
 const title = import.meta.env.VITE_APP_TITLE;
 
 const loginForm = ref({
-  taxNumber:"",
+  tenantCode:"",
   username: "admin",
   password: "admin123",
   rememberMe: false,
@@ -101,8 +101,8 @@ const loginForm = ref({
 });
 
 const loginRules = {
-  taxNumber: [
-    { required: true, trigger: "blur", message: "请输入您的税号" },
+  tenantCode: [
+    { required: true, trigger: "blur", message: "请输入您的公司编码" },
     { min: 9, max: 9, trigger: "blur", message: "税号长度为9位" }
   ],
   username: [{ required: true, trigger: "blur", message: "请输入您的账号" }],
@@ -211,11 +211,11 @@ function handleLogin() {
       // 登录按钮 切换成 登陆中状态
       loading.value = true;
       // 存储当前税号
-      Cookies.set("taxNumber", loginForm.value.taxNumber, { expires: 30 });
+      Cookies.set("tenantCode", loginForm.value.tenantCode, { expires: 30 });
       // 存储将当前税号存储到税号查询列表
       let newTaxRecentList = taxRecentList.value || []
-      if (!newTaxRecentList.some(item => item.value === loginForm.value.taxNumber)) {
-        newTaxRecentList.unshift({ value: loginForm.value.taxNumber });
+      if (!newTaxRecentList.some(item => item.value === loginForm.value.tenantCode)) {
+        newTaxRecentList.unshift({ value: loginForm.value.tenantCode });
         if (newTaxRecentList.length > 5) {
           newTaxRecentList = newTaxRecentList.slice(0, 5);
         }
@@ -269,12 +269,12 @@ function getCode() {
 }
 
 function getCookie() {
-  const taxNumber = Cookies.get("taxNumber");
+  const tenantCode = Cookies.get("tenantCode");
   const username = Cookies.get("username");
   const password = Cookies.get("password");
   const rememberMe = Cookies.get("rememberMe");
   loginForm.value = {
-    taxNumber: taxNumber === undefined ? loginForm.value.taxNumber : taxNumber,
+    tenantCode: tenantCode === undefined ? loginForm.value.tenantCode : tenantCode,
     username: username === undefined ? loginForm.value.username : username,
     // decrypt(password) 解析cookie中密码
     password: password === undefined ? loginForm.value.password : decrypt(password),

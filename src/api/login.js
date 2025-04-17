@@ -1,9 +1,9 @@
 import request from '@/utils/request'
 
 // 登录方法
-export function login(taxNumber,username, password, code, uuid) {
+export function login(tenantCode, username, password, code, uuid) {
   const data = {
-    taxNumber,
+    tenantCode,
     username,
     password,
     code,
@@ -14,7 +14,7 @@ export function login(taxNumber,username, password, code, uuid) {
     headers: {
       isToken: false,
       repeatSubmit: false,
-      taxNumber: data.taxNumber
+      tenantCode: data.tenantCode
     },
     method: 'post',
     data: data
@@ -62,7 +62,7 @@ export function getCodeImg() {
 }
 
 // 修改语言
-export function changeLanguage(lang){
+export function changeLanguage(lang) {
   return request({
     url: '/changeLanguage',
     method: 'get',

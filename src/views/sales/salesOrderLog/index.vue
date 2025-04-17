@@ -35,7 +35,7 @@
     </el-row>
 
     <el-table class="table-container" v-loading="loading" :data="salesOrderLogList" size="small"
-      :preserve-expanded-content="true" :row-class-name="setRowClassName">
+      :preserve-expanded-content="true" :row-class-name="setRowClassName" ref="logDataTable" @expand-change="handleExpandChange">
       <el-table-column v-if="notHasOldDetailData" type="expand" width="50">
         <template #default="props">
           <div v-if="props.row.oldPrice || props.row.oldQuantity || props.row.oldDiscountRate">
@@ -152,6 +152,7 @@ const notHasOldDetailData = computed(() => {
   })
 })
 
+/** 设置是否显示行展开按钮 */
 const setRowClassName = ({ row }) => {
   // 如果没有原始数据，添加一个类名隐藏展开按钮
   if (!row.oldPrice && !row.oldQuantity && !row.oldDiscountRate){
@@ -160,6 +161,18 @@ const setRowClassName = ({ row }) => {
     return '';
   }
 };
+
+
+// --------------------------------  el-table-expand - 只展示当前行数据  start --------------------------
+const logDataTable = ref(null);
+const expandedRow = ref(null);
+const handleExpandChange = (row) => {
+  if (expandedRow.value && expandedRow.value !== row) {
+    logDataTable.value.toggleRowExpansion(expandedRow.value, false);
+  }
+  expandedRow.value = row;
+};
+// --------------------------------  el-table-expand - 只展示当前行数据  end --------------------------
 
 /** 查询订单操作日志列表 */
 function getList() {

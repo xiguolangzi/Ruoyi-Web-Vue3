@@ -1,18 +1,18 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="税号" prop="taxNumber">
+      <el-form-item label="公司名称" prop="tenantName">
         <el-input
-          v-model="queryParams.taxNumber"
-          placeholder="请输入税号"
+          v-model="queryParams.tenantName"
+          placeholder="请输入租户名称"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="租户名称" prop="tenantName">
+      <el-form-item label="CIF/NIF" prop="invoiceTaxNumber">
         <el-input
-          v-model="queryParams.tenantName"
-          placeholder="请输入租户名称"
+          v-model="queryParams.invoiceTaxNumber"
+          placeholder="请输入CIF/NIF"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -27,19 +27,19 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="帐号状态" prop="status">
-        <el-select v-model="queryParams.status" placeholder="请选择帐号状态" clearable style="width: 200px">
+      <el-form-item label="帐号状态" prop="tenantStatus">
+        <el-select v-model="queryParams.tenantStatus" placeholder="请选择帐号状态" clearable style="width: 200px">
           <el-option
             v-for="dict in sys_tenant_status"
             :key="dict.value"
             :label="dict.label"
-            :value="dict.value"
+            :value="Number(dict.value)"
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="手机号" prop="phoneNumber">
+      <el-form-item label="手机号" prop="invoicePhoneNumber">
         <el-input
-          v-model="queryParams.phoneNumber"
+          v-model="queryParams.invoicePhoneNumber"
           placeholder="请输入手机号"
           clearable
           @keyup.enter="handleQuery"

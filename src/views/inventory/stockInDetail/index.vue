@@ -124,7 +124,7 @@
       </el-table-column>
       <el-table-column label="计量单位" align="center" >
         <template #default="scope">
-          <span> {{ scope.row.unitVo?.unitCode || '--' }}</span>
+          <span> {{ scope.row.productSkuVo?.unitCode || '--' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="批次号" align="left" header-align="center" prop="batchNo" />

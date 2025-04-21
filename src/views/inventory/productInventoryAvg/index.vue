@@ -1,13 +1,13 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="skuId" prop="skuId">
-        <el-input
-          v-model="queryParams.skuId"
-          placeholder="请输入skuId"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+      <el-form-item label="商品名称" prop="skuName" style="margin-right: 0px;">
+        <el-input v-model="queryParams.skuName" placeholder="请输入商品名称" clearable @keyup.enter="handleQuery"
+          style="width: 150px;" />
+      </el-form-item>
+      <el-form-item label="SKU编码" prop="skuCode" style="margin-right: 0px;">
+        <el-input v-model="queryParams.skuCode" placeholder="请输入SKU编码" clearable @keyup.enter="handleQuery"
+          style="width: 150px;" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -17,75 +17,78 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['inventory:productInventoryAvg:add']"
-          v-if="false"
-        >新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd"
+          v-hasPermi="['inventory:productInventoryAvg:add']" v-if="false">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['inventory:productInventoryAvg:edit']"
-          v-if="false"
-        >修改</el-button>
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
+          v-hasPermi="['inventory:productInventoryAvg:edit']" v-if="false">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['inventory:productInventoryAvg:remove']"
-          v-if="false"
-        >删除</el-button>
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete"
+          v-hasPermi="['inventory:productInventoryAvg:remove']" v-if="false">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['inventory:productInventoryAvg:export']"
-        >导出</el-button>
+        <el-button type="warning" plain icon="Download" @click="handleExport"
+          v-hasPermi="['inventory:productInventoryAvg:export']">导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="productInventoryAvgList" @selection-change="handleSelectionChange">
+    <el-table class="table-container" v-loading="loading" :data="productInventoryAvgList"
+      @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="mainId" />
-      <el-table-column label="skuCode" align="center" prop="skuId" />
-      <el-table-column label="skuName" align="center" prop="skuId" />
-      <el-table-column label="skuValue" align="center" prop="skuId" />
-      <el-table-column label="skuPrice" align="center" prop="skuId" />
+      <el-table-column label="sku图片" align="center" prop="productSkuVo.skuImage" :width="100">
+        <template #default="scope">
+          <image-preview :src="scope.row.productSkuVo?.skuImage" :width="60" :height="60" />
+        </template>
+      </el-table-column>
+      <el-table-column label="sku编码" align="left" prop="productSkuVo.skuCode" />
+      <el-table-column label="sku名称" align="left" prop="productSkuVo.skuName" />
+      <el-table-column label="sku规格" align="left" prop="productSkuVo.skuValue">
+        <template #default="scope">
+          <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) === 'default'">
+            -- <!-- 直接显示默认 SKU -->
+          </div>
+          <div v-else v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
+            <strong>{{ item[0] }}:</strong>
+            <span>{{ item[1] }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="计量单位" width="80" align="center" prop="productSkuVo.skuValue">
+        <template #default="scope">
+          <span>{{ scope.row.productSkuVo?.unitCode || '--' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="sku基础单价" align="center" prop="productSkuVo.skuPrice">
+        <template #default="scope">
+          <span> {{ formatTwo(scope.row.productSkuVo?.skuPrice) }} €</span>
+        </template>
+      </el-table-column>
       <el-table-column label="总数量" align="center" prop="totalQuantity" />
-      <el-table-column label="加权平均成本" align="center" prop="averageCost" />
-      <el-table-column label="总成本" align="center" prop="totalCost" width="110" show-overflow-tooltip></el-table-column>
-      <el-table-column label="创建时间" align="center" prop="createTime" width="110" show-overflow-tooltip></el-table-column>
+      <el-table-column label="加权平均成本" align="center" prop="averageCost">
+        <template #default="scope">
+          <span> {{ formatTwo(scope.row.averageCost) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="总成本" align="center" prop="totalCost">
+        <template #default="scope">
+          <span> {{ formatTwo(scope.row.totalCost) }} €</span>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" v-if="false">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['inventory:productInventoryAvg:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['inventory:productInventoryAvg:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+            v-hasPermi="['inventory:productInventoryAvg:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
+            v-hasPermi="['inventory:productInventoryAvg:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-    
-    <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+
+    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+      @pagination="getList" />
 
     <!-- 添加或修改库存查询对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>

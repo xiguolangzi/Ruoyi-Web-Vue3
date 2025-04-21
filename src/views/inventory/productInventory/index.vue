@@ -19,15 +19,6 @@
           style="width: 150px;"
         />
       </el-form-item>
-      <el-form-item label="商品编码" prop="productCode" style="margin-right: 0px;">
-        <el-input
-          v-model="queryParams.productCode"
-          placeholder="请输入商品编码"
-          clearable
-          @keyup.enter="handleQuery"
-          style="width: 150px;"
-        />
-      </el-form-item>
       <el-form-item label="SKU编码" prop="skuCode" style="margin-right: 0px;">
         <el-input
           v-model="queryParams.skuCode"

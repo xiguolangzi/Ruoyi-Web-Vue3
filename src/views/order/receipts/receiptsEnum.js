@@ -5,19 +5,19 @@ export const CostInvoiceSelectStatusList = [InvoiceStatusEnum.INVOICE_STATUS_AUD
 // 订单状态枚举
 export const OrderStatusEnum = {
   // 编辑
-  EDIT: '1',
+  EDIT: 1,
   // 已保存
-  SAVE: '2',
+  SAVE: 2,
   // 待入库
-  WAIT_FOR_RECEIVED: '3',
+  WAIT_FOR_RECEIVED: 3,
   // 已入库
-  RECEIVED: '4',
+  RECEIVED: 4,
   // 待绑定发票
-  WAIT_FOR_BIND_INVOICED: '5',
+  WAIT_FOR_BIND_INVOICED: 5,
   // 解绑发票
-  BIND_INVOICED: '6',
+  BIND_INVOICED: 6,
   // 已归档
-  ARCHIVED: '7',
+  ARCHIVED: 7,
 }
 
 // 订单状态颜色

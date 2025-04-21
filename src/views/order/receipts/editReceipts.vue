@@ -16,47 +16,47 @@
             <!-- 根据不同状态显示不同的操作按钮 -->
             <el-button-group class="ml-4">
               <!-- 草稿状态 -->
-              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.EDIT" @click="handleSave"
+              <el-button type="primary" v-if="form.receiptsStatus == OrderStatusEnum.EDIT" @click="handleSave"
                 v-hasPermi="['order:receipts:add','order:receipts:edit']">
                 保存
               </el-button>
-              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.EDIT" @click="handleDelete"
+              <el-button type="danger" v-if="form.receiptsStatus == OrderStatusEnum.EDIT" @click="handleDelete"
                 v-hasPermi="['order:receipts:add','order:receipts:edit']">
                 删除
               </el-button>
 
               <!-- 保存状态 -->
-              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.SAVE"
+              <el-button type="primary" v-if="form.receiptsStatus == OrderStatusEnum.SAVE"
                 @click="handleSubmitForReceive" v-hasPermi="['order:receipts:add','order:receipts:edit']">
                 提交入库申请
               </el-button>
-              <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.SAVE" @click="handleEdit"
+              <el-button type="warning" v-if="form.receiptsStatus == OrderStatusEnum.SAVE" @click="handleEdit"
                 v-hasPermi="['order:receipts:add','order:receipts:edit']">
                 继续编辑
               </el-button>
 
               <!-- 待入库状态 -->
-              <el-button type="primary" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_RECEIVED"
+              <el-button type="primary" v-if="form.receiptsStatus == OrderStatusEnum.WAIT_FOR_RECEIVED"
                 @click="handleReceived" v-hasPermi="['order:receipts:received']">
                 确认入库
               </el-button>
-              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.WAIT_FOR_RECEIVED"
+              <el-button type="danger" v-if="form.receiptsStatus == OrderStatusEnum.WAIT_FOR_RECEIVED"
                 @click="handleReject" v-hasPermi="['order:receipts:received']">
                 驳回入库申请
               </el-button>
 
               <!-- 已入库状态 -->
-              <el-button type="success" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED"
+              <el-button type="success" v-if="form.receiptsStatus == OrderStatusEnum.RECEIVED"
                 @click="handleBindInvoiced" v-hasPermi="['order:receipts:invoiced']">
                 绑定发票
               </el-button>
-              <el-button type="danger" v-if="form.receiptsStatus === OrderStatusEnum.RECEIVED" @click="handleUnReceived"
+              <el-button type="danger" v-if="form.receiptsStatus == OrderStatusEnum.RECEIVED" @click="handleUnReceived"
                 v-hasPermi="['order:receipts:received']">
                 反入库
               </el-button>
 
               <!-- 生成发票 -->
-              <el-button type="warning" v-if="form.receiptsStatus === OrderStatusEnum.BIND_INVOICED"
+              <el-button type="warning" v-if="form.receiptsStatus == OrderStatusEnum.BIND_INVOICED"
                 @click="handleUnBindInvoiced" v-hasPermi="['order:receipts:invoiced']">
                 解绑发票
               </el-button>
@@ -1943,8 +1943,7 @@ const submitApproval = async () => {
         // 新增操作
         await addReceipts(form.value)
           .then( (res) => {
-            form.value.receiptsId = res.data.receiptsId
-            form.value.receiptsNo = res.data.receiptsNo
+            form.value= res.data
             parseJson();
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
@@ -1957,7 +1956,8 @@ const submitApproval = async () => {
         // 修改操作
         await updateReceipts(form.value)
           // 修改状态更新操作日志
-          .then( () => {
+          .then( (res) => {
+            form.value= res.data
             parseJson();
             ElMessage.success(currentActionConfig.message)
             RefreshTab()

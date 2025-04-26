@@ -7,8 +7,8 @@
             :value="dict.value" />
         </el-select>
       </el-form-item>
-      <el-form-item label="入库单ID" prop="stockInId">
-        <el-input v-model="queryParams.stockInId" placeholder="请输入入库单ID" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="入库单编号" prop="stockInNo">
+        <el-input v-model="queryParams.stockInNo" placeholder="请输入入库单编号" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="入库单类型" prop="stockType">
         <el-select v-model="queryParams.stockType" placeholder="请选择入库单类型" clearable>
@@ -134,7 +134,7 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     queueType: null,
-    stockInId: null,
+    stockInNo: null,
     stockType: null,
     tenantId: null
   },

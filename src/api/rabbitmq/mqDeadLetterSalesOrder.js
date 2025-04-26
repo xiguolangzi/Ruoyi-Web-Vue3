@@ -42,3 +42,11 @@ export function delMqDeadLetterSalesOrder(id) {
     method: 'delete'
   })
 }
+
+// 重新发送
+export function reSendMq(id) {
+  return request({
+    url: '/rabbitmq/mqDeadLetterSalesOrder/reSend/' + id,
+    method: 'delete'
+  })
+}

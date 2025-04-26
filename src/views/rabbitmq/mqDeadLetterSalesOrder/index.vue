@@ -1,13 +1,8 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="销售订单ID" prop="orderId">
-        <el-input
-          v-model="queryParams.orderId"
-          placeholder="请输入销售订单ID"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+      <el-form-item label="销售初始编号" prop="orderInitNo">
+        <el-input v-model="queryParams.orderInitNo" placeholder="请输入销售初始编号" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -17,42 +12,24 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:add']"
-        >新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd"
+          v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:edit']"
-        >修改</el-button>
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
+          v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:remove']"
-        >删除</el-button>
+        <el-button type="warning" plain icon="Edit" :disabled="single" @click="handleReSand"
+          v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:edit']">重发</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:export']"
-        >导出</el-button>
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete"
+          v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:remove']">删除</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button type="info" plain icon="Download" @click="handleExport"
+          v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:export']">导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
@@ -63,19 +40,18 @@
       <el-table-column label="销售订单ID" align="center" prop="orderId" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+            v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:edit']">修改</el-button>
+          <el-button link type="warning" icon="Edit" @click="handleReSand(scope.row)"
+            v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:edit']">重发</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
+            v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-    
-    <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+
+    <pagination v-show="total>0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
+      @pagination="getList" />
 
     <!-- 添加或修改库存死信队列对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
@@ -118,7 +94,7 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    orderId: null,
+    orderInitNo: null,
     tenantId: null
   },
   rules: {
@@ -226,6 +202,20 @@ function handleDelete(row) {
     getList();
     proxy.$modal.msgSuccess("删除成功");
   }).catch(() => {});
+}
+
+/**
+ * 重发按钮操作
+*/ 
+const handleReSand = (row) => {
+  reset();
+  const _id = row.id || ids.value
+  reSendMq(_id).then(response => {
+    proxy.$modal.msgSuccess("重发成功");
+    handleQuery();
+  }).catch((e) => {
+    proxy.$modal.msgError("重发失败", e.message);
+  })
 }
 
 /** 导出按钮操作 */

@@ -36,9 +36,46 @@
 
     <el-table v-loading="loading" :data="mqDeadLetterSalesOrderList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键id" align="center" prop="id" />
-      <el-table-column label="销售订单ID" align="center" prop="orderId" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="序号" align="center" type="index" />
+      <el-table-column label="初始订单编号" align="center" prop="salesOrder.orderInitNo" min-width="120"
+        show-overflow-tooltip />
+      <el-table-column label="订单来源" align="center" prop="salesOrder.orderSource" width="100">
+        <template #default="scope">
+          <dict-tag :options="sales_order_source" :value="scope.row.salesOrder?.orderSource" />
+        </template>
+      </el-table-column>
+      <el-table-column label="订单类型" align="center" prop="salesOrder.orderType" width="100">
+        <template #default="scope">
+          <dict-tag :options="sales_order_type" :value="scope.row.salesOrder?.orderType" />
+        </template>
+      </el-table-column>
+      <el-table-column label="订单状态" align="center" prop="salesOrder.orderStatus" width="100">
+        <template #default="scope">
+          <dict-tag :options="sales_order_status" :value="scope.row.salesOrder?.orderStatus" />
+        </template>
+      </el-table-column>
+      <el-table-column label="支付状态" align="center" prop="salesOrder.orderPayStatus" width="100">
+        <template #default="scope">
+          <dict-tag :options="sales_order_pay_status" :value="scope.row.salesOrder?.orderPayStatus" />
+        </template>
+      </el-table-column>
+      <el-table-column label="订单总数量" align="center" prop="salesOrder.totalQuantity" />
+      <el-table-column label="订单总金额" align="center" prop="salesOrder.totalAmount">
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.salesOrder?.totalAmount) }} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="订单创建时间" align="center" prop="salesOrder.createTime" show-overflow-tooltip>
+        <template #default="scope">
+          <span>{{ parseTime(scope.row.salesOrder?.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="入列时间" align="center" prop="createTime" show-overflow-tooltip>
+        <template #default="scope">
+          <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="195">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
             v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:edit']">修改</el-button>
@@ -71,13 +108,15 @@
 </template>
 
 <script setup name="MqDeadLetterSalesOrder">
-import { listMqDeadLetterSalesOrder, getMqDeadLetterSalesOrder, delMqDeadLetterSalesOrder, addMqDeadLetterSalesOrder, updateMqDeadLetterSalesOrder } from "@/api/rabbitmq/mqDeadLetterSalesOrder";
+import { listMqDeadLetterSalesOrder, getMqDeadLetterSalesOrder, delMqDeadLetterSalesOrder, addMqDeadLetterSalesOrder, updateMqDeadLetterSalesOrder, reSendMq } from "@/api/rabbitmq/mqDeadLetterSalesOrder";
 import useUserStore from "@/store/modules/user";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
+const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
+
 
 const mqDeadLetterSalesOrderList = ref([]);
 const open = ref(false);
@@ -215,6 +254,7 @@ const handleReSand = (row) => {
     handleQuery();
   }).catch((e) => {
     proxy.$modal.msgError("重发失败", e.message);
+    handleQuery();
   })
 }
 

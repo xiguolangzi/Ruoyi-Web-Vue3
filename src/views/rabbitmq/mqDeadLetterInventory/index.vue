@@ -213,6 +213,7 @@ function handleReSend(row) {
     handleQuery();
   }).catch((e) => {
     proxy.$modal.msgError("重发失败",e.message);
+    handleQuery();
   })
 }
 

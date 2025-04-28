@@ -78,17 +78,22 @@
         <span>{{ formatTwo(scope.row.detailSalesAmount) + ' €' }}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="detailSn" align="center" label="机器码" show-overflow-tooltip>
+    <el-table-column prop="detailSn" align="left" header-align="center" label="机器码" show-overflow-tooltip>
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailSn')" :ref="(el) => setInputRef(el, scope.row, 'detailSn')"
           v-model="scope.row.detailSn" size="small" @blur="handleBlur(scope.row, 'detailSn')" @focus="handleFocus"
           @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_SN)" style="width: 100%;" type="text" :maxlength="20" />
-        <span v-else>{{ scope.row.detailSn }}</span>
+        <span v-else>{{ scope.row.detailSn ?? '--'}}</span>
       </template>
     </el-table-column>
-    <el-table-column prop="promotionName" align="center" label="促销活动">
+    <el-table-column prop="promotionName" align="left" header-align="center" label="促销活动" show-overflow-tooltip>
       <template #default="scope">
         <span>{{ scope.row.promotionName ?? '--' }}</span>
+      </template>
+    </el-table-column>
+    <el-table-column prop="isGift" align="center" label="赠品" width="60">
+      <template #default="scope">
+        <span>{{ scope.row.isGift == 1 ? "是" : '否' }}</span>
       </template>
     </el-table-column>
     <el-table-column prop="skuType" align="center" label="商品类型">
@@ -96,12 +101,17 @@
         <dict-tag :options="erp_product_sku_type" :value="scope.row.skuType" />
       </template>
     </el-table-column>
-    <el-table-column prop="inTax" align="center" label="是否含税">
+    <el-table-column prop="detailTaxRate" align="center" label="税率" width="50">
+      <template #default="scope">
+        <span>{{ scope.row.detailTaxRate || 0 }} %</span>
+      </template>
+    </el-table-column>
+    <el-table-column prop="inTax" align="center" label="是否含税" width="80">
       <template #default="scope">
         <el-switch v-model="scope.row.inTax" :active-value="OrderInTaxEnum.TAX" :inactive-value="OrderInTaxEnum.NO_TAX"
           active-text="含税" inactive-text="不含税" inline-prompt
           style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;" disabled
-          v-hasPermi="['sales:salesCaja:admin']" />
+          v-hasPermi="['sales:salesCaja:admin']" size="small"/>
       </template>
     </el-table-column>
     <el-table-column label="操作" align="center" width="50">
@@ -114,13 +124,10 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import ImageNormal from '@/components/ImageNormal/index.vue';
 import { OrderInTaxEnum } from './cashOperationEnum.js';
 import { Delete } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
 import {canEditPriceEnum, canEditDiscountRateEnum} from './tenantConfigEnum.js';
 import { OperateLogTypeEnum } from "./operateLogTypeEnum.js"
-import { cloneDeep } from 'lodash';
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');

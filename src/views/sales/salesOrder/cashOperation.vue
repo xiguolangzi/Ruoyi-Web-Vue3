@@ -79,27 +79,27 @@
                     <span style="font-size: 12px; margin-right: 10px; color: #409eff;">{{ form.orderInitNo }}</span>
                   </div>
                   <el-descriptions :column="2" size="small" style="margin-top: 10px;">
-                    <el-descriptions-item label="金额:">
-                      <span class="highlight-text">{{ formatTwo(totalAmount) + ' €'}} </span>
+                    <el-descriptions-item label="销售金额:">
+                      <span class="highlight-text">{{ formatTwo(form.totalAmount) + ' €'}} </span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="折扣:">
-                      <span class="highlight-text">{{ formatTwo(totalDiscountAmount) + ' €' }}</span>
+                    <el-descriptions-item label="折扣金额:">
+                      <span class="highlight-text">{{ formatTwo(form.totalDiscountAmount) + ' €' }}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="减免:">
+                    <el-descriptions-item label="活动减免:">
                       <span class="highlight-text">{{ formatTwo(form.totalPromotionReduceAmount) + ' €' }}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="赠送:">
-                      <span class="highlight-text">{{ form.totalGiftQuantity}}</span>
+                    <el-descriptions-item label="减免数量:">
+                      <span class="highlight-text">{{ form.totalPromotionReduceQuantity ?? 0}}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="基础:">
-                      <span class="highlight-text">{{ formatTwo(totalBaseAmount) + ' €'}}</span>
+                    <el-descriptions-item label="基础金额:">
+                      <span class="highlight-text">{{ formatTwo(form.totalBaseAmount) + ' €'}}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="税额:" :span="2">
-                      <span class="highlight-text">{{ formatTwo(totalTaxAmount) + ' €'}}</span>
+                    <el-descriptions-item label="交税金额:" :span="2">
+                      <span class="highlight-text">{{ formatTwo(form.totalTaxAmount) + ' €'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="应收金额:" :span="2" class-name="total-label2"
                       label-class-name="total-content2">
-                      <span>{{ formatTwo(totalNetAmount) + ' €'}}</span>
+                      <span>{{ formatTwo(form.totalNetAmount) + ' €'}}</span>
                     </el-descriptions-item>
                   </el-descriptions>
                 </div>
@@ -383,7 +383,7 @@
     </el-dialog>
 
     <!-- 店长认证 对话框 -->
-    <el-dialog v-model="dialogVisible2" title="店长认证:" width="400" :close-on-click-modal="false"
+    <!-- <el-dialog v-model="dialogVisible2" title="店长认证:" width="400" :close-on-click-modal="false"
       :close-on-press-escape="false" :show-close="false">
       <el-form :model="userForm" ref="userFormRef">
         <el-form-item label="用户名" prop="userName">
@@ -397,10 +397,10 @@
         <el-button @click="dialogVisible2 = false">取消</el-button>
         <el-button type="primary" @click="checkAuthStoreManager">确定</el-button>
       </template>
-    </el-dialog>
+    </el-dialog> -->
 
     <!-- 套餐确认 对话框 -->
-    <ComboConfirmDialog ref="comboDialog" @add-combo-details="handleAddComboDetails" />
+    <ComboConfirmDialog ref="comboDialog" @add-combo-details="handleAddComboDetails" :notification-container="cashierContainer" />
 
     <!-- 收款确认 对话框 -->
     <PaymentDialog ref="paymentDialog" :orderData="form" :paymentAutoPrint="paymentAutoPrint"
@@ -408,8 +408,6 @@
 
     <!-- 通用认证对话框 -->
     <AuthManagerDialog ref="authManager" :notification-container="cashierContainer" />
-
-
   </div>
 
 
@@ -429,19 +427,15 @@ import EditableTable from './cashOperationUtil/EditableTable.vue';
 import {playKeyHappySound} from '@/utils/playKeySound.js';
 import { getDeviceFingerprint } from "@/utils/fingerprintJS";
 import { getSalesCajaByMacAddress } from "@/api/sales/salesCaja";
-import { ElMessage, ElMessageBox, ElNotification } from 'element-plus';
+import { ElMessageBox, ElNotification } from 'element-plus';
 import { getShiftRecordsIsActive, getLastShiftRecords, addSalesShiftRecords, continueSalesShiftRecords, getSalesShiftRecords, finishSalesShiftRecords } from '@/api/sales/SalesShiftRecords';
 import useUserStore from "@/store/modules/user";
 import {UserTypeEnum} from "@/views/system/tenant/tenantConstants.js";
-import { clone, cloneDeep, size } from 'lodash';
+import { cloneDeep } from 'lodash';
 import ImageNormal from '@/components/ImageNormal/index.vue';
-import { Picture as IconPicture } from '@element-plus/icons-vue'
 import { addSalesOrder, updateSalesOrder } from "@/api/sales/salesOrder";
-import {authStoreManager} from "@/api/system/user.js"
 import SnowflakeID from '@/utils/SnowflakeID.js';
 import IndexedDBUtil from '@/indexedDB/index.js';
-import { getProductCombo} from "@/api/product/productCombo";
-import { ComboItemIsOptionalEnum } from "@/views/product/productCombo/productComboEnum.js"
 import ComboConfirmDialog from './cashOperationUtil/ComboConfirmDialog.vue';
 import PaymentDialog from './cashOperationUtil/PaymentDialog.vue';
 import {canEditPriceEnum, canEditDiscountRateEnum, paymentAutoPrintEnum, canRemainAmountEnum, canDeleteOrderDetailEnum, cajaShowKeyboardEnum} from './cashOperationUtil/tenantConfigEnum.js';
@@ -453,8 +447,7 @@ import { OperateLogTypeEnum } from './cashOperationUtil/operateLogTypeEnum.js';
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type');
 
-// 获取当前用户信息
-const userStore = useUserStore();
+const userStore = useUserStore(); // 获取当前用户信息
 const dialogVisible = ref(false) // 交班窗口
 const dialogVisible2 = ref(false) // 店长认证
 const userForm = ref({});  // 店长信息
@@ -474,8 +467,8 @@ const canRemainAmount = ref(canRemainAmountEnum.OPEN); // 是否开启欠款支�
 const canDeleteOrderDetail = ref(canDeleteOrderDetailEnum.OPEN);  // 是否开启删除订单行
 const cajaShowKeyboard = ref(cajaShowKeyboardEnum.SHOW); // 是否展示触摸键盘配置
 
-const DB_NAME = "OrderDB";
-const STORE_NAME_ORDER = "order";
+const DB_NAME = "OrderDB";    // 本地缓存数据库
+const STORE_NAME_ORDER = "order"; // 本地缓存表明
 
 // **************** 获取配置 end *******************
 /** 获取租户配置 */
@@ -1090,13 +1083,27 @@ const checkCajaRegister = async () => {
     if (cajaInfo.cajaStatus === CajaStatusEnum.ENABLE) {
       // 收银台正常 -> 后续交班业务
       checkSalesShiftRecords();
-      ElMessage.success('当前收银台正常');
+      ElNotification({
+        title: 'Success',
+        message: '当前收银台正常',
+        type: 'success',
+        position: 'bottom-right',
+        // appendTo 挂载到 全屏组件上
+        appendTo: cashierContainer.value
+      })
     } else {
       handleCajaNoRegister(cajaInfo);
     }
 
   } catch (error) {
-    ElMessage.error('后台获取收银台信息失败: ' + error.message);
+    ElNotification({
+      title: 'Error',
+      message: '后台获取收银台信息失败: ' + error.message,
+      type: 'error',
+      position: 'bottom-right',
+      // appendTo 挂载到 全屏组件上
+      appendTo: cashierContainer.value
+    })
     handleCajaNoRegister();
   }
 };
@@ -1535,8 +1542,6 @@ const totalSalesAmount = computed(() => {
   }, 0);
 });
 
-// 8.5 销售活动减免金额（后台计算返回） form.totalPromotionReduceAmount 促销活动
-
 // 8.6 发票计算基础金额 form.totalBaseAmount 含税/不含税
 const totalBaseAmount = computed(() => {
   return data.form.salesOrderDetailList.reduce((total, item) => {
@@ -1558,22 +1563,6 @@ const totalNetAmount = computed(() => {
   }, 0);
 });
 
-// 8.9 赠送数量 (后台计算返回) form.totalGiftQuantity  促销活动
-
-// 更新订单form数据
-const computeFormTotalData = () => {
-  form.value.cajaId = currentCaja.value.cajaId;
-  form.value.shiftId = shiftForm.value.shiftId;
-  form.value.totalAmount = totalAmount.value;
-  form.value.totalQuantity = totalQuantity.value;
-  form.value.totalDiscountAmount = totalDiscountAmount.value;
-  form.value.totalSalesAmount = totalSalesAmount.value;
-  form.value.totalBaseAmount = totalBaseAmount.value;
-  form.value.totalTaxAmount = totalTaxAmount.value;
-  form.value.totalNetAmount = totalNetAmount.value;
-
-};
-
 
 /**
  * 完成支付操作
@@ -1593,7 +1582,8 @@ const handlerPayment = () => {
     // 根据客户信息 -> 更新明细价格/折扣 -> 从新根据是否含税计算最终金额
     updateDetailPriceAndDiscount();   
   }
-  computeFormTotalData();   // 更新订单form统计数据
+  form.value.cajaId = currentCaja.value.cajaId;
+  form.value.shiftId = shiftForm.value.shiftId;
   if(form.value.orderId){
     // 修改订单信息 -> 返回计算后的订单信息
     updateSalesOrder(form.value).then((res) => {
@@ -1604,10 +1594,24 @@ const handlerPayment = () => {
         paymentDialog.value.openPaymentDialog()
 
       } else {
-        ElMessage.error(res.msg);
+        ElNotification({
+          title: 'Error',
+          message: res.msg,
+          type: 'error',
+          position: 'bottom-right',
+          // appendTo 挂载到 全屏组件上
+          appendTo: cashierContainer.value
+        })
       }
     }).catch(error => {
-      ElMessage.error(error.message);
+      ElNotification({
+        title: 'Error',
+        message: error.message,
+        type: 'error',
+        position: 'bottom-right',
+        // appendTo 挂载到 全屏组件上
+        appendTo: cashierContainer.value
+      })
     });
 
   } else {
@@ -1620,7 +1624,14 @@ const handlerPayment = () => {
         paymentDialog.value.openPaymentDialog()
       }
     ).catch(error => {
-      ElMessage.error("收款操作异常：",error.message);
+      ElNotification({
+        title: 'Error',
+        message: "收款操作异常：" + error.message,
+        type: 'error',
+        position: 'bottom-right',
+        // appendTo 挂载到 全屏组件上
+        appendTo: cashierContainer.value
+      })
     });
   }
   

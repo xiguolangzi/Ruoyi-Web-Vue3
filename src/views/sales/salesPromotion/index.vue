@@ -152,11 +152,11 @@
               <el-input v-model="form.promotionName" placeholder="请输入促销活动名称" type="textarea" :maxlength="50" show-word-limit :rows="1" />
             </el-form-item>
             <el-form-item label="活动类型:" prop="promotionType">
-              <el-radio-group v-model="form.promotionType" size="small" @change="changePromotionType">
+              <el-radio-group v-model="form.promotionType" size="small" @change="changePromotionType" :disabled="form.promotionId ? true : false">
                 <el-radio-button
                   v-for="dict in erp_sales_promotion_type"
                   :key="dict.value"
-                  :label="dict.value"
+                  :label="Number(dict.value)"
                   :value="Number(dict.value)"
                 >{{dict.label}}</el-radio-button>
               </el-radio-group>
@@ -201,10 +201,8 @@
         </el-tab-pane>
 
         <el-tab-pane label="配置活动规则" name="items">
-
           <!-- RuleFullDiscount 满折扣-->
           <template v-if="form.promotionType == PromotionTypeEnum.FULL_DISCOUNT">
-            
             <el-row :gutter="20">
               <el-col :span="6">
                 <el-form-item label="促销活动类型:">
@@ -243,7 +241,7 @@
 
             <!-- 活动适用范围模板 -->
             <salesPromotionScope
-              :promotionScopeType="form.salesPromotionRuleFullDiscount.promotionScopeType"
+              :promotionScopeType="form.salesPromotionRuleFullDiscount?.promotionScopeType || ScopeTypeEnum.SKU"
               :salesPromotionScopeList="form.salesPromotionScopeList"
               :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
@@ -315,7 +313,7 @@
 
             <!-- 活动范围模板 -->
             <salesPromotionScope
-              :promotionScopeType="form.salesPromotionRuleFullGift.promotionScopeType"
+              :promotionScopeType="form.salesPromotionRuleFullGift?.promotionScopeType || ScopeTypeEnum.SKU"
               :salesPromotionScopeList="form.salesPromotionScopeList"
               :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
@@ -415,7 +413,7 @@
 
             <!-- 活动范围模板 -->
             <salesPromotionScope
-              :promotionScopeType="form.salesPromotionRuleQuantity.promotionScopeType"
+              :promotionScopeType="form.salesPromotionRuleQuantity?.promotionScopeType  || ScopeTypeEnum.SKU"
               :salesPromotionScopeList="form.salesPromotionScopeList"
               :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
@@ -505,7 +503,7 @@
 
             <!-- 活动适用范围模板 -->
             <salesPromotionScope
-              :promotionScopeType="form.salesPromotionRuleDiscount.promotionScopeType"
+              :promotionScopeType="form.salesPromotionRuleDiscount?.promotionScopeType || ScopeTypeEnum.SKU"
               :salesPromotionScopeList="form.salesPromotionScopeList"
               :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
@@ -517,7 +515,7 @@
             >
               <template #promotion-scope-label>
                 <el-form-item label="活动适用范围:" >
-                  <el-radio-group v-model="form.salesPromotionRuleFullReduce.promotionScopeType" size="small" @change="handlePromotionScopeTypeChanged(form.salesPromotionRuleFullReduce.promotionScopeType)">
+                  <el-radio-group v-model="form.salesPromotionRuleDiscount.promotionScopeType" size="small" @change="handlePromotionScopeTypeChanged(form.salesPromotionRuleDiscount.promotionScopeType)">
                     <el-radio-button
                       v-for="dict in erp_sales_promotion_scope"
                       :key="dict.value"
@@ -699,36 +697,27 @@ const initSalesPromotionRuleDiscount = () => ({
   promotionScopeType: ScopeTypeEnum.SKU,
   discountRate: null,
 });
-// 重置规则
-const restAllRules = () => {
-  form.value.salesPromotionRuleFullDiscount = initSalesPromotionRuleFullDiscount();
-  form.value.salesPromotionRuleFullGift = initSalesPromotionRuleFullGift();
-  form.value.salesPromotionRuleQuantity = initSalesPromotionRuleQuantity();
-  form.value.salesPromotionRuleDiscount = initSalesPromotionRuleDiscount();
-  form.value.salesPromotionScopeList = [];
-  form.value.salesPromotionScopeGiftList = [];
-}
+
 /** 修改促销类型 - 切换折扣规则 */
 const  changePromotionType = () => {
+  console.log('修改促销类型:', form.value.promotionType);
+  form.value.salesPromotionScopeList = [];
+  form.value.salesPromotionScopeGiftList = [];
+
   switch (form.value.promotionType) {
     case PromotionTypeEnum.FULL_DISCOUNT:
-      restAllRules()
       form.value.salesPromotionRuleFullDiscount = initSalesPromotionRuleFullDiscount();
       break;
     case PromotionTypeEnum.FULL_GIFT:
-      restAllRules()
       form.value.salesPromotionRuleFullGift = initSalesPromotionRuleFullGift();
       break;
     case PromotionTypeEnum.QUANTITY:
-      restAllRules()
       form.value.salesPromotionRuleQuantity = initSalesPromotionRuleQuantity();
       break;
     case PromotionTypeEnum.DISCOUNT:
-      restAllRules()
       form.value.salesPromotionRuleDiscount = initSalesPromotionRuleDiscount();
       break;
     default:
-      restAllRules()
       console.error('未知的促销类型:', form.value.promotionType);
       break;
   }

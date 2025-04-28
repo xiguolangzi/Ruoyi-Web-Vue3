@@ -100,7 +100,7 @@
 import { computed, getCurrentInstance } from 'vue';
 
 const props = defineProps({
-  promotionScopeType: [String, Number],
+  promotionScopeType: [String,Number],
   salesPromotionScopeList: Array,
   formattedSkuList: Array,
   categoryList: Array,

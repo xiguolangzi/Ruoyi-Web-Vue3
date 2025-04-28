@@ -89,7 +89,7 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-  giftScopeType: [String, Number],
+  giftScopeType: [String,Number],
   salesPromotionScopeGiftList: Array,
   formattedSkuList: Array,
   categoryList: Array,

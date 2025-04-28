@@ -1,11 +1,11 @@
 <template>
   <el-dialog v-model="comboDialogVisible" title="套餐确认:" width="700" style="margin-top: 100px !important;"
     :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false"
-    @keyup.enter.prevent="handleAddDetailConfirmCombo">
+    @keyup.enter.prevent="handleAddDetailConfirmCombo" ref="comboDialogRef">
 
     <!-- 套餐明细 -->
     <el-card v-for="(item, index) in currentCombo.productComboItemList" :key="index" class="mb-4" shadow="always"
-      :header="`${item.itemName} (${getItemTypeText(item)})`" style="margin-bottom: 10px;">
+      :header="`${item.itemName} : ${getItemTypeText(item)}`" style="margin-bottom: 10px;">
 
       <el-table :data="item.productComboItemDetailList" border style="width: 100%" :ref="(el) => setTableRef(el, index)"
         @selection-change="(selection) => handleSelectionChange(selection, item)">
@@ -68,7 +68,15 @@
 import { ref, nextTick } from 'vue';
 import { getProductCombo } from "@/api/product/productCombo";
 import { ComboItemIsOptionalEnum, ComboItemSetTypeEnum } from "@/views/product/productCombo/productComboEnum.js"
-import { ElMessage } from 'element-plus';
+import { ElNotification } from 'element-plus';
+
+
+const props = defineProps({
+  notificationContainer: {
+    type: [String, Object],
+    default: 'body'
+  }
+})
 
 const emit = defineEmits(['addComboDetails'])
 
@@ -80,6 +88,7 @@ const orderDetail = ref(null)                             // 订单明细
 const isInComboConfirm = ref(false)                       // 控制回车事件
 const productComboItemDetailList = ref([])                // 添加表格引用数组
 const tableRefs = ref([])                                 // 改用对象存储表格引用
+const comboDialogRef = ref(null)
 
 // 设置表格引用
 const setTableRef = (el, index) => {
@@ -269,14 +278,30 @@ const validateSelection = () => {
         const selectedCount = getSelectedCount(item)
         if (selectedCount === 0 || selectedCount > item.isOptionalQuantity) {
           isValid = false
-          ElMessage.error(`"${item.itemName}" 必须选择1-${item.isOptionalQuantity}个选项`)
+          ElNotification({
+            title: 'Error',
+            message: `"${item.itemName}" 必须选择1-${item.isOptionalQuantity}个选项`,
+            type: 'error',
+            position: 'bottom-right',
+            // appendTo 挂载到 全屏组件上
+            appendTo: props.notificationContainer
+          })
+          console.log(`"${item.itemName}" 必须选择1-${item.isOptionalQuantity}个选项`)
         }
       } else if (item.setType == ComboItemSetTypeEnum.maxQuantity) {
         // 最大数量模式验证
         const totalQuantity = getTotalSelectedQuantity(item)
         if (totalQuantity === 0 || totalQuantity > item.maxQuantity) {
           isValid = false
-          ElMessage.error(`"${item.itemName}" 总数量必须在1-${item.maxQuantity}之间`)
+          ElNotification({
+            title: 'Error',
+            message: `"${item.itemName}" 总数量必须在1-${item.maxQuantity}之间`,
+            type: 'error',
+            position: 'bottom-right',
+            // appendTo 挂载到 全屏组件上
+            appendTo: props.notificationContainer
+          })
+          console.log(`"${item.itemName}" 总数量必须在1-${item.maxQuantity}之间`)
         }
       }
     }

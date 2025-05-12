@@ -25,8 +25,22 @@
       <el-table :data="salesPromotionScopeGiftList" border style="width: 100%">
         <el-table-column label="SKU 条码" prop="skuId" align="center" min-width="120px">
           <template #default="scope">
-            <el-select-v2 v-model="scope.row.skuId" filterable :options="formattedSkuList"
-              placeholder="请输入 SKU Code" style="width: 100%" @change="handleSkuChange(scope.row)" :fit-input-width="false"/>
+            <div @click.stop="handleCellClick(scope.row)">
+              <!-- 显示模式 - 失去焦点时显示SKU Code -->
+              <span v-if="!scope.row.isEditing" style="color: blue;">
+                {{ scope.row.productSkuVo?.skuCode || '请单击选择SKU' }}
+              </span>
+              
+              <!-- 编辑模式 - 聚焦时显示SkuSelect组件 -->
+              <SkuSelect 
+                v-else
+                ref="skuSelectRef" 
+                @selectedData="(data) => handleSkuSelected(data, scope.row)"
+                @blur="handleBlur(scope.row)"
+                style="width: 100%"
+                :teleported="true"
+              />
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="SKU 名称" align="left" header-align="center" show-overflow-tooltip>
@@ -87,23 +101,63 @@
 
 <script setup>
 import { computed } from 'vue';
+import SkuSelect from '@/components/Common/SkuSelect.vue';
 
 const props = defineProps({
   giftScopeType: [String,Number],
   salesPromotionScopeGiftList: Array,
-  formattedSkuList: Array,
   categoryList: Array,
   ScopeTypeEnum: Object,
   StatusEnum: Object
+});
+
+// 添加编辑状态管理
+const editingRow = ref(null);
+const skuSelectRef = ref(null);
+
+// 处理单元格点击事件
+const handleCellClick = (row) => {
+  // 设置当前行为编辑状态
+  row.isEditing = true;
+  editingRow.value = row;
+  
+  // 下一个tick聚焦输入框
+  nextTick(() => {
+    const selectRef = skuSelectRef.value;
+    if (selectRef && selectRef.focus) {
+      selectRef.focus();
+    }
+  });
+};
+
+// 处理失去焦点事件
+const handleBlur = (row) => {
+  row.isEditing = false;
+  editingRow.value = null;
+};
+
+// 修改handleSkuSelected，添加自动失去焦点逻辑
+const handleSkuSelected = (data, row) => {
+  row.productSkuVo = data;
+  // 选择后自动退出编辑模式
+  handleBlur(row);
+};
+
+// 确保每行数据都有isEditing属性
+onMounted(() => {
+  props.salesPromotionScopeGiftList.forEach(row => {
+    if (row.isEditing === undefined) {
+      row.isEditing = false;
+    }
+  });
 });
 
 const isSkuScopeGift = computed(() => props.giftScopeType == props.ScopeTypeEnum.SKU);
 const isCategoryScopeGift = computed(() => props.giftScopeType == props.ScopeTypeEnum.CATEGORY);
 const isAllScopeGift = computed(() => props.giftScopeType == props.ScopeTypeEnum.ALL);
 
-const emit = defineEmits(['handleSkuChange', 'removePromotionScopeGiftDetail', 'addPromotionScopeGiftDetail']);
+const emit = defineEmits(['removePromotionScopeGiftDetail', 'addPromotionScopeGiftDetail']);
 
-const handleSkuChange = (row) => emit('handleSkuChange', row);
 const removeGiftDetail = (index) => emit('removePromotionScopeGiftDetail', index);
 const addGiftDetail = () => emit('addPromotionScopeGiftDetail');
 </script>

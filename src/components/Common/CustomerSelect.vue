@@ -3,10 +3,9 @@
     :model-value="modelValue"
     filterable
     remote
-    clearable
-    default-first-option
-    :options="dataList"
     :remote-method="onSearch"
+    clearable
+    :options="dataList"
     :loading="loading"
     :disabled="disabled"
     :multiple="multiple"
@@ -15,6 +14,7 @@
     :teleported='false'
     :fit-input-width="false"
     @change="handleChange"
+    :reserve-keyword="false"
   />
 </template>
 

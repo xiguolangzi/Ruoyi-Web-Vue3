@@ -97,10 +97,6 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-        <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-      </el-form-item>
     </el-form>
 
     <el-row :gutter="10" class="mb8">
@@ -142,25 +138,54 @@
           v-hasPermi="['sales:salesOrder:export']"
         >导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+        <el-button type="info" icon="Refresh" @click="resetQuery">重置</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table class="table-container" size="small" v-loading="loading" :data="salesOrderList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="订单方向" align="center" prop="orderDirection" />
       <el-table-column label="初始单号" align="center" prop="orderInitNo" show-overflow-tooltip min-width="100"/>
-      <el-table-column label="原始订单ID" align="center" prop="parentOrderId" show-overflow-tooltip min-width="100" />
-      <el-table-column label="订单编号" align="center" prop="orderNo" show-overflow-tooltip min-width="100" />
-      <el-table-column label="订单来源" align="center" prop="orderSource">
+      <el-table-column label="订单方向" align="center" prop="orderDirection" >
         <template #default="scope">
-          <dict-tag :options="sales_order_source" :value="scope.row.orderSource"/>
+          <dict-tag :options="sales_order_direction" :value="scope.row.orderPayStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="仓库ID" align="center" prop="warehouseId" />
-      <el-table-column label="收银台ID" align="center" prop="cajaId" />
-      <el-table-column label="业务员ID" align="center" prop="salesmanId" />
-      <el-table-column label="客户ID" align="center" prop="customerId" />
-      <el-table-column label="业务活动" align="center" prop="activityId" />
+      <el-table-column label="订单编号" align="center" prop="orderNo" show-overflow-tooltip min-width="100" />
+      <el-table-column label="总数量" align="center" prop="totalQuantity" />
+      <el-table-column label="总金额" align="center" prop="totalAmount" >
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.totalAmount)}} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="总折扣额" align="center" prop="totalDiscountAmount" >
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.totalDiscountAmount)}} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="销售总额" align="center" prop="totalSalesAmount" >
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.totalSalesAmount)}} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="基础金额" align="center" prop="totalBaseAmount" >
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.totalBaseAmount)}} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="总税额" align="center" prop="totalTaxAmount" >
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.totalTaxAmount)}} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="应收总额" align="center" prop="totalNetAmount" >
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.totalNetAmount)}} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="父级订单编号" align="center" prop="parentOrderInitNo" show-overflow-tooltip min-width="100" />
       <el-table-column label="订单类型" align="center" prop="orderType">
         <template #default="scope">
           <dict-tag :options="sales_order_type" :value="scope.row.orderType"/>
@@ -171,35 +196,26 @@
           <dict-tag :options="sales_order_status" :value="scope.row.orderStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="是否挂单" align="center" prop="orderIsHold">
-        <template #default="scope">
-          <dict-tag :options="sales_order_is_hold" :value="scope.row.orderIsHold"/>
-        </template>
-      </el-table-column>
       <el-table-column label="支付状态" align="center" prop="orderPayStatus">
         <template #default="scope">
           <dict-tag :options="sales_order_pay_status" :value="scope.row.orderPayStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="总数量" align="center" prop="totalQuantity" />
-      <el-table-column label="总金额" align="center" prop="totalAmount" />
-      <el-table-column label="总折扣额" align="center" prop="totalDiscountAmount" />
-      <el-table-column label="销售总额" align="center" prop="totalSalesAmount" />
-      <el-table-column label="基础金额" align="center" prop="totalBaseAmount" />
-      <el-table-column label="总税额" align="center" prop="totalTaxAmount" />
-      <el-table-column label="应收总额" align="center" prop="totalNetAmount" />
-      <el-table-column label="现金收款" align="center" prop="cashAmount" />
-      <el-table-column label="银行收款" align="center" prop="bankAmount" />
-      <el-table-column label="找零" align="center" prop="changeAmount" />
-      <el-table-column label="抹零" align="center" prop="zeroAmount" />
-      <el-table-column label="未核销金额" align="center" prop="remainAmount" />
-      <el-table-column label="已核销金额" align="center" prop="verifiedAmount" />
-      <el-table-column label="备注信息" align="center" prop="remark" />
-      <el-table-column label="操作记录" align="center" prop="operateLog" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" show-overflow-tooltip min-width="130">
+      <el-table-column label="订单来源" align="center" prop="orderSource">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['sales:salesOrder:edit']">修改</el-button>
-          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['sales:salesOrder:remove']">删除</el-button>
+          <dict-tag :options="sales_order_source" :value="scope.row.orderSource"/>
+        </template>
+      </el-table-column>
+      <el-table-column label="仓库名称" align="center" prop="warehouseName" />
+      <el-table-column label="收银台名称" align="center" prop="cajaName" />
+      <el-table-column label="业务员名称" align="center" prop="salesmanName" />
+      <el-table-column label="客户名称" align="center" prop="customerName" />
+      <el-table-column label="业务活动" align="center" prop="activityName" />
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="190">
+        <template #default="scope">
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['sales:salesOrder:edit']" size="small">修改</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['sales:salesOrder:remove']" size="small">删除</el-button>
+          <el-button link type="primary" @click="handleShowDetail(scope.row)" v-hasPermi="['sales:salesOrder:query']" size="small">>>更多详情</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -212,273 +228,185 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改销售订单对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="salesOrderRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="初始单号" prop="orderInitNo">
-          <el-input v-model="form.orderInitNo" placeholder="请输入初始单号" />
-        </el-form-item>
-        <el-form-item label="订单编号" prop="orderNo">
-          <el-input v-model="form.orderNo" placeholder="请输入订单编号" />
-        </el-form-item>
-        <el-form-item label="原始订单ID" prop="parentOrderId">
-          <el-input v-model="form.parentOrderId" placeholder="请输入原始订单ID" />
-        </el-form-item>
-        <el-form-item label="含税状态" prop="orderInTax">
-          <el-input v-model="form.orderInTax" placeholder="请输入含税状态" />
-        </el-form-item>
-        <el-form-item label="仓库ID" prop="warehouseId">
-          <el-input v-model="form.warehouseId" placeholder="请输入仓库ID" />
-        </el-form-item>
-        <el-form-item label="收银台ID" prop="cajaId">
-          <el-input v-model="form.cajaId" placeholder="请输入收银台ID" />
-        </el-form-item>
-        <el-form-item label="交班ID" prop="shiftId">
-          <el-input v-model="form.shiftId" placeholder="请输入交班ID" />
-        </el-form-item>
-        <el-form-item label="业务员ID" prop="salesmanId">
-          <el-input v-model="form.salesmanId" placeholder="请输入业务员ID" />
-        </el-form-item>
-        <el-form-item label="客户ID" prop="customerId">
-          <el-input v-model="form.customerId" placeholder="请输入客户ID" />
-        </el-form-item>
-        <el-form-item label="销售活动ID" prop="activityId">
-          <el-input v-model="form.activityId" placeholder="请输入销售活动ID" />
-        </el-form-item>
-        <el-form-item label="订单类型" prop="orderType">
-          <el-select v-model="form.orderType" placeholder="请选择订单类型">
-            <el-option
-              v-for="dict in sales_order_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="Number(dict.value)"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="订单状态" prop="orderStatus">
-          <el-radio-group v-model="form.orderStatus">
-            <el-radio
-              v-for="dict in sales_order_status"
-              :key="dict.value"
-              :value="Number(dict.value)"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="是否挂单" prop="orderIsHold">
-          <el-input v-model="form.orderIsHold" placeholder="请输入是否挂单" />
-        </el-form-item>
-        <el-form-item label="订单支付状态" prop="orderPayStatus">
-          <el-radio-group v-model="form.orderPayStatus">
-            <el-radio
-              v-for="dict in sales_order_pay_status"
-              :key="dict.value"
-              :value="Number(dict.value)"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="总金额" prop="totalAmount">
-          <el-input v-model="form.totalAmount" placeholder="请输入总金额" />
-        </el-form-item>
-        <el-form-item label="总折扣额" prop="totalDiscountAmount">
-          <el-input v-model="form.totalDiscountAmount" placeholder="请输入总折扣额" />
-        </el-form-item>
-        <el-form-item label="销售总额" prop="totalSalesAmount">
-          <el-input v-model="form.totalSalesAmount" placeholder="请输入销售总额" />
-        </el-form-item>
-        <el-form-item label="基础金额" prop="totalBaseAmount">
-          <el-input v-model="form.totalBaseAmount" placeholder="请输入基础金额" />
-        </el-form-item>
-        <el-form-item label="总税额" prop="totalTaxAmount">
-          <el-input v-model="form.totalTaxAmount" placeholder="请输入总税额" />
-        </el-form-item>
-        <el-form-item label="应收总额" prop="totalNetAmount">
-          <el-input v-model="form.totalNetAmount" placeholder="请输入应收总额" />
-        </el-form-item>
-        <el-form-item label="未核销金额" prop="remainAmount">
-          <el-input v-model="form.remainAmount" placeholder="请输入未核销金额" />
-        </el-form-item>
-        <el-form-item label="已核销金额" prop="verifiedAmount">
-          <el-input v-model="form.verifiedAmount" placeholder="请输入已核销金额" />
-        </el-form-item>
-        <el-form-item label="优惠抹零(交班计算)" prop="totalZeroAmount">
-          <el-input v-model="form.totalZeroAmount" placeholder="请输入优惠抹零(交班计算)" />
-        </el-form-item>
-        <el-form-item label="备注信息" prop="remark">
-          <el-input v-model="form.remark" placeholder="请输入备注信息" />
-        </el-form-item>
-        <el-form-item label="租户id" prop="tenantId">
-          <el-input v-model="form.tenantId" placeholder="请输入租户id" />
-        </el-form-item>
-        <el-form-item label="删除状态" prop="delFlag">
-          <el-input v-model="form.delFlag" placeholder="请输入删除状态" />
-        </el-form-item>
-        <el-form-item label="操作记录" prop="operateLog">
-          <el-input v-model="form.operateLog" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-        <el-divider content-position="center">销售订单明细信息</el-divider>
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-button type="primary" icon="Plus" @click="handleAddSalesOrderDetail">添加</el-button>
-          </el-col>
-          <el-col :span="1.5">
-            <el-button type="danger" icon="Delete" @click="handleDeleteSalesOrderDetail">删除</el-button>
-          </el-col>
-        </el-row>
-        <el-table :data="salesOrderDetailList" :row-class-name="rowSalesOrderDetailIndex" @selection-change="handleSalesOrderDetailSelectionChange" ref="salesOrderDetail">
-          <el-table-column type="selection" width="50" align="center" />
-          <el-table-column label="序号" align="center" prop="index" width="50"/>
-          <el-table-column label="skuId" prop="skuId" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.skuId" placeholder="请输入skuId" />
-            </template>
-          </el-table-column>
-          <el-table-column label="sku编码" prop="skuCode" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.skuCode" placeholder="请输入sku编码" />
-            </template>
-          </el-table-column>
-          <el-table-column label="sku类型" prop="skuType" width="150">
-            <template #default="scope">
-              <el-select v-model="scope.row.skuType" placeholder="请选择sku类型">
-                <el-option
-                  v-for="dict in erp_product_sku_type"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="Number(dict.value)"
-                ></el-option>
-              </el-select>
-            </template>
-          </el-table-column>
-          <el-table-column label="sku属性" prop="skuValue" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.skuValue" placeholder="请输入sku属性" />
-            </template>
-          </el-table-column>
-          <el-table-column label="sku名称" prop="skuName" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.skuName" placeholder="请输入sku名称" />
-            </template>
-          </el-table-column>
-          <el-table-column label="辅助名称" prop="assistName" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.assistName" placeholder="请输入辅助名称" />
-            </template>
-          </el-table-column>
-          <el-table-column label="批次号" prop="batchNo" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.batchNo" placeholder="请输入批次号" />
-            </template>
-          </el-table-column>
-          <el-table-column label="序列号" prop="detailSn" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailSn" placeholder="请输入序列号" />
-            </template>
-          </el-table-column>
-          <el-table-column label="商品单价" prop="detailPrice" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailPrice" placeholder="请输入商品单价" />
-            </template>
-          </el-table-column>
-          <el-table-column label="商品数量" prop="detailQuantity" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailQuantity" placeholder="请输入商品数量" />
-            </template>
-          </el-table-column>
-          <el-table-column label="销售金额" prop="detailAmount" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailAmount" placeholder="请输入销售金额" />
-            </template>
-          </el-table-column>
-          <el-table-column label="折扣率" prop="detailDiscountRate" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailDiscountRate" placeholder="请输入折扣率" />
-            </template>
-          </el-table-column>
-          <el-table-column label="折扣金额" prop="detailDiscountAmount" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailDiscountAmount" placeholder="请输入折扣金额" />
-            </template>
-          </el-table-column>
-          <el-table-column label="销售金额" prop="detailSalesAmount" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailSalesAmount" placeholder="请输入销售金额" />
-            </template>
-          </el-table-column>
-          <el-table-column label="基础金额" prop="detailBaseAmount" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailBaseAmount" placeholder="请输入基础金额" />
-            </template>
-          </el-table-column>
-          <el-table-column label="税率" prop="detailTaxRate" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailTaxRate" placeholder="请输入税率" />
-            </template>
-          </el-table-column>
-          <el-table-column label="税额" prop="detailTaxAmount" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailTaxAmount" placeholder="请输入税额" />
-            </template>
-          </el-table-column>
-          <el-table-column label="实际金额" prop="detailNetAmount" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.detailNetAmount" placeholder="请输入实际金额" />
-            </template>
-          </el-table-column>
-          <el-table-column label="促销活动ID" prop="promotionId" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.promotionId" placeholder="请输入促销活动ID" />
-            </template>
-          </el-table-column>
-          <el-table-column label="促销活动名称" prop="promotionName" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.promotionName" placeholder="请输入促销活动名称" />
-            </template>
-          </el-table-column>
-          <el-table-column label="商品备注" prop="remark" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.remark" placeholder="请输入商品备注" />
-            </template>
-          </el-table-column>
-          <el-table-column label="租户ID" prop="tenantId" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.tenantId" placeholder="请输入租户ID" />
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
+    <!-- 详情抽屉弹窗 -->
+    <el-drawer v-model="drawer" direction="rtl" append-to-body size="50%" :with-header="false">
+      <div v-if="currentRow" style="width: 100%;">
+        <el-card shadow="hover" class="compact-card" style="width: 100%;">
+          <template #header>
+            <div class="clearfix" style="display: flex;">
+              <span style="margin-right: 20px;">订单信息</span>
+              <dict-tag :options="sales_order_direction" :value="currentRow.orderDirection"/>
+            </div>
+          </template>
+          <el-descriptions direction="vertical" :column="4" size="small" border >
+            <el-descriptions-item label="初始单号" :span="1" >
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                :content="currentRow.orderInitNo"
+                placement="top-start"
+              >
+                <span class="text-ellipsis">{{ currentRow.orderInitNo }}</span>
+              </el-tooltip>
+            </el-descriptions-item>
+            <el-descriptions-item label="订单编号" :span="1" >
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                :content="currentRow.orderNo"
+                placement="top-start"
+              >
+                <span class="text-ellipsis">{{ currentRow.orderNo }}</span>
+              </el-tooltip>
+            </el-descriptions-item>
+            <el-descriptions-item label="父级订单编号" :span="1" >
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                :content="currentRow.parentOrderInitNo"
+                placement="top-start"
+              >
+                <span class="text-ellipsis">{{ currentRow.parentOrderInitNo }}</span>
+              </el-tooltip>
+            </el-descriptions-item>
+            <el-descriptions-item label="收银台名称" :span="1" >
+              <el-tooltip
+                class="box-item"
+                effect="dark"
+                :content="currentRow.cajaName"
+                placement="top-start"
+              >
+                <span class="text-ellipsis">{{ currentRow.cajaName }}</span>
+              </el-tooltip>
+            </el-descriptions-item>
+
+            <el-descriptions-item label="订单类型" >
+              <dict-tag :options="sales_order_type" :value="currentRow.orderType"/>
+            </el-descriptions-item>
+            <el-descriptions-item label="订单状态" >
+              <dict-tag :options="sales_order_status" :value="currentRow.orderStatus"/>
+            </el-descriptions-item>
+            <el-descriptions-item label="订单来源" >
+              <dict-tag :options="sales_order_source" :value="currentRow.orderSource"/>
+            </el-descriptions-item>
+            <el-descriptions-item label="扣减仓库" >
+              <span>{{ currentRow.warehouseName }} </span>
+            </el-descriptions-item>
+            
+
+            <el-descriptions-item label="总数量" width="100">
+              <span>{{ currentRow.totalQuantity }}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="总金额" width="100">
+              <span>{{ formatTwo(currentRow.totalAmount)}} €</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="活动减免" width="100">
+              <span>{{ formatTwo(currentRow.totalPromotionReduceQuantity)}} €</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="总折扣额" width="100">
+              <span>{{ formatTwo(currentRow.totalDiscountAmount)}} €</span>
+            </el-descriptions-item>
+
+            <el-descriptions-item label="销售总额" >
+              <span>{{ formatTwo(currentRow.totalSalesAmount)}} €</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="基础金额" >
+              <span>{{ formatTwo(currentRow.totalBaseAmount)}} €</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="总税额" >
+              <span>{{ formatTwo(currentRow.totalTaxAmount)}} €</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="应收总额" >
+              <span>{{ formatTwo(currentRow.totalNetAmount)}} €</span>
+            </el-descriptions-item>
+
+            <el-descriptions-item label="现金收款" >
+              <span>{{ formatTwo(currentRow.cashAmount) }} €</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="银行收款" >
+              <span>{{ formatTwo(currentRow.bankAmount) }} €</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="找零" >
+              <span>{{ formatTwo(currentRow.changeAmount) }} €</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="抹零" >
+              <span>{{ formatTwo(currentRow.zeroAmount) }} €</span>
+            </el-descriptions-item>
+
+            <el-descriptions-item label="支付状态" >
+              <dict-tag :options="sales_order_pay_status" :value="currentRow.orderPayStatus"/>
+            </el-descriptions-item>
+            <el-descriptions-item label="客户名称" >
+              <span>{{ currentRow.customerName }} </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="未核销金额" >
+              <span>{{ formatTwo(currentRow.remainAmount) }} €</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="已核销金额" >
+              <span>{{ formatTwo(currentRow.verifiedAmount) }} €</span>
+            </el-descriptions-item>
+
+            <el-descriptions-item label="业务员名称" >
+              <span>{{ currentRow.salesmanName ?? '--' }} </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="基础佣金点数" >
+              <span>{{ currentRow.remark ?? '--' }} %</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="业务活动名称" >
+              <span>{{ currentRow.activityName ?? '--' }} </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="业务活动佣金点数" >
+              <span>{{ currentRow.remark ?? '--' }} %</span>
+            </el-descriptions-item>
+
+            <el-descriptions-item label="创建人" >
+              <span>{{ currentRow.createBy }} </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="创建时间" >
+              <span>{{ currentRow.createTime }} </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="修改人" >
+              <span>{{ currentRow.updateBy }} </span>
+            </el-descriptions-item>
+            <el-descriptions-item label="修改时间" >
+              <span>{{ currentRow.updateTime }} </span>
+            </el-descriptions-item>
+
+            <el-descriptions-item label="备注信息" :span="4" >
+              <span>{{ currentRow.remark ?? '--' }} </span>
+            </el-descriptions-item>
+
+          </el-descriptions>
+        </el-card>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
 <script setup name="SalesOrder">
-import { listSalesOrder, getSalesOrder, delSalesOrder, addSalesOrder, updateSalesOrder } from "@/api/sales/salesOrder";
+import { listSalesOrder, getSalesOrder, delSalesOrder } from "@/api/sales/salesOrder";
 import useUserStore from "@/store/modules/user";
-import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum } from './cashOperationUtil/cashOperationEnum.js';
+import { OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum } from './cashOperationUtil/cashOperationEnum.js';
 import SnowflakeID from '@/utils/SnowflakeID.js';
+import { useRouter, useRoute } from "vue-router";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
+const router = useRouter();
+const route = useRoute();
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
 
 const salesOrderList = ref([]);
 const salesOrderDetailList = ref([]);
-const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
-const checkedSalesOrderDetail = ref([]);
+const orderInitNos = ref([]);
 const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
-const title = ref("");
 
 const data = reactive({
   form: {},
@@ -522,11 +450,16 @@ function getList() {
   });
 }
 
-// 取消按钮
-function cancel() {
-  open.value = false;
-  reset();
+// ***************************************  6 抽屉数据部分 start *********************************************
+// 抽屉弹窗
+const drawer = ref(false);
+const currentRow = ref(null)
+const handleShowDetail = (row) => {
+  currentRow.value = row;
+  drawer.value = true;
 }
+// ***************************************  6 抽屉数据部分 end *********************************************
+
 
 // 表单重置
 function reset() {
@@ -590,55 +523,37 @@ function resetQuery() {
 // 多选框选中数据
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.orderId);
+  orderInitNos.value = selection.map(item => item.orderInitNo);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
 }
 
 /** 新增按钮操作 */
 function handleAdd() {
-  reset();
-  open.value = true;
-  title.value = "添加销售订单";
+  const obj = {path: "/salesManager/editSalesOrder", name:"editSalesOrder"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/salesManager/editSalesOrder" });
+    } 
+  ) 
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
-  reset();
-  const _orderId = row.orderId || ids.value
-  getSalesOrder(_orderId).then(response => {
-    form.value = response.data;
-    salesOrderDetailList.value = response.data.salesOrderDetailList;
-    open.value = true;
-    title.value = "修改销售订单";
-  });
-}
-
-/** 提交按钮 */
-function submitForm() {
-  proxy.$refs["salesOrderRef"].validate(valid => {
-    if (valid) {
-      form.value.salesOrderDetailList = salesOrderDetailList.value;
-      if (form.value.orderId != null) {
-        updateSalesOrder(form.value).then(response => {
-          proxy.$modal.msgSuccess("修改成功");
-          open.value = false;
-          getList();
-        });
-      } else {
-        addSalesOrder(form.value).then(response => {
-          proxy.$modal.msgSuccess("新增成功");
-          open.value = false;
-          getList();
-        });
-      }
-    }
-  });
+  const _orderId = row.orderId || ids.value[0];
+  const obj = {path: "/salesManager/editSalesOrder", name:"editSalesOrder"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/salesManager/editSalesOrder", query: { orderId: _orderId } });
+    } 
+  )
 }
 
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _orderIds = row.orderId || ids.value;
-  proxy.$modal.confirm('是否确认删除销售订单编号为"' + _orderIds + '"的数据项？').then(function() {
+  const _orderInitNo = row.orderInitNo || orderInitNos.value;
+  proxy.$modal.confirm('是否确认删除销售订单编号为"' + _orderInitNo + '"的数据项？').then(function() {
     return delSalesOrder(_orderIds);
   }).then(() => {
     getList();
@@ -646,60 +561,6 @@ function handleDelete(row) {
   }).catch(() => {});
 }
 
-/** 销售订单明细序号 */
-function rowSalesOrderDetailIndex({ row, rowIndex }) {
-  row.index = rowIndex + 1;
-}
-
-/** 销售订单明细添加按钮操作 */
-function handleAddSalesOrderDetail() {
-  let obj = {};
-  obj.detailId= null,
-  obj.skuId=null,
-  obj.skuCode=null,
-  obj.skuName=null,
-  obj.assistName= null,
-  obj.skuType= null,
-  obj.skuValue= null,
-  obj.batchNo=null,
-  obj.detailSn= null,
-  obj.detailPrice= 0,
-  obj.detailQuantity= 1,
-  obj.detailAmount= 0,
-  obj.detailDiscountRate= 0,
-  obj.detailDiscountAmount= 0,
-  obj.detailSalesAmount= 0,
-  obj.detailBaseAmount= 0,
-  obj.detailTaxRate= 0,
-  obj.detailTaxAmount=0,
-  obj.detailNetAmount= 0,
-  obj.promotionId= null,
-  obj.promotionName= null,
-  obj.remark= null,
-  obj.detailIsRefunded= DetailIsRefundedEnum.NORMAL,
-  obj.locationId= null,
-  obj.locationWeight= null,
-  obj.inTax= 0,
-  salesOrderDetailList.value.push(obj);
-}
-
-/** 销售订单明细删除按钮操作 */
-function handleDeleteSalesOrderDetail() {
-  if (checkedSalesOrderDetail.value.length == 0) {
-    proxy.$modal.msgError("请先选择要删除的销售订单明细数据");
-  } else {
-    const salesOrderDetails = salesOrderDetailList.value;
-    const checkedSalesOrderDetails = checkedSalesOrderDetail.value;
-    salesOrderDetailList.value = salesOrderDetails.filter(function(item) {
-      return checkedSalesOrderDetails.indexOf(item.index) == -1
-    });
-  }
-}
-
-/** 复选框选中数据 */
-function handleSalesOrderDetailSelectionChange(selection) {
-  checkedSalesOrderDetail.value = selection.map(item => item.index)
-}
 
 /** 导出按钮操作 */
 function handleExport() {
@@ -707,6 +568,15 @@ function handleExport() {
     ...queryParams.value
   }, `salesOrder_${new Date().getTime()}.xlsx`)
 }
+
+/** 监听路由，路由跳转后更新界面数据 */
+watch(
+  () => route.fullPath,
+  () => {
+    // 路由发生变化时执行操作
+    getList();
+  }
+);
 
 getList();
 </script>
@@ -732,4 +602,14 @@ getList();
   flex-shrink: 0; /* 分页栏固定在底部 */
   margin-top: auto; /* 将分页栏推到容器底部 */
 }
+
+.text-ellipsis {
+  display: inline-block ;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
 </style>

@@ -1,6 +1,6 @@
 <template>
   <el-dialog v-model="visible" title="店长认证:" width="400" :close-on-click-modal="false" :close-on-press-escape="false"
-    :show-close="false">
+    :show-close="false" class="auth-dialog" style="margin-top: 200px !important;">
     <el-form :model="form" ref="formRef">
       <el-form-item label="用户名" prop="userName">
         <el-input v-model="form.userName" placeholder="请输入用户名" />

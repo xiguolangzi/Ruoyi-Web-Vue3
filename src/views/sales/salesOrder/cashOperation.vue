@@ -16,7 +16,7 @@
         <el-footer class="footer-data-container">
           <el-card class="footer-card">
             <el-row class="footer-row">
-              <!-- 第一个区域：商品搜索和图片展示 -->
+              <!-- 第1个区域：商品搜索和图片展示 -->
               <el-col class="footer-col" :style="{ width: '190px', flex: 'none' }">
                 <div class="footer-col-content">
                   <SkuSelect ref="skuSelectRef" @selectedData="selectedSkuData" />
@@ -26,9 +26,7 @@
                   </div>
                 </div>
               </el-col>
-
-
-
+              
               <!-- 第2个区域：订单配置数据 -->
               <el-col class="footer-col" style="flex: 1;">
                 <div class="footer-col-content">
@@ -43,30 +41,27 @@
                   </div>
                   <el-descriptions :column="2" size="small" style="width: 100%;">
                     <el-descriptions-item label="客户名称:" :span="2">
-                      <span class="highlight-text">{{currentCustomer?.customerName || '--'}}</span>
+                      <span class="highlight-text">{{form.customerName || '--'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="税号:" :min-width="100">
-                      <span class="highlight-text">{{currentCustomer?.invoiceTax || '--'}}</span>
+                      <span class="highlight-text">{{form.invoiceTax || '--'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="手机:" :min-width="100">
-                      <span class="highlight-text">{{currentCustomer?.invoicePhone || '--'}}</span>
+                      <span class="highlight-text">{{form.invoicePhone || '--'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="地址:" :span="2">
-                      <span class="highlight-text">{{currentCustomer?.invoiceAddress || '--'}}</span>
+                      <span class="highlight-text">{{form.invoiceAddress || '--'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="仓库:">
-                      <span class="highlight-text">{{currentWarehouse?.warehouseName || '--'}}</span>
+                      <span class="highlight-text">{{form.warehouseName || '--'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="业务员:">
-                      <span class="highlight-text">{{currentSalesman?.userName || '--'}}</span>
+                      <span class="highlight-text">{{form.salesmanName || '--'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="业务活动:">
-                      <span class="highlight-text">{{currentSalesActivity?.activityName || '--'}}</span>
+                      <span class="highlight-text">{{form.activityName || '--'}}</span>
                     </el-descriptions-item>
-
                   </el-descriptions>
-
-
                 </div>
               </el-col>
 
@@ -131,21 +126,25 @@
           <el-tab-pane label="订单设置">
             <div>
               <div class="left-row">
+                <!-- 业务员 -->
                 <el-divider content-position="left"> <span>订单绑定业务员</span> </el-divider>
-                <el-form-item label="业务员:" prop="salesmanId">
-                  <SalesmanSelect v-model="form.salesmanId" @selectedData="selectedSalesmanData" />
+                <el-form-item label=" 业务员:" >
+                  <SalesmanSelect v-model="form.salesmanName"  @selectedData="selectedSalesmanData" />
                 </el-form-item>
+                <!-- 客户信息 -->
                 <el-divider content-position="left"> <span>客户信息</span> </el-divider>
-                <el-form-item label="客户信息:" prop="customerId">
-                  <CustomerSelect v-model="form.customerId" @selectedData="selectedCustomerData" />
+                <el-form-item label="客户信息:" >
+                  <CustomerSelect v-model="form.customerName"  @selectedData="selectedCustomerData" />
                 </el-form-item>
+                <!-- 仓库信息 -->
                 <el-divider content-position="left"> <span>仓库信息</span> </el-divider>
-                <el-form-item label="仓库信息:" prop="customerId">
-                  <WarehouseSelect v-model="form.warehouseId" @selectedData="selectedWarehouseData" />
+                <el-form-item label="仓库信息:" >
+                  <WarehouseSelect v-model="form.warehouseName"  @selectedData="selectedWarehouseData" />
                 </el-form-item>
+                <!-- 业务活动信息 -->
                 <el-divider content-position="left"> <span>业务活动</span> </el-divider>
-                <el-form-item label="业务活动:" prop="customerId">
-                  <SalesActivitySelect v-model="form.activityId" @selectedData="selectedSalesActivityData" />
+                <el-form-item label="业务活动:" >
+                  <SalesActivitySelect v-model="form.activityName" @selectedData="selectedSalesActivityData" />
                 </el-form-item>
                 <el-divider content-position="left"> <span>促销活动查询</span> </el-divider>
               </div>
@@ -382,32 +381,17 @@
       </el-tabs>
     </el-dialog>
 
-    <!-- 店长认证 对话框 -->
-    <!-- <el-dialog v-model="dialogVisible2" title="店长认证:" width="400" :close-on-click-modal="false"
-      :close-on-press-escape="false" :show-close="false">
-      <el-form :model="userForm" ref="userFormRef">
-        <el-form-item label="用户名" prop="userName">
-          <el-input v-model="userForm.userName" placeholder="请输入用户名" />
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="userForm.password" type="password" placeholder="请输入密码" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible2 = false">取消</el-button>
-        <el-button type="primary" @click="checkAuthStoreManager">确定</el-button>
-      </template>
-    </el-dialog> -->
 
     <!-- 套餐确认 对话框 -->
     <ComboConfirmDialog ref="comboDialog" @add-combo-details="handleAddComboDetails" :notification-container="cashierContainer" />
 
     <!-- 收款确认 对话框 -->
     <PaymentDialog ref="paymentDialog" :orderData="form" :paymentAutoPrint="paymentAutoPrint"
-      :canRemainAmount="canRemainAmount" @paymentComplete="handlePaymentComplete" />
+      :canRemainAmount="canRemainAmount" @paymentComplete="handlePaymentComplete" :notification-container="cashierContainer"/>
 
     <!-- 通用认证对话框 -->
     <AuthManagerDialog ref="authManager" :notification-container="cashierContainer" />
+
   </div>
 
 
@@ -444,20 +428,18 @@ import AuthManagerDialog from '@/components/AuthManagerDialog/index.vue';
 import { OperateLogTypeEnum } from './cashOperationUtil/operateLogTypeEnum.js';
 
 
+import { useRouter, useRoute } from "vue-router";
+const router = useRouter();
+
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type');
 
 const userStore = useUserStore(); // 获取当前用户信息
 const dialogVisible = ref(false) // 交班窗口
-const dialogVisible2 = ref(false) // 店长认证
-const userForm = ref({});  // 店长信息
 const activeTab = ref('first')  // 交班默认tab窗口
 const keyboardRef = ref(null);  // 键盘组件实例
 const skuSelectRef = ref(null); // skuSelect组件实例
 const editableTableRef = ref(null); // 表格组件实例
-const currentCustomer = ref(null)
-const currentSalesman = ref(null)
-const currentSalesActivity = ref(null)
 const currentSku = ref(null)
 const currentWarehouse = ref(null);
 const canEditPrice = ref(canEditPriceEnum.NOT_ALLOW);  // 表格子组件编辑单价disable控制
@@ -466,6 +448,12 @@ const paymentAutoPrint = ref(paymentAutoPrintEnum.OPEN);  // 是否开启完成�
 const canRemainAmount = ref(canRemainAmountEnum.OPEN); // 是否开启欠款支付
 const canDeleteOrderDetail = ref(canDeleteOrderDetailEnum.OPEN);  // 是否开启删除订单行
 const cajaShowKeyboard = ref(cajaShowKeyboardEnum.SHOW); // 是否展示触摸键盘配置
+
+/** 跳转退货界面*/
+const openReturnView = () => {
+  // 跳转
+  router.push({ path: "/cashier/refundedOperation" })
+}
 
 const DB_NAME = "OrderDB";    // 本地缓存数据库
 const STORE_NAME_ORDER = "order"; // 本地缓存表明
@@ -756,6 +744,8 @@ function reset() {
     shiftId: null,
     salesmanId: null,
     customerId: null,
+    customerPriceLevel: 1,
+    customerDiscountRate: 0,
     activityId: null,
     orderType: OrderTypeEnum.PRE_ORDER,
     orderStatus: OrderStatusEnum.INIT,
@@ -1168,7 +1158,7 @@ const actions = [
   { label: "整单折扣", action: "reprint", keyDown: "Ctrl + F1" },
   { label: "折上折", action: "reprint", keyDown: "Ctrl + F2" },
   { label: "拆单", action: "splitOrder", keyDown: "Ctrl + F3" },
-  { label: "退货", action: "reprint", keyDown: "Ctrl + F4" }
+  { label: "退货", action: "refund", keyDown: "Ctrl + F4" }
 ];
 
 const handleAction = (action) => {
@@ -1194,6 +1184,10 @@ const handleAction = (action) => {
     case "handlerPayment":
       handlerPayment()
       console.log("收款"); 
+      break;
+    case "refund":
+      openReturnView()
+      console.log("开始打开退货窗口");
       break;
   }
 };
@@ -1229,32 +1223,90 @@ const handleFocus = (event) => {
 };
 
 
-
-
 /** 获取选中的客户数据 */
 const selectedCustomerData = (data) => {
   console.log('收银台获取的客户数据:', data)
-  currentCustomer.value = data || null;
-
+  if(data){
+    form.value.customerId = data.customerId;
+    form.value.customerName = data.customerName; 
+    form.value.invoiceTax = data.invoiceTax;
+    form.value.invoicePhone = data.invoicePhone;
+    form.value.invoiceAddress = data.invoiceAddress;
+    form.value.customerPriceLevel = data.customerLevel?.levelPrice || 1;
+    form.value.customerDiscountRate = data.customerLevel?.levelDiscount || 0;
+    if(data.salesmanVo){
+      form.value.salesmanId = data.salesmanVo?.userId || null;
+      form.value.salesmanName = data.salesmanVo?.userName || null;
+    } else {
+      form.value.salesmanId =  null;
+      form.value.salesmanName =  null;
+    }
+  } else {
+    form.value.customerId =  null;
+    form.value.customerName =  null; 
+    form.value.customerPriceLevel =  1;
+    form.value.customerDiscountRate =  0;
+  }
   // 更新价格和折扣
   updateDetailPriceAndDiscount();
-
-  // 更新业务员信息
-  if(currentCustomer.value?.salesmanVo){
-    currentSalesman.value = currentCustomer.value.salesmanVo
-  }
 }
 
-/** 获取选中的客户数据 */
+// 根据客户信息 折扣/价格 更新明细价格/折扣 根据是否含税计算最终金额
+const updateDetailPriceAndDiscount = () => {
+  if (form.value.salesOrderDetailList.length > 0 ) {
+    // 更新每个订单明细的价格、折扣和金额
+    form.value.salesOrderDetailList.forEach((item) => {
+      // 动态构建 priceMap
+      const priceMap = {
+        1: item.skuPrice,
+        2: item.skuPrice2,
+        3: item.skuPrice3,
+        4: item.skuPrice4,
+        5: item.skuPrice5,
+        6: item.skuPrice6,
+      };
+
+      // 更新价格
+      item.detailPrice = priceMap[form.value.customerPriceLevel] || item.skuPrice;
+      // 更新折扣率
+      item.detailDiscountRate = form.value.customerDiscountRate || 0;
+
+      // 计算订单金额
+      item.detailAmount = item.detailPrice * item.detailQuantity;
+      item.detailDiscountAmount = item.detailAmount * (item.detailDiscountRate / 100);
+      item.detailSalesAmount = item.detailAmount - item.detailDiscountAmount;
+
+      // 根据是否含税计算净金额、基础金额和税额
+      if (item.inTax === 0) {
+        // 含税
+        item.detailNetAmount = item.detailSalesAmount;
+        item.detailBaseAmount = item.detailNetAmount / (1 + item.detailTaxRate / 100);
+        item.detailTaxAmount = item.detailNetAmount - item.detailBaseAmount;
+      } else if (item.inTax === 1) {
+        // 不含税
+        item.detailBaseAmount = item.detailSalesAmount;
+        item.detailTaxAmount = item.detailBaseAmount * (item.detailTaxRate / 100);
+        item.detailNetAmount = item.detailBaseAmount + item.detailTaxAmount;
+      }
+
+      console.log("订单明细计算结果：", item);
+    });
+
+  }
+};
+
+/** 获取选中的业务员数据 */
 const selectedSalesmanData = (data) => {
   console.log('收银台获取的业务员数据:', data)
-  currentSalesman.value = data || null;
+  form.value.salesmanId = data.userId || null;
+  form.value.salesmanName = data.userName || null ; 
 }
 
 /** 获取选中的业务活动数据 */
 const selectedSalesActivityData = (data) => {
   console.log('收银台获取的业务活动数据:', data)
-  currentSalesActivity.value = data || null;
+  form.value.activityId = data.activityId || null;
+  form.value.activityName = data.activityName || null;
 }
 
 /** 获取选中的商品数据 */
@@ -1264,13 +1316,14 @@ const selectedSkuData = (data) => {
   if (currentSku.value) {
     handleAddSalesOrderDetail(currentSku.value)
   }
-
 }
 
 /** 获取选中的仓库 */
 const selectedWarehouseData = (data) => {
   console.log('收银台获取的仓库数据:', data)
   currentWarehouse.value = data || null;
+  form.value.warehouseId = data.warehouseId || null;
+  form.value.warehouseName = data.warehouseName || null;
 }
 
 
@@ -1280,7 +1333,7 @@ const selectedWarehouseData = (data) => {
 // ----------------- 0 快捷键 start -----------------
 // 1 监听快捷键
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown, { passive: true });
+  window.addEventListener('keydown', handleKeyDown);
 });
 // 2 释放快捷键监听
 onUnmounted(() => {
@@ -1429,11 +1482,23 @@ function handleAddSalesOrderDetail(sku) {
   obj.skuPrice5 = skuPrice5;
   obj.skuPrice6 = skuPrice6;
 
+  // 根据客户等级 价格/折扣转换
+  const levelPriceMap = {
+    1: skuPrice,
+    2: skuPrice2,
+    3: skuPrice3,
+    4: skuPrice4,
+    5: skuPrice5,
+    6: skuPrice6,
+  };
+
   // 2 数量和金额计算
-  obj.detailPrice = sku.skuPrice;
+  obj.detailPrice = levelPriceMap[form.value.customerPriceLevel] || skuPrice;
   obj.detailQuantity = 1;
-  obj.detailAmount = sku.skuPrice;
-  obj.detailDiscountRate = 0;
+  obj.detailAmount = obj.detailPrice * obj.detailQuantity;
+  obj.detailDiscountRate = form.value.customerDiscountRate || 0;
+  obj.promotionDiscountRate = 0;
+  obj.activityDiscountRate = 0;
   obj.detailDiscountAmount = 0;
   obj.detailSalesAmount = sku.skuPrice;
   obj.detailTaxRate = productRateVo?.rateValue || 0;
@@ -1458,61 +1523,7 @@ function handleAddSalesOrderDetail(sku) {
   
 }
 
-// 根据客户信息 折扣/价格 更新明细价格/折扣 根据是否含税计算最终金额
-const updateDetailPriceAndDiscount = () => {
-  if (form.value.salesOrderDetailList.length > 0 ) {
-    // 获取客户等级和折扣
-    const customerLevel = currentCustomer.value?.customerLevel;
-    const levelPrice = customerLevel?.levelPrice;
-    const levelDiscount = customerLevel?.levelDiscount || 0;
 
-    console.log("当前客户等级：", customerLevel);
-    console.log("当前客户等级价格：", levelPrice);
-    console.log("当前客户等级折扣：", levelDiscount);
-
-    // 更新每个订单明细的价格、折扣和金额
-    form.value.salesOrderDetailList.forEach((item) => {
-      // 动态构建 priceMap
-      const priceMap = {
-        1: item.skuPrice,
-        2: item.skuPrice2,
-        3: item.skuPrice3,
-        4: item.skuPrice4,
-        5: item.skuPrice5,
-        6: item.skuPrice6,
-      };
-
-      // 更新价格
-      item.detailPrice = priceMap[levelPrice] || item.skuPrice;
-      console.log("更新后的价格：", item.detailPrice);
-
-      // 更新折扣率
-      item.detailDiscountRate = levelDiscount;
-      console.log("更新后的折扣率：", item.detailDiscountRate);
-
-      // 计算订单金额
-      item.detailAmount = item.detailPrice * item.detailQuantity;
-      item.detailDiscountAmount = item.detailAmount * (item.detailDiscountRate / 100);
-      item.detailSalesAmount = item.detailAmount - item.detailDiscountAmount;
-
-      // 根据是否含税计算净金额、基础金额和税额
-      if (item.inTax === 0) {
-        // 含税
-        item.detailNetAmount = item.detailSalesAmount;
-        item.detailBaseAmount = item.detailNetAmount / (1 + item.detailTaxRate / 100);
-        item.detailTaxAmount = item.detailNetAmount - item.detailBaseAmount;
-      } else if (item.inTax === 1) {
-        // 不含税
-        item.detailBaseAmount = item.detailSalesAmount;
-        item.detailTaxAmount = item.detailBaseAmount * (item.detailTaxRate / 100);
-        item.detailNetAmount = item.detailBaseAmount + item.detailTaxAmount;
-      }
-
-      console.log("订单明细计算结果：", item);
-    });
-
-  }
-};
 
 // -------------------------------------- 9 订单明细计算 end ------------------------------------------
 
@@ -1578,10 +1589,6 @@ const handlePaymentComplete = () => {
 const paymentDialog = ref(null)
 // 9 收款操作
 const handlerPayment = () => {
-  if(form.value.customerId && currentCustomer.value){
-    // 根据客户信息 -> 更新明细价格/折扣 -> 从新根据是否含税计算最终金额
-    updateDetailPriceAndDiscount();   
-  }
   form.value.cajaId = currentCaja.value.cajaId;
   form.value.shiftId = shiftForm.value.shiftId;
   if(form.value.orderId){

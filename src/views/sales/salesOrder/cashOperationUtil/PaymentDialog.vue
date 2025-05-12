@@ -149,7 +149,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElNotification } from 'element-plus';
 import {PaymentMethodEnum, OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
 import { Delete } from '@element-plus/icons-vue';
 import {completePayment} from '@/api/sales/salesOrder.js';
@@ -173,6 +173,10 @@ const props = defineProps({
     type: String,
     default: false,
   },
+  notificationContainer: {
+    type: [String, Object],
+    default: 'body'
+  }
 });
 
 const emit = defineEmits(['paymentComplete'])
@@ -269,6 +273,14 @@ const handlePartialPayment = () => {
   props.orderData.bankAmount = getTotalByType(PaymentMethodEnum.BANK);
   props.orderData.changeAmount = changeAmount.value;
   ElMessage.success('部分收款已记录，请继续收款')
+  ElNotification({
+    title: 'Success',
+    message: '部分收款已记录，请继续收款',
+    type: 'success',
+    position: 'bottom-right',
+    // appendTo 挂载到 全屏组件上
+    appendTo: props.notificationContainer
+  })
   console.log('部分收款:----订单数据',props.orderData)
 }
 
@@ -297,7 +309,14 @@ const handleCompletedPayment = () => {
    props.orderData.orderPayStatus = OrderPayStatusEnum.NOT_COMPLETED;
    // 存在未收欠款的订单需要绑定客户
    if(!props.orderData.customerId){
-    ElMessage.error("欠款订单需要绑定客户信息！当前订单未绑定客户信息，请检查！");
+    ElNotification({
+      title: 'Error',
+      message: "欠款订单需要绑定客户信息！当前订单未绑定客户信息，请检查！",
+      type: 'error',
+      position: 'bottom-right',
+      // appendTo 挂载到 全屏组件上
+      appendTo: props.notificationContainer
+    })
     return;
    }
   }

@@ -1,6 +1,13 @@
 <template>
-  <el-table ref="tableRef" :data="tableData" border show-summary :summary-method="getSummaries" :stripe="true"
-    size="small" style="width: 100%; height: 100%;" @cell-click="handleCellClick" :row-class-name="setRowClassName">
+  <el-table 
+    ref="tableRef" 
+    :data="tableData"  
+    show-summary :summary-method="getSummaries" 
+    :stripe="true"
+    size="small" border style="width: 100%; height: 100%;" 
+    @cell-click="handleCellClick" 
+    :row-class-name="setRowClassName"
+  >
     <!-- 动态控制展开列显示 -->
     <el-table-column v-if="hasComboItems" type="expand" width="50">
       <template #default="scope">
@@ -19,10 +26,15 @@
 
     <!-- 正常显示的列 -->
     <el-table-column type="index" label="序号" align="center" width="50" />
-    <el-table-column prop="skuCode" label="商品编码" align="center" min-width="120" show-overflow-tooltip>
-      <template v-slot="scope">
-        <el-link type="primary" :underline="false" @click="handleClickChangeImage(scope.row)">{{ scope.row.skuCode ||
-          '--' }}</el-link>
+    <el-table-column label="SKU 条码" prop="skuCode" align="center" width="150"  show-overflow-tooltip>
+      <template #default="scope">
+        <SkuSelect 
+          :ref="(el) => setInputRef(el, scope.row, 'skuCode')"
+          v-model="scope.row.skuCode"
+          @selectedData="(data) => handleSkuSelected(data, scope.row)"
+          style="width: 100%"
+          :teleported="true"
+        />
       </template>
     </el-table-column>
     <el-table-column prop="skuName" label="商品名称" align="center" min-width="120" show-overflow-tooltip>
@@ -46,30 +58,41 @@
         </div>
       </template>
     </el-table-column>
+    <el-table-column prop="unitCode" align="center" label="单位" width="55"/>
+    <el-table-column prop="currentStock" align="center" label="现存量" width="55"/>
     <el-table-column prop="detailPrice" align="center" label="单价">
       <template #default="scope">
-        <el-input v-if="isEditing(scope.row, 'detailPrice')" :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
-          v-model.number="scope.row.detailPrice" size="small" @blur="handleBlur(scope.row, 'detailPrice')"
-          @focus="handleFocus" @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_PRICE)" style="width: 100%;" type="number"
-          :disabled="editPrice != canEditPriceEnum.ALLOW" />
+        <el-input-number 
+          v-if="isEditing(scope.row, 'detailPrice')" 
+          v-model.number="scope.row.detailPrice" :controls="false" :min="0" :max="100" :step="0"
+          :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
+          @blur="handleBlur(scope.row, 'detailPrice')"
+          @change="updateAmount(scope.row)" 
+          style="width: 100%;" type="number" size="small" />
         <span v-else>{{ formatTwo(scope.row.detailPrice) + ' €' }}</span>
       </template>
     </el-table-column>
+    
     <el-table-column prop="detailQuantity" align="center" label="数量">
       <template #default="scope">
-        <el-input v-if="isEditing(scope.row, 'detailQuantity')"
-          :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" v-model.number="scope.row.detailQuantity"
-          size="small" @blur="handleBlur(scope.row, 'detailQuantity')" @focus="handleFocus"
-          @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_QUANTITY)" style="width: 100%;" type="number" />
+        <el-input-number 
+          v-if="isEditing(scope.row, 'detailQuantity')"
+          v-model.number="scope.row.detailQuantity" :controls="false" :min="0" :max="100" :step="0"
+          :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" 
+          @blur="handleBlur(scope.row, 'detailQuantity')" 
+          @change="updateAmount(scope.row)" style="width: 100%;" size="small" />
         <span v-else>{{ scope.row.detailQuantity || 0 }}</span>
       </template>
     </el-table-column>
     <el-table-column prop="detailDiscountRate" align="center" label="折扣">
       <template #default="scope">
-        <el-input v-if="isEditing(scope.row, 'detailDiscountRate')"
-          :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" v-model.number="scope.row.detailDiscountRate"
-          size="small" @blur="handleBlur(scope.row, 'detailDiscountRate')" @focus="handleFocus"
-          @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_DISCOUNT_RATE)" style="width: 100%;" type="number" :disabled="editDiscountRate != canEditDiscountRateEnum.ALLOW" />
+        <el-input-number 
+          v-if="isEditing(scope.row, 'detailDiscountRate')"
+          v-model.number="scope.row.detailDiscountRate" :controls="false" :min="0" :max="100" :step="0"
+          :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" 
+          @blur="handleBlur(scope.row, 'detailDiscountRate')" 
+          @change="updateAmount(scope.row)" 
+          style="width: 100%;" size="small"  />
         <span v-else>{{ showDetailDiscountRate(scope.row) || 0 }} %</span>
       </template>
     </el-table-column>
@@ -80,9 +103,13 @@
     </el-table-column>
     <el-table-column prop="detailSn" align="left" header-align="center" label="机器码" show-overflow-tooltip>
       <template #default="scope">
-        <el-input v-if="isEditing(scope.row, 'detailSn')" :ref="(el) => setInputRef(el, scope.row, 'detailSn')"
-          v-model="scope.row.detailSn" size="small" @blur="handleBlur(scope.row, 'detailSn')" @focus="handleFocus"
-          @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_SN)" style="width: 100%;" type="text" :maxlength="20" />
+        <el-input 
+          v-if="isEditing(scope.row, 'detailSn')" 
+          v-model="scope.row.detailSn" 
+          :ref="(el) => setInputRef(el, scope.row, 'detailSn')"
+          @blur="handleBlur(scope.row, 'detailSn')" 
+          @change="updateAmount(scope.row)" 
+          style="width: 100%;" size="small"  type="text" :maxlength="20" />
         <span v-else>{{ scope.row.detailSn ?? '--'}}</span>
       </template>
     </el-table-column>
@@ -108,29 +135,44 @@
     </el-table-column>
     <el-table-column prop="inTax" align="center" label="是否含税" width="80">
       <template #default="scope">
-        <el-switch v-model="scope.row.inTax" :active-value="OrderInTaxEnum.TAX" :inactive-value="OrderInTaxEnum.NO_TAX"
-          active-text="含税" inactive-text="不含税" inline-prompt
-          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;" disabled
-          v-hasPermi="['sales:salesCaja:admin']" size="small"/>
+        <el-switch 
+          v-model="scope.row.inTax" 
+          :active-value="OrderInTaxEnum.TAX" :inactive-value="OrderInTaxEnum.NO_TAX"
+          active-text="含税" inactive-text="不含税" 
+          inline-prompt disabled
+          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;" size="small"
+          v-hasPermi="['sales:salesOrder:edit']" />
       </template>
     </el-table-column>
     <el-table-column label="操作" align="center" width="50">
       <template #default="scope">
-        <el-button type="danger" size="small" :icon="Delete" circle @click="handleDeleteRow(scope.$index, scope.row)" />
+        <el-button type="danger" size="small" :icon="Delete" circle @click="removeItem(scope.$index)" />
       </template>
     </el-table-column>
   </el-table>
+
+  <!-- 套餐确认 对话框 -->
+  <ComboConfirmDialog ref="comboDialog" @add-combo-details="handleAddComboDetails" />
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import { OrderInTaxEnum } from './cashOperationEnum.js';
+import { initOrderDetailData, OrderInTaxEnum } from '@/views/sales/salesOrder/cashOperationUtil/cashOperationEnum.js';
 import { Delete } from '@element-plus/icons-vue';
-import {canEditPriceEnum, canEditDiscountRateEnum} from './tenantConfigEnum.js';
-import { OperateLogTypeEnum } from "./operateLogTypeEnum.js"
+import SkuSelect from '@/components/Common/SkuSelect.vue';
+import ComboConfirmDialog from '@/views/sales/salesOrder/cashOperationUtil/ComboConfirmDialog.vue';
 
 const { proxy } = getCurrentInstance();
-const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
+const {  erp_product_sku_type } = proxy.useDict('erp_product_sku_type');
+
+const comboDialog = ref(null);  // 套餐组件
+const maxLength = 200; // 允许最大订单条数
+const onceAddItemLength = 1;  // 每次添加新增的条数
+const tableRef = ref(null); // 表格实例
+const inputRef = ref(null); // 输入框实例
+const editingCell = ref(null); // 当前编辑的单元格 { row, prop, rowIndex, colIndex }
+// 可编辑的列
+const editableColumns = ['skuCode', 'detailPrice', 'detailQuantity', 'detailDiscountRate', 'detailSn'];
 
 const props = defineProps({
   tableData: {
@@ -138,16 +180,137 @@ const props = defineProps({
     required: true,
     default: () => [],
   },
-  editPrice: {
-    type: String,
-    default: false,
+  customerPriceLevel:{
+    type: [Number],
+    default: 1
   },
-  editDiscountRate: {
-    type: String,
-    default: false,
-  },
+  customerDiscountRate:{
+    type: [Number],
+    default: 0
+  }
 });
 
+/** 当前订单明细的行数 */ 
+const salesOrderDetailLength = computed(()=>{
+  return props.tableData.length || 0;
+})
+
+/** 添加计算属性判断是否有套餐商品 */ 
+const hasComboItems = computed(() => {
+  return props.tableData.some(item => item.skuType == 2)
+})
+
+/** 添加商品行 */ 
+const addItem = () => {
+  // 创建一个空数组来存储100条新记录
+  const newItems = Array.from({ length: onceAddItemLength }, () => (
+    initOrderDetailData()
+  ))
+  // 将新记录数组添加到现有数组中
+  props.tableData.push(...newItems)
+  // 切换焦点
+  focusLastRowQuantity()
+}
+
+// 聚焦到最后一行的输入框
+const focusLastRowQuantity = () => {
+  if (props.tableData.length > 0) {
+    const lastRow = props.tableData[props.tableData.length - 1];
+    if (lastRow) {
+      handleCellClick(lastRow, { property: 'skuCode' });
+    }
+  }
+}
+
+/** 移除商品行 */ 
+const removeItem = (index) => {
+  props.tableData.splice(index, 1)
+}
+
+
+
+// 修改handleSkuSelected，添加自动失去焦点逻辑
+const handleSkuSelected = (data, row) => {
+  if(!data){
+    Object.assign(row, initOrderDetailData());
+    return;
+  }
+  console.log("获取的sku数据",data)
+  console.log("当前行：", row)
+  const { skuId, skuCode, skuImage, skuName, assistName, skuType, comboId, skuValue, batchNo, unitVo, productRateVo, productInventoryForSkuVo, inTax, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6, packQuantity} = data;
+  row.detailMainSkuId = null;
+  row.skuId = skuId;
+  row.skuCode = skuCode;
+  row.skuImage = skuImage;
+  row.skuName = skuName;
+  row.assistName = assistName;
+  row.skuType = skuType;
+  row.comboId = comboId;
+  row.skuValue = skuValue;
+  row.batchNo = batchNo;
+  row.detailSn = '';
+  row.unitCode = unitVo?.unitCode;
+  row.inTax = inTax;
+  row.skuPrice = skuPrice || 0;
+  row.skuPrice2 = skuPrice2 || 0;
+  row.skuPrice3 = skuPrice3 || 0;
+  row.skuPrice4 = skuPrice4 || 0;
+  row.skuPrice5 = skuPrice5 || 0;
+  row.skuPrice6 = skuPrice6 || 0;
+  row.currentStock = productInventoryForSkuVo?.currentStock || 0;
+  row.packQuantity = packQuantity || 0;
+
+  // 根据客户等级 价格/折扣转换
+  const levelPriceMap = {
+    1: skuPrice,
+    2: skuPrice2,
+    3: skuPrice3,
+    4: skuPrice4,
+    5: skuPrice5,
+    6: skuPrice6,
+  };
+
+  // 2 数量和金额计算
+  row.detailPrice = levelPriceMap[props.customerPriceLevel] || skuPrice;
+  row.detailQuantity = 1;
+  row.detailAmount = row.detailPrice * row.detailQuantity;
+  row.detailDiscountRate = props.customerDiscountRate || 0;
+  row.promotionDiscountRate = 0;
+  row.activityDiscountRate = 0;
+  row.detailDiscountAmount = 0;
+  row.detailSalesAmount = data.skuPrice;
+  row.detailTaxRate = productRateVo?.rateValue || 0;
+  // 3 含税/不含税
+  const { detailBaseAmount, detailTaxAmount, detailNetAmount } = calculateAmounts(
+    row.detailSalesAmount,
+    row.detailTaxRate,
+    row.inTax
+  );
+  row.detailBaseAmount = detailBaseAmount;
+  row.detailTaxAmount = detailTaxAmount;
+  row.detailNetAmount = detailNetAmount;
+  
+  // 4 套餐确认
+  if (skuType == 2) {
+    comboDialog.value.showComboDialog(row) 
+  } 
+
+  // 5 新增一行
+  if(salesOrderDetailLength.value < maxLength){
+    addItem()
+  }
+  // 选择后自动退出编辑模式
+  console.log("更新后的行数据：",row)
+  console.log("当前表单数据：",props.tableData)
+};
+
+/** 添加套餐处理套餐明细回调 */ 
+const handleAddComboDetails = (data, row) => {
+  row.detailComboList  = data.detailComboList;
+}
+
+
+// -------------------- 样式区域 start --------------------
 /**
  * 展示折扣
  * @param row 
@@ -163,40 +326,10 @@ const showDetailDiscountRate = (row) => {
   return rates.length > 0 ? rates.join('+') : 0;
 };
 
-// 添加计算属性判断是否有套餐商品
-const hasComboItems = computed(() => {
-  return props.tableData.some(item => item.skuType == 2)
-})
-
 const setRowClassName = ({ row }) => {
   // 如果是普通商品（skuType=1），添加一个类名隐藏展开按钮
   return row.skuType === 1 ? 'no-expand-row' : '';
 };
-
-
-const emit = defineEmits(['handleClickChangeImage', 'deleteRow', 'addLog']);
-
-/**
- * 点击更新展示图片
- */
-const handleClickChangeImage = (row) => {
-  emit('handleClickChangeImage', row);
-};
-
-/**
- * 删除行
- */
-const handleDeleteRow = (index,row) => {
-  emit('deleteRow', index, row); // 通知父组件删除指定行
-};
-
-/**
- * 添加日志
- */
-const handleAddLog = (logType, row, index) => {
-  emit('addLog', logType, row, index);
-};
-
 
 // 计算合计行
 const getSummaries = (param) => {
@@ -223,6 +356,8 @@ const getSummaries = (param) => {
   return sums;
 };
 
+// -------------------- 样式区域 end --------------------
+
 /** 计算含税和不含税的金额 */
 function calculateAmounts(salesAmount, taxRate, inTax) {
   const rateValue = (taxRate || 0)/100;
@@ -246,17 +381,9 @@ function calculateAmounts(salesAmount, taxRate, inTax) {
 
 /**
  * 更新行数据
- * @param index 索引
  * @param row 行数据
- * @param logType 数据类型
  */
-const updateAmount = (index, row, logType) => {
-  // 存在orderId说明是存入后台确认后的修改
-  if (row.orderId) {
-    handleAddLog(logType, row, index)
-  }
-
-
+const updateAmount = (row) => {
   const price = Number(row.detailPrice) || 0;
   const quantity = Number(row.detailQuantity) || 0;
   const discount = Number(row.detailDiscountRate) || 0;
@@ -277,12 +404,7 @@ const updateAmount = (index, row, logType) => {
   
 };
 
-const tableRef = ref(null); // 表格实例
-const inputRef = ref(null); // 输入框实例
-const editingCell = ref(null); // 当前编辑的单元格 { row, prop, rowIndex, colIndex }
 
-// 可编辑的列
-const editableColumns = ['detailPrice', 'detailQuantity', 'detailDiscountRate', 'detailSn'];
 
 // 判断是否正在编辑
 const isEditing = (row, prop) => {
@@ -316,18 +438,13 @@ const handleCellClick = (row, column) => {
 
 // 处理输入框失焦
 const handleBlur = (row, prop) => {
-  // 20250409 updateAmount(row)
   editingCell.value = null;
 };
 
-// 处理输入框聚焦
-const handleFocus = (event) => {
-  event.target.select(); // 选中输入框内容
-};
 
 // 键盘事件
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown, { passive: true });
+  window.addEventListener('keydown', handleKeyDown);
 });
 
 const handleKeyDown = (event) => {
@@ -374,38 +491,6 @@ const handleKeyDown = (event) => {
   });
 };
 
-// 滚动到底部方法
-const scrollToBottom = () => {
-  if (tableRef.value) {
-    nextTick(() => {
-      tableRef.value.setScrollTop(Number.MAX_SAFE_INTEGER);
-    });
-  }
-};
-
-// 监听数据变化，新增数据时滚动到底部
-watch(() => props.tableData.length, () => {
-  scrollToBottom();
-});
-
-// 组件加载完成时滚动到底部
-onMounted(() => {
-  scrollToBottom();
-});
-
-// 暴露方法 - 聚焦到最后一行的输入框
-const focusLastRowQuantity = () => {
-  if (props.tableData.length > 0) {
-    const lastRow = props.tableData[props.tableData.length - 1];
-    if (lastRow) {
-      handleCellClick(lastRow, { property: 'detailQuantity' });
-    }
-  }
-}
-
-defineExpose({
-  focusLastRowQuantity,
-});
 
 
 </script>

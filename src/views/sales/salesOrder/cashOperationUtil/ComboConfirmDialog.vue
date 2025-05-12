@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="comboDialogVisible" title="套餐确认:" width="700" style="margin-top: 100px !important;"
+  <el-dialog v-model="comboDialogVisible" title="套餐确认:" width="700" style="margin-top: 150px !important;"
     :close-on-click-modal="false" :close-on-press-escape="false" :show-close="false"
     @keyup.enter.prevent="handleAddDetailConfirmCombo" ref="comboDialogRef">
 
@@ -262,7 +262,7 @@ const handleAddDetailConfirmCombo = () => {
   console.log("添加套餐明细：", comboDetailData)
 
   // 6. 触发事件通知父组件
-  emit('addComboDetails', comboDetailData)
+  emit('addComboDetails', comboDetailData, orderDetail.value)
 
   // 7. 重置状态
   resetState()

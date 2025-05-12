@@ -14,7 +14,7 @@ export const initOrderDetailData = () => ({
   batchNo: null,
   detailSn: null,
   detailPrice: 0,
-  detailQuantity: 1,
+  detailQuantity: 0,
   detailAmount: 0,
   detailDiscountRate: 0,
   detailDiscountAmount: 0,
@@ -26,7 +26,7 @@ export const initOrderDetailData = () => ({
   promotionId: null,
   promotionName: null,
   remark: null,
-  detailIsRefunded: DetailIsRefundedEnum.NORMAL,
+  detailRefundedQuantity: 0,
   locationId: null,
   locationWeight: null,
   inTax: 0,
@@ -36,6 +36,9 @@ export const initOrderDetailData = () => ({
   skuPrice4: 0,
   skuPrice5: 0,
   skuPrice6: 0,
+  currentStock: 0,
+  packQuantity: 0,
+  unitCode: null,
 })
 
 /** 

@@ -234,6 +234,34 @@ export const dynamicRoutes = [
       }
     ]
   },
+  {
+    path: '/cashier',
+    component: Layout,
+    hidden: true,
+    permissions: ['sales:cashier:edit'],
+    children: [
+      {
+        path: '/cashier/refundedOperation',
+        component: () => import('@/views/sales/salesOrder/refunded/refundedOperation'),
+        name: 'refundedOperation',
+        meta: { title: '退货' }
+      }
+    ]
+  },
+  {
+    path: '/salesManager',
+    component: Layout,
+    hidden: true,
+    permissions: ['sales:salesOrder:edit'],
+    children: [
+      {
+        path: '/salesManager/editSalesOrder',
+        component: () => import('@/views/sales/salesOrder/editSalesOrder'),
+        name: 'editSalesOrder',
+        meta: { title: '编辑订单' }
+      }
+    ]
+  },
 
 ]
 

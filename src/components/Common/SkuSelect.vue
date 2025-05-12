@@ -3,9 +3,9 @@
     ref="selectRef"
     :model-value="modelValue"
     filterable
-    clearable
     remote
     :remote-method="onSearch"
+    clearable
     :options="dataList"
     :loading="loading"
     :disabled="disabled"
@@ -15,6 +15,7 @@
     :teleported='false' 
     :fit-input-width="false" 
     @change="handleChange"
+    :reserve-keyword="false"
   />
 </template>
 
@@ -54,7 +55,7 @@ const focus = () => {
 };
 
 /** 搜索函数 */
-const fetchCustomers = async (query = "") => {
+const fetchData = async (query = "") => {
   console.log("搜索关键词:", query);
   console.log("开始请求时间:", new Date().getTime());
 
@@ -107,7 +108,7 @@ const fetchCustomers = async (query = "") => {
 };
 
 // **防抖搜索**
-const handleSearch = debounce(fetchCustomers, DebounceTime);
+const handleSearch = debounce(fetchData, DebounceTime);
 
 /** 1 当前输入值发生变化触发的函数 */
 const onSearch = (query) => {
@@ -187,7 +188,7 @@ const handleEnterKey = async () => {
   }
 
   // 等待搜索完成
-  await fetchCustomers(currentValue);
+  await fetchData(currentValue);
 
   // 按下回车键
   if (dataList.value.length > 0) {

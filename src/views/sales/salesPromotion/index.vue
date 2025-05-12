@@ -243,13 +243,11 @@
             <salesPromotionScope
               :promotionScopeType="form.salesPromotionRuleFullDiscount?.promotionScopeType || ScopeTypeEnum.SKU"
               :salesPromotionScopeList="form.salesPromotionScopeList"
-              :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
               :ScopeTypeEnum="ScopeTypeEnum"
               :StatusEnum="StatusEnum"
               @addPromotionScopeDetail="addSalesPromotionScopeDetail"
               @removePromotionScopeDetail = "removeSalesPromotionScopeDetail"
-              @handleSkuChange="handleSkuChange"
             >
               <template #promotion-scope-label>
                 <el-form-item label="活动适用范围:" >
@@ -315,13 +313,11 @@
             <salesPromotionScope
               :promotionScopeType="form.salesPromotionRuleFullGift?.promotionScopeType || ScopeTypeEnum.SKU"
               :salesPromotionScopeList="form.salesPromotionScopeList"
-              :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
               :ScopeTypeEnum="ScopeTypeEnum"
               :StatusEnum="StatusEnum"
               @addPromotionScopeDetail="addSalesPromotionScopeDetail"
               @removePromotionScopeDetail = "removeSalesPromotionScopeDetail"
-              @handleSkuChange="handleSkuChange"
             >
               <template #promotion-scope-label>
                 <el-form-item label="活动适用范围:" >
@@ -342,13 +338,11 @@
             <salesPromotionScopeGift
               :giftScopeType="form.salesPromotionRuleFullGift.giftScopeType"
               :salesPromotionScopeGiftList="form.salesPromotionScopeGiftList"
-              :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
               :ScopeTypeEnum="ScopeTypeEnum"
               :StatusEnum="StatusEnum"
               @addPromotionScopeGiftDetail="addSalesPromotionScopeGiftDetail"
               @removePromotionScopeGiftDetail = "removeSalesPromotionScopeGiftDetail"
-              @handleSkuChange="handleSkuChange"
             >
               <template #gift-scope-label>
                 <el-row>
@@ -415,13 +409,11 @@
             <salesPromotionScope
               :promotionScopeType="form.salesPromotionRuleQuantity?.promotionScopeType  || ScopeTypeEnum.SKU"
               :salesPromotionScopeList="form.salesPromotionScopeList"
-              :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
               :ScopeTypeEnum="ScopeTypeEnum"
               :StatusEnum="StatusEnum"
               @addPromotionScopeDetail="addSalesPromotionScopeDetail"
               @removePromotionScopeDetail = "removeSalesPromotionScopeDetail"
-              @handleSkuChange="handleSkuChange"
             >
               <template #promotion-scope-label>
                 <el-form-item label="活动适用范围:" >
@@ -441,13 +433,11 @@
             <salesPromotionScopeGift
               :giftScopeType="form.salesPromotionRuleQuantity.giftScopeType"
               :salesPromotionScopeGiftList="form.salesPromotionScopeGiftList"
-              :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
               :ScopeTypeEnum="ScopeTypeEnum"
               :StatusEnum="StatusEnum"
               @addPromotionScopeGiftDetail="addSalesPromotionScopeGiftDetail"
               @removePromotionScopeGiftDetail = "removeSalesPromotionScopeGiftDetail"
-              @handleSkuChange="handleSkuChange"
             >
               <template #gift-scope-label>
                 <el-row>
@@ -505,13 +495,11 @@
             <salesPromotionScope
               :promotionScopeType="form.salesPromotionRuleDiscount?.promotionScopeType || ScopeTypeEnum.SKU"
               :salesPromotionScopeList="form.salesPromotionScopeList"
-              :formattedSkuList="formattedSkuList"
               :categoryList="categoryList"
               :ScopeTypeEnum="ScopeTypeEnum"
               :StatusEnum="StatusEnum"
               @addPromotionScopeDetail="addSalesPromotionScopeDetail"
               @removePromotionScopeDetail = "removeSalesPromotionScopeDetail"
-              @handleSkuChange="handleSkuChange"
             >
               <template #promotion-scope-label>
                 <el-form-item label="活动适用范围:" >
@@ -815,49 +803,6 @@ const handleSynchronizeData = () => {
     form.value.salesPromotionScopeGiftList = cloneDeep(form.value.salesPromotionScopeList);
   } else {
     return;
-  }
-}
-
-// 初始化SKU列表
-const skuList = ref([])
-/** 获取 SKU 列表 */
-const getSkuList = () => {
-  listSkuByAddOrder().then(response => {
-    skuList.value = response.rows || []
-  }).catch(error => {
-    console.error("获取SKU列表失败：", error);
-  })
-}
-
-getSkuList()
-
-// 格式化 SKU 列表，用于 el-select-v2 的 options
-const formattedSkuList = computed(() => {
-  return skuList.value.map((sku) => ({
-    value: sku.skuId, // SKU ID
-    label: `${sku.skuCode} - ${sku.skuName} - ${sku.skuValue}`, // 显示 SKU Code 和 Name
-  }));
-});
-
-// 处理 SKU 选择事件
-const handleSkuChange = (row) => {
-  if (row.skuId) {
-    // 如果有 skuId，则根据 skuId 查找对应的 sku
-    const selectedSku = skuList.value.find((sku) => sku.skuId === row.skuId);
-    if (selectedSku) {
-      row.productSkuVo.skuId = selectedSku.skuId;
-      row.productSkuVo.skuCode = selectedSku.skuCode;
-      row.productSkuVo.skuName = selectedSku.skuName;
-      row.productSkuVo.skuValue = selectedSku.skuValue;
-      row.productSkuVo.skuPrice = selectedSku.skuPrice;
-      row.productSkuVo.skuPrice2 = selectedSku.skuPrice2;
-      row.productSkuVo.skuPrice3 = selectedSku.skuPrice3;
-      row.productSkuVo.skuPrice4 = selectedSku.skuPrice4;
-      row.productSkuVo.skuPrice5 = selectedSku.skuPrice5;
-      row.productSkuVo.skuPrice6 = selectedSku.skuPrice6;
-    }
-  } else {
-    // 如果没有 skuId，则将 productSkuVo 设置为 null
   }
 }
 

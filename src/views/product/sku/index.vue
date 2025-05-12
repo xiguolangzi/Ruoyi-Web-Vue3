@@ -149,7 +149,7 @@
             v-hasPermi="['product:sku:edit']" v-if="controlUpdateAndDeleteSwitch">
             修改
           </el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
             v-hasPermi="['product:sku:remove']" v-if="controlUpdateAndDeleteSwitch">
             删除
           </el-button>

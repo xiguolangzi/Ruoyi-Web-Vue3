@@ -1523,10 +1523,6 @@ const getInfoById = async () => {
 onMounted(() => {
   getInfoById()
   addItem()
-  // 组件挂载后设置初始焦点
-  // if (tableData.value.length > 0) {
-  //   moveFocus(0, 'productCode')
-  // }
 });
 
 // ************************** 审核记录 + 提示弹窗 end ******************

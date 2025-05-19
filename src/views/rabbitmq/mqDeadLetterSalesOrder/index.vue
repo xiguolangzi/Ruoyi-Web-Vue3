@@ -20,7 +20,7 @@
           v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="warning" plain icon="Edit" :disabled="single" @click="handleReSand"
+        <el-button type="warning" plain icon="Edit" :disabled="multiple" @click="handleReSand"
           v-hasPermi="['rabbitmq:mqDeadLetterSalesOrder:edit']">重发</el-button>
       </el-col>
       <el-col :span="1.5">

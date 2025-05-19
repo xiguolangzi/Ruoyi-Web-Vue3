@@ -14,13 +14,13 @@
             <!-- 根据不同状态显示不同的操作按钮 -->
             <el-button-group class="ml-4" >
               <!-- 初始状态 -->
-              <el-button type="info" v-if="form.orderStatus == OperateStatusEnum.INIT" @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="primary" v-if="form.orderStatus == OperateStatusEnum.INIT" @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
                 继续编辑
               </el-button>
-              <el-button type="primary"  v-if="form.orderStatus == OperateStatusEnum.INIT" :disabled="!canEditStatus" @click="handleSave" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="success"  v-if="form.orderStatus == OperateStatusEnum.INIT" :disabled="!canEditStatus" @click="handleSave" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
                 保存
               </el-button>
-              <el-button type="success" v-if="form.orderStatus === OperateStatusEnum.INIT" @click="handlePick" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.INIT" @click="handlePick" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
                 提交拣货
               </el-button>
               <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.INIT" @click="handleDelete" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
@@ -28,30 +28,30 @@
               </el-button>
               
               <!-- 拣货状态 -->
-              <el-button type="primary" v-if="form.orderStatus === OperateStatusEnum.PICK" @click="handleCheck"  v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
+              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.PICK" @click="handleCheck"  v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 提交复核
               </el-button>
-              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.PICK" @click="handleUnPick"  v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.PICK" @click="handleUnPick"  v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
                 反拣货
               </el-button>
-              <el-button type="info" v-if="form.orderStatus == OperateStatusEnum.PICK" @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="primary" v-if="form.orderStatus == OperateStatusEnum.PICK" @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
                 继续编辑
               </el-button>
-              <el-button type="info" v-if="form.orderStatus == OperateStatusEnum.PICK" :disabled="!canEditStatus" @click="handleSaveEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="success" v-if="form.orderStatus == OperateStatusEnum.PICK" :disabled="!canEditStatus" @click="handleSaveEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
                 保存修改
               </el-button>
 
               <!-- 复核状态 -->
-              <el-button type="success" v-if="form.orderStatus === OperateStatusEnum.CHECK" @click="handlePack"  v-hasPermi="['sales:salesOrder:approve']" >
+              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.CHECK" @click="handlePack"  v-hasPermi="['sales:salesOrder:approve']" >
                 提交打包
               </el-button>
-              <el-button type="success" v-if="form.orderStatus === OperateStatusEnum.CHECK" @click="handleUnCheck"  v-hasPermi="['sales:salesOrder:approve']" >
+              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.CHECK" @click="handleUnCheck"  v-hasPermi="['sales:salesOrder:approve']" >
                 反复核
               </el-button>
-              <el-button type="info" v-if="form.orderStatus == OperateStatusEnum.CHECK" @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="primary" v-if="form.orderStatus == OperateStatusEnum.CHECK" @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
                 继续编辑
               </el-button>
-              <el-button type="info" v-if="form.orderStatus == OperateStatusEnum.CHECK" :disabled="!canEditStatus" @click="handleSaveEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="success" v-if="form.orderStatus == OperateStatusEnum.CHECK" :disabled="!canEditStatus" @click="handleSaveEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
                 保存修改
               </el-button>
 
@@ -59,7 +59,7 @@
               <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.PACK" @click="handleComplete"  v-hasPermi="['sales:salesOrder:approve']" >
                 完成打包
               </el-button>
-              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.PACK" @click="handleUnPack"  v-hasPermi="['sales:salesOrder:approve']" >
+              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.PACK" @click="handleUnPack"  v-hasPermi="['sales:salesOrder:approve']" >
                 反打包
               </el-button>
 
@@ -67,13 +67,13 @@
               <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.COMPLETE" @click="handleConfirm"  v-hasPermi="['sales:salesOrder:approve']" >
                 确认订单
               </el-button>
-              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.COMPLETE" @click="handleUnComplete"  v-hasPermi="['sales:salesOrder:approve']" >
+              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.COMPLETE" @click="handleUnComplete"  v-hasPermi="['sales:salesOrder:approve']" >
                 反完成
               </el-button>
 
               <!-- 确认状态 -->
-               <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.CONFIRM" @click="handleUnConfirm"  v-hasPermi="['sales:salesOrder:approve']" >
-                反确认
+              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.CONFIRM" @click="handleVoided"  v-hasPermi="['sales:salesOrder:approve']" >
+                作废
               </el-button>
 
             </el-button-group>
@@ -314,7 +314,7 @@ function reset() {
     orderType: OrderTypeEnum.PRE_ORDER,
     orderStatus: OrderStatusEnum.INIT,
     orderIsHold: OrderIsHoldEnum.NORMAL,
-    orderPayStatus: OrderPayStatusEnum.SETTLE,
+    orderPayStatus: OrderPayStatusEnum.ARREARS,
     totalQuantity: 0,
     totalAmount: 0,
     totalDiscountAmount: 0,
@@ -436,7 +436,6 @@ const selectedSalesmanData = (data) => {
 /** 获取选中的业务活动数据 */
 const selectedSalesActivityData = (data) => {
   console.log('收银台获取的业务活动数据:', data)
-  currentSalesActivity.value = data || null;
   form.value.activityId = data?.activityId || null;
   form.value.activityName = data?.activityName || null;
 }
@@ -477,28 +476,6 @@ const OperateStatusEnum = {
   VOIDED: 7
 }
 
-// 订单状态颜色
-const OperateStatusColor = {
-  '1':'primary',
-  '2':'warning',
-  '3':'success',
-  '4':'primary',
-  '5':'success',
-  '6':'info',
-  '7':'danger'
-}
-
-// 订单状态描述
-const OperateStatusName = {
-  '1':'初始化',
-  '2':'拣货',
-  '3':'复核',
-  '4':'打包',
-  '5':'完成打包',
-  '6':'已完成',
-  '7':'已作废',
-}
-
 // 订单操作类型
 const OperateType = {
   SAVE: 1,
@@ -512,7 +489,7 @@ const OperateType = {
   COMPLETE: 6,
   UN_COMPLETE: 16,
   CONFIRM: 7,
-  UN_CONFIRM: 17,
+  VOIDED: 8
 }
 
 /** 获取时间线项目类型 */ 
@@ -525,11 +502,11 @@ const getTimelineItemType = (actionValue) => {
     5: 'primary',
     6: 'primary',
     7: 'success',
+    8: 'danger',
     13: 'danger',
     14: 'danger',
     15: 'danger',
     16: 'danger',
-    17: 'danger',
 
   }
   return typeMap[actionValue] || 'info'
@@ -548,18 +525,14 @@ function getRemarkMessage(action) {
     [OperateType.UN_PACK]: '反打包确认',
     [OperateType.COMPLETE]: '完成打包',
     [OperateType.UN_COMPLETE]: '反完成打包',
-    [OperateType.CONFIRM]: '订单确认',
-    [OperateType.UN_CONFIRM]: '订单反确认',
+    [OperateType.CONFIRM]: '确认订单',
+    [OperateType.VOIDED]: '作废订单',
     
   };
   return messages[action] || '备注';
 }
 
-
 // -------------------------------- 2 枚举数据 end  ---------------------------------
-
-
-
 
 
 // --------------------------------  3 操作部分 start ---------------------------------
@@ -612,34 +585,44 @@ const handleSave = () => {
 
 /** 检查采购条目的必输项 */
 const validateItems = (salesOrderDetailList) => {
-  salesOrderDetailList.forEach((item) => {
-      if (item.detailQuantity == 0) {
-        ElMessage.error("订单明细 数量不能为空!");
+  for (const item of salesOrderDetailList){
+    // 数量校验
+    if(form.value.orderDirection == OrderDirectionEnum.SALES){
+      if (item.detailQuantity <= 0) {
+        ElMessage.error("销售订单明细 数量必须大于0!");
         return false;
       }
-      if (item.detailPrice <= 0) {
-        ElMessage.error("订单明细 单价不能小于0!");
-        return false;
-      }
-      if (isNaN(item.detailTaxRate)) {
-        ElMessage.error("订单明细 税率异常，请检查!");
-        return false;
-      }
-      if(item.detailTaxRate < 0 || item.detailTaxRate > 100){
-        ElMessage.error("订单明细 税率需要在 0-100% 之间，请检查!");
-        return false;
-      }
-      if (isNaN(item.detailDiscountRate)) {
-        console.log("异常的则扣率：",item.detailDiscountRate)
-        ElMessage.error("订单明细 折扣率异常，请检查!");
-        return false;
-      }
-      if(item.detailDiscountRate < 0 || item.detailDiscountRate > 100){
-        ElMessage.error("订单明细 折扣率需要在 0-100% 之间，请检查!");
+    } else {
+      if (item.detailQuantity >= 0) {
+        ElMessage.error("退货订单明细 数量必须小于0!");
         return false;
       }
     }
-  )
+    // 单价校验
+    if (item.detailPrice < 0) {
+      ElMessage.error("订单明细 单价不能小于0!");
+      return false;
+    }
+    // 税率校验
+    if (isNaN(item.detailTaxRate)) {
+      ElMessage.error("订单明细 税率异常，请检查!");
+      return false;
+    }
+    if(item.detailTaxRate < 0 || item.detailTaxRate > 100){
+      ElMessage.error("订单明细 税率需要在 0-100% 之间，请检查!");
+      return false;
+    }
+    // 折扣率校验
+    if (isNaN(item.detailDiscountRate)) {
+      console.log("异常的则扣率：",item.detailDiscountRate)
+      ElMessage.error("订单明细 折扣率异常，请检查!");
+      return false;
+    }
+    if(item.detailDiscountRate < 0 || item.detailDiscountRate > 100){
+      ElMessage.error("订单明细 折扣率需要在 0-100% 之间，请检查!");
+      return false;
+    }
+  }
   return true;
 };
 
@@ -685,12 +668,12 @@ const handleUnComplete = () => {
 
 /** 确认 */ 
 const handleConfirm = () => {
-  openApprovalDialog('完成', OperateType.CONFIRM)
+  openApprovalDialog('确认', OperateType.CONFIRM)
 }
 
 /** 反确认 */ 
-const handleUnConfirm = () => {
-  openApprovalDialog('反完成', OperateType.UN_CONFIRM)
+const handleVoided = () => {
+  openApprovalDialog('作废', OperateType.VOIDED)
 }
 
 /** 打印 */
@@ -772,8 +755,8 @@ const handleError = (message = "操作失败") => {
 };
 
 // 是否需要填写原因
-const actionRequiresNoRemark = [OperateType.SAVE, OperateType.DELETE, OperateType.INIT, OperateType.PICK, OperateType.CONFIRM, OperateType.PACK, OperateType.COMPLETE];
-const actionRequiresRemark = [OperateType.SAVE_EDIT, OperateType.UN_PICK, OperateType.UN_PACK, OperateType.UN_CHECK, OperateType.UN_COMPLETE, OperateType.UN_CONFIRM];
+const actionRequiresNoRemark = [OperateType.SAVE, OperateType.PICK, OperateType.CHECK, OperateType.PACK, OperateType.COMPLETE, OperateType.CONFIRM];
+const actionRequiresRemark = [OperateType.SAVE_EDIT, OperateType.UN_PICK, OperateType.UN_PACK, OperateType.UN_CHECK, OperateType.UN_COMPLETE, OperateType.VOIDED];
 
 /** 采购订单提交操作 */ 
 const submitOperate = async () => {
@@ -835,6 +818,16 @@ const submitOperate = async () => {
       message: '反完成',
       actionValue: OperateType.UN_COMPLETE
     },
+    [OperateType.CONFIRM]: {
+      status: OperateStatusEnum.CONFIRM,
+      message: '确认',
+      actionValue: OperateType.CONFIRM
+    },
+    [OperateType.VOIDED]: {
+      status: OperateStatusEnum.VOIDED,
+      message: '作废',
+      actionValue: OperateType.VOIDED
+    },
   }
 
   const currentActionConfig = actions[currentAction.value]
@@ -857,7 +850,9 @@ const submitOperate = async () => {
         // 新增操作
         await addSalesOrder(form.value)
           .then( (res) => {
-            form.value = res.data
+            if(res.code === 200){
+              form.value = res.data
+            }
             parseJson();
             ElMessage.success(currentActionConfig.message)
             RefreshTab()
@@ -918,7 +913,6 @@ const goBack = () => {
 const RefreshTab = () => {
   // 刷新当前页
   getInfoById()
-  canEditStatus.value = false;
 }
 
 /** 通过传递的 orderId 获取订单信息 */
@@ -928,7 +922,9 @@ const getInfoById = async () => {
   console.log("获取到传递过来的orderId", _orderId)
   if (!_orderId) {
     console.log("传递的参数orderId为空");
-    reset()
+    if(!form.value.orderInitNo){
+      reset()
+    }
     return;
   }
 
@@ -954,7 +950,7 @@ const getInfoById = async () => {
 }
 
 onMounted(() => {
-  //getInfoById()
+  getInfoById()
   addItem()
 });
 getInfoById()

@@ -147,10 +147,16 @@
 
     <el-table class="table-container" size="small" v-loading="loading" :data="salesOrderList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="初始单号" align="center" prop="orderInitNo" show-overflow-tooltip min-width="100"/>
+      <el-table-column label="初始单号" align="center" prop="orderInitNo" show-overflow-tooltip min-width="150">
+        <template #default="scope">
+          <span class="link-type" @click="handleUpdate(scope.row)">
+            {{ scope.row.orderInitNo }}
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column label="订单方向" align="center" prop="orderDirection" >
         <template #default="scope">
-          <dict-tag :options="sales_order_direction" :value="scope.row.orderPayStatus"/>
+          <dict-tag :options="sales_order_direction" :value="scope.row.orderDirection"/>
         </template>
       </el-table-column>
       <el-table-column label="订单编号" align="center" prop="orderNo" show-overflow-tooltip min-width="100" />

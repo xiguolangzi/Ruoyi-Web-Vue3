@@ -38,11 +38,18 @@
       </template>
     </el-table-column>
     <el-table-column prop="skuName" label="商品名称" align="center" min-width="120" show-overflow-tooltip>
-      <template #default="scope">
-        <span>
-          {{ scope.row.skuName || '' }}{{ scope.row.skuName && scope.row.assistName ? ' *** ' : '' }}{{
-          scope.row.assistName || '' }}
-        </span>
+      <template v-slot="scope">
+        <el-popover trigger="hover" placement="left">
+          <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
+          <template #reference>
+            <el-link type="primary" :underline="false">
+              <span>
+                {{ scope.row.skuName || '' }}{{ scope.row.skuName && scope.row.assistName ? ' *** ' : '' }}{{
+                scope.row.assistName || '' }}
+              </span>
+            </el-link>
+          </template>
+        </el-popover>
       </template>
     </el-table-column>
     <el-table-column prop="skuValue" align="center" label="规格属性" show-overflow-tooltip>
@@ -64,7 +71,7 @@
       <template #default="scope">
         <el-input-number 
           v-if="isEditing(scope.row, 'detailPrice')" 
-          v-model.number="scope.row.detailPrice" :controls="false" :min="0" :max="100" :step="0"
+          v-model.number="scope.row.detailPrice" :controls="false" :min="0" :max="9999999" :step="0"
           :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
           @blur="handleBlur(scope.row, 'detailPrice')"
           @change="updateAmount(scope.row)" 
@@ -77,7 +84,7 @@
       <template #default="scope">
         <el-input-number 
           v-if="isEditing(scope.row, 'detailQuantity')"
-          v-model.number="scope.row.detailQuantity" :controls="false" :min="0" :max="100" :step="0"
+          v-model.number="scope.row.detailQuantity" :controls="false" :min="-9999999" :max="9999999" :step="0"
           :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" 
           @blur="handleBlur(scope.row, 'detailQuantity')" 
           @change="updateAmount(scope.row)" style="width: 100%;" size="small" />

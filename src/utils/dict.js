@@ -26,3 +26,24 @@ export function useDict(...args) {
   });
   return toRefs(res.value);
 }
+
+/**
+ * 根据字典标签获取字典值
+ */
+export function useDictLabel(dictList, label) {
+  console.log("--字典数据：", dictList);
+  console.log("--字典标签：", label);
+  let item = dictList.value.find(item => item.label === label);
+  console.log("--字典值：", item);
+
+  return item ? item.value : null;
+}
+
+
+/**
+ * 根据字典值获取字典标签
+ */
+export function useDictLabelByValue(dictList, value) {
+  const item = dictList.value.find(item => item.value === value);
+  return item ? item.label : null;
+}

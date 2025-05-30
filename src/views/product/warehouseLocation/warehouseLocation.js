@@ -39,6 +39,15 @@ export const IsLeafEnum = {
 }
 
 /**
+ * 启用库位的状态:
+ * 0-启用, 1-禁用
+ */
+export const OpenLocationEnum = {
+  ENABLE: '0',
+  DISABLE: '1'
+}
+
+/**
  * 将 xx 部分转换为数字
  * @param {string} xx - 由字母和数字组成的字符串，例如 'A1', '2B', 'ab', '01'
  * @returns {number} - 转换后的数字

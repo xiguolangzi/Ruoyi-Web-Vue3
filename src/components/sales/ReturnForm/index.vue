@@ -257,7 +257,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { getSalesOrderByOrderInitNo, refundGoods } from '@/api/sales/salesOrder'
 import SnowflakeID from '@/utils/SnowflakeID.js';
 import useUserStore from "@/store/modules/user";
-import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum } from "@/views/sales/salesOrder/cashOperationUtil/cashOperationEnum.js";
+import { initOrderDetailData, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum } from "@/views/sales/salesOrder/cashOperationUtil/cashOperationEnum.js";
+import { OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
 import SkuSelect from '@/components/Common/SkuSelect.vue';
 
 
@@ -494,8 +495,6 @@ const fetchOriginalOrder = async () => {
     ElMessage.error('查询失败: ' + e.message)
   }
 }
-
-
 
 
 /**

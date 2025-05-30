@@ -262,6 +262,20 @@ export const dynamicRoutes = [
       }
     ]
   },
+  {
+    path: '/salesManager',
+    component: Layout,
+    hidden: true,
+    permissions: ['sales:verifacInvoice:edit'],
+    children: [
+      {
+        path: '/salesManager/editInvoice',
+        component: () => import('@/views/verifuc/verifacInvoice/editInvoice'),
+        name: 'editInvoice',
+        meta: { title: '编辑发票' }
+      }
+    ]
+  },
 
 ]
 

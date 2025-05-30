@@ -1,10 +1,18 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="订单编号" prop="orderNo">
+      <el-form-item label="初始单号" prop="orderNo">
+        <el-input
+          v-model="queryParams.orderInitNo"
+          placeholder="请输入初始单号"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="订单号" prop="orderNo">
         <el-input
           v-model="queryParams.orderNo"
-          placeholder="请输入订单编号"
+          placeholder="请输入订单号"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -138,6 +146,7 @@
           v-hasPermi="['sales:salesOrder:export']"
         >导出</el-button>
       </el-col>
+      
       <el-col :span="1.5">
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button type="info" icon="Refresh" @click="resetQuery">重置</el-button>
@@ -159,7 +168,7 @@
           <dict-tag :options="sales_order_direction" :value="scope.row.orderDirection"/>
         </template>
       </el-table-column>
-      <el-table-column label="订单编号" align="center" prop="orderNo" show-overflow-tooltip min-width="100" />
+      <el-table-column label="订单号" align="center" prop="orderNo" show-overflow-tooltip min-width="150" />
       <el-table-column label="总数量" align="center" prop="totalQuantity" />
       <el-table-column label="总金额" align="center" prop="totalAmount" >
         <template #default="scope">
@@ -191,7 +200,24 @@
           <span>{{ formatTwo(scope.row.totalNetAmount)}} €</span>
         </template>
       </el-table-column>
-      <el-table-column label="父级订单编号" align="center" prop="parentOrderInitNo" show-overflow-tooltip min-width="100" />
+      <el-table-column label="含税状态" align="center" prop="inTax" >
+        <template #default="scope">
+          <el-tag v-if="scope.row.inTax == '0'" type="success">是</el-tag>
+          <el-tag v-else type="danger">否</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="未核销金额" align="center" prop="remainAmount" >
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.remainAmount)}} €</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="已核销金额" align="center" prop="verifiedAmount" >
+        <template #default="scope">
+          <span>{{ formatTwo(scope.row.verifiedAmount)}} €</span>
+        </template>
+      </el-table-column>
+      
+      
       <el-table-column label="订单类型" align="center" prop="orderType">
         <template #default="scope">
           <dict-tag :options="sales_order_type" :value="scope.row.orderType"/>
@@ -212,6 +238,7 @@
           <dict-tag :options="sales_order_source" :value="scope.row.orderSource"/>
         </template>
       </el-table-column>
+      <el-table-column label="父级订单编号" align="center" prop="parentOrderInitNo" show-overflow-tooltip min-width="100" />
       <el-table-column label="仓库名称" align="center" prop="warehouseName" />
       <el-table-column label="收银台名称" align="center" prop="cajaName" />
       <el-table-column label="业务员名称" align="center" prop="salesmanName" />
@@ -392,7 +419,8 @@
 <script setup name="SalesOrder">
 import { listSalesOrder, getSalesOrder, delSalesOrder } from "@/api/sales/salesOrder";
 import useUserStore from "@/store/modules/user";
-import { OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum } from './cashOperationUtil/cashOperationEnum.js';
+import { OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum } from './cashOperationUtil/cashOperationEnum.js';
+import { OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
 import SnowflakeID from '@/utils/SnowflakeID.js';
 import { useRouter, useRoute } from "vue-router";
 

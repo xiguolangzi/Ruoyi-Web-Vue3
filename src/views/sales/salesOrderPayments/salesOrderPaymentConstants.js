@@ -23,9 +23,14 @@ export const initOrderPaymentData = () => ({
 });
 
 /**
- * 订单支付状态：1-已支付 2-未结清
+ * 销售订单支付状态
+ * 1-欠款单 2-现结单
  */
 export const OrderPayStatusEnum = {
-  PAID: 1,
-  NOT_COMPLETED: 2
+  // 欠款单
+  UN_PAID: 1,
+  // 现结单
+  PAID: 2,
+  // 部分付款
+  PART_PAID: 3,
 }

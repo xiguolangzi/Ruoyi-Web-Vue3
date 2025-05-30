@@ -6,76 +6,130 @@
         <div class="header-content">
           <div class="title">
             <h2>订单详情</h2>
-            <dict-tag :options="sales_order_direction" :value="form.orderDirection"/>
-            <dict-tag :options="sales_order_source" :value="form.orderSource"/>
-            <dict-tag :options="sales_order_status" :value="form.orderStatus"/>
+            <dict-tag :options="sales_order_direction" :value="form.orderDirection" />
+            <dict-tag :options="sales_order_source" :value="form.orderSource" />
+            <dict-tag :options="sales_order_type" :value="form.orderType" />
+            <dict-tag :options="sales_order_pay_status" :value="form.orderPayStatus" />
+            <dict-tag :options="sales_order_status" :value="form.orderStatus" />
           </div>
           <div class="actions">
-            <!-- 根据不同状态显示不同的操作按钮 -->
-            <el-button-group class="ml-4" >
+            <!-- 根据不同状态显示不同的操作按钮 - 开启库位 -->
+            <el-button-group class="ml-4" v-if="openLocation == OpenLocationEnum.ENABLE">
               <!-- 初始状态 -->
-              <el-button type="primary" v-if="form.orderStatus == OperateStatusEnum.INIT" @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="primary" v-if="form.orderStatus == OrderStatusEnum.INIT" :disabled="canEditStatus"
+                @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 继续编辑
               </el-button>
-              <el-button type="success"  v-if="form.orderStatus == OperateStatusEnum.INIT" :disabled="!canEditStatus" @click="handleSave" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="success" v-if="form.orderStatus == OrderStatusEnum.INIT" :disabled="!canEditStatus"
+                @click="handleSave" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 保存
               </el-button>
-              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.INIT" @click="handlePick" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="warning" v-if="form.orderStatus === OrderStatusEnum.INIT" :disabled="canEditStatus"
+                @click="handlePick" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 提交拣货
               </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.INIT" @click="handleDelete" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.INIT" :disabled="canEditStatus"
+                @click="handleDelete" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 删除
               </el-button>
-              
+
               <!-- 拣货状态 -->
-              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.PICK" @click="handleCheck"  v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
+              <el-button type="warning" v-if="form.orderStatus === OrderStatusEnum.PICK" :disabled="canEditStatus"
+                @click="handleCheck" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 提交复核
               </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.PICK" @click="handleUnPick"  v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.PICK" :disabled="canEditStatus"
+                @click="handleUnPick" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 反拣货
               </el-button>
-              <el-button type="primary" v-if="form.orderStatus == OperateStatusEnum.PICK" @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="primary" v-if="form.orderStatus == OrderStatusEnum.PICK" :disabled="canEditStatus"
+                @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 继续编辑
               </el-button>
-              <el-button type="success" v-if="form.orderStatus == OperateStatusEnum.PICK" :disabled="!canEditStatus" @click="handleSaveEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="success" v-if="form.orderStatus == OrderStatusEnum.PICK" :disabled="!canEditStatus"
+                @click="handleSaveEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 保存修改
               </el-button>
 
               <!-- 复核状态 -->
-              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.CHECK" @click="handlePack"  v-hasPermi="['sales:salesOrder:approve']" >
+              <el-button type="warning" v-if="form.orderStatus === OrderStatusEnum.CHECK" :disabled="canEditStatus"
+                @click="handlePack" v-hasPermi="['sales:salesOrder:approve']">
                 提交打包
               </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.CHECK" @click="handleUnCheck"  v-hasPermi="['sales:salesOrder:approve']" >
+              <el-button type="danger" v-if="form.orderStatus === OrderStatusEnum.CHECK" :disabled="canEditStatus"
+                @click="handleUnCheck" v-hasPermi="['sales:salesOrder:approve']">
                 反复核
               </el-button>
-              <el-button type="primary" v-if="form.orderStatus == OperateStatusEnum.CHECK" @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="primary" v-if="form.orderStatus == OrderStatusEnum.CHECK" :disabled="canEditStatus"
+                @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 继续编辑
               </el-button>
-              <el-button type="success" v-if="form.orderStatus == OperateStatusEnum.CHECK" :disabled="!canEditStatus" @click="handleSaveEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']" >
+              <el-button type="success" v-if="form.orderStatus == OrderStatusEnum.CHECK" :disabled="!canEditStatus"
+                @click="handleSaveEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 保存修改
               </el-button>
 
               <!-- 打包状态 -->
-              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.PACK" @click="handleComplete"  v-hasPermi="['sales:salesOrder:approve']" >
-                完成打包
+              <el-button type="warning" v-if="form.orderStatus == OrderStatusEnum.PACK" @click="handleConfirm"
+                v-hasPermi="['sales:salesOrder:approve']">
+                确认订单
               </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.PACK" @click="handleUnPack"  v-hasPermi="['sales:salesOrder:approve']" >
+              <el-button type="danger" v-if="form.orderStatus == OrderStatusEnum.PACK" @click="handleUnPack"
+                v-hasPermi="['sales:salesOrder:approve']">
                 反打包
               </el-button>
 
-              <!-- 完成打包状态 -->
-              <el-button type="warning" v-if="form.orderStatus === OperateStatusEnum.COMPLETE" @click="handleConfirm"  v-hasPermi="['sales:salesOrder:approve']" >
-                确认订单
+              <!-- 确认状态 -->
+              <el-button type="warning" 
+                v-if="form.orderStatus == OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER" 
+                @click="handleGenerateInvoice"
+                v-hasPermi="['sales:salesOrder:approve']"
+              >
+                生成发票
               </el-button>
-              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.COMPLETE" @click="handleUnComplete"  v-hasPermi="['sales:salesOrder:approve']" >
-                反完成
+              <el-button type="danger" 
+                v-if="form.orderStatus == OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER" 
+                @click="handleUnConfirm"
+                v-hasPermi="['sales:salesOrder:approve']"
+              >
+                反确认
               </el-button>
 
               <!-- 确认状态 -->
-              <el-button type="danger" v-if="form.orderStatus === OperateStatusEnum.CONFIRM" @click="handleVoided"  v-hasPermi="['sales:salesOrder:approve']" >
+              <el-button type="danger" v-if="form.orderStatus == OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER" @click="handleVoided"
+                v-hasPermi="['sales:salesOrder:approve']">
                 作废
               </el-button>
+            </el-button-group>
 
+            <!-- 根据不同状态显示不同的操作按钮 - 不开启库位 -->
+            <el-button-group class="ml-4" v-else>
+              <!-- 初始状态 -->
+              <el-button type="primary" v-if="form.orderStatus == OrderStatusEnum.INIT" :disabled="canEditStatus"
+                @click="handleEdit" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
+                继续编辑
+              </el-button>
+              <el-button type="success" v-if="form.orderStatus == OrderStatusEnum.INIT" :disabled="!canEditStatus"
+                @click="handleSave" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
+                保存
+              </el-button>
+              <el-button type="primary" v-if="form.orderStatus == OrderStatusEnum.INIT" :disabled="canEditStatus"
+                @click="handleCompletePayment" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
+                确认订单
+              </el-button>
+              <!-- 确认状态 -->
+              <el-button type="primary" v-if="form.orderStatus === OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER" :disabled="canEditStatus"
+                @click="handleUnCompletePayment" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
+                反确认
+              </el-button>
+              <el-button type="danger" 
+                v-if="form.orderStatus === OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER" 
+                :disabled="canEditStatus" 
+                @click="handleGenerateInvoice"
+                v-hasPermi="['sales:salesOrder:approve']"
+              >
+                生成发票
+              </el-button>
             </el-button-group>
 
             <!-- 通用操作按钮 -->
@@ -83,72 +137,77 @@
               <el-button @click="handlePrint">打印</el-button>
               <el-button @click="handleExport">导出</el-button>
               <el-tooltip content="退出编辑" effect="dark" placement="bottom">
-                <el-button icon="Close" type="info" @click="goBack" > 退出编辑 </el-button>
+                <el-button icon="Close" type="danger" @click="goBack"> 退出编辑 </el-button>
               </el-tooltip>
             </el-button-group>
           </div>
         </div>
       </template>
 
-      <el-form ref="salesOrderRef" :model="form" :rules="rules" label-width="120px"  size="small" :disabled="!canEditStatus">
+      <el-form ref="salesOrderRef" :model="form" :rules="rules" label-width="120px" size="small"
+        :disabled="!canEditStatus">
 
         <!-- 基本信息 -->
-        <el-row >
-          <el-form-item label="原始订单编号:" prop="orderInitNo" >
-            <el-input v-model="form.orderInitNo" placeholder="系统自动生成" disabled size="small"/>
+        <el-row>
+          <el-form-item label="初始单号:" prop="orderInitNo">
+            <el-input v-model="form.orderInitNo" placeholder="系统自动生成" disabled size="small" />
           </el-form-item>
-          <el-form-item label="订单方向:" prop="orderDirection" >
+          <el-form-item label="订单号:" prop="orderNo">
+            <el-input v-model="form.orderNo" placeholder="系统自动生成" disabled size="small" />
+          </el-form-item>
+          <el-form-item label="订单方向:" prop="orderDirection">
             <el-select v-model="form.orderDirection" placeholder="请选择订单方向" clearable :disabled="!!form.orderId">
-              <el-option
-                v-for="dict in sales_order_direction"
-                :key="dict.value"
-                :label="dict.label"
-                :value="Number(dict.value)"
-              />
+              <el-option v-for="dict in sales_order_direction" :key="dict.value" :label="dict.label"
+                :value="Number(dict.value)" />
             </el-select>
           </el-form-item>
-          <el-form-item label=" 业务员:" prop="salesmanID" >
-            <SalesmanSelect v-model="form.salesmanName"   @selectedData="selectedSalesmanData" size="small" :disabled="form.orderStatus != OrderStatusEnum.INIT"/>
+          <el-form-item label=" 业务员:" prop="salesmanID">
+            <SalesmanSelect v-model="form.salesmanName" @selectedData="selectedSalesmanData" size="small"
+              :disabled="form.orderStatus != OrderStatusEnum.INIT" />
           </el-form-item>
           <!-- 客户信息 -->
           <el-form-item label="客户信息:" prop="customerId">
-            <CustomerSelect v-model="form.customerName"  @selectedData="selectedCustomerData" size="small" :disabled="form.orderStatus != OrderStatusEnum.INIT"/>
+            <CustomerSelect v-model="form.customerName" @selectedData="selectedCustomerData" size="small"
+              :disabled="form.orderStatus != OrderStatusEnum.INIT" />
           </el-form-item>
           <!-- 仓库信息 -->
           <el-form-item label="仓库信息:" prop="warehouseId">
-            <WarehouseSelect v-model="form.warehouseName"   @selectedData="selectedWarehouseData" size="small" :disabled="form.orderStatus != OrderStatusEnum.INIT"/>
+            <WarehouseSelect v-model="form.warehouseName" @selectedData="selectedWarehouseData" size="small"
+              :disabled="form.orderStatus != OrderStatusEnum.INIT" />
           </el-form-item>
           <!-- 业务活动信息 -->
           <el-form-item label="业务活动:" prop="warehouseId">
-            <SalesActivitySelect v-model="form.activityName" @selectedData="selectedSalesActivityData" size="small" :disabled="form.orderStatus != OrderStatusEnum.INIT"/>
+            <SalesActivitySelect v-model="form.activityName" @selectedData="selectedSalesActivityData" size="small"
+              :disabled="form.orderStatus != OrderStatusEnum.INIT" />
           </el-form-item>
           <el-form-item label="备注信息:" prop="remark">
-            <el-input v-model="form.remark"  placeholder="请输入备注" size="small"/>
+            <el-input v-model="form.remark" placeholder="请输入备注" size="small" type="text" maxlength="200" show-word-limit :rows="1"/>
           </el-form-item>
         </el-row>
 
         <!-- 商品明细 -->
-        <RefundEditTable :tableData="form.salesOrderDetailList" :customerPriceLevel="form.customerPriceLevel" :customerDiscountRate="form.customerDiscountRate"/>
-      </el-form> 
+        <RefundEditTable :tableData="form.salesOrderDetailList" :inTax="form.inTax" :customerPriceLevel="form.customerPriceLevel"
+          :customerDiscountRate="form.customerDiscountRate" />
+      </el-form>
 
       <!-- 合计信息 -->
-      <template #footer >
+      <template #footer>
         <div class="fixed-footer">
           <el-row class="footer-row">
             <!-- 第1个区域：订单配置数据 -->
-            <el-col class="footer-col" :span="8">
+            <el-col class="footer-col" :span="6">
               <div class="footer-content">
-                <el-descriptions :column="2" size="small">
-                  <el-descriptions-item label="客户名称:" :span="2">
+                <el-descriptions :column="1" size="small">
+                  <el-descriptions-item label="客户名称:" >
                     <span class="highlight-text">{{form.customerName || '--'}}</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="税号:" :span="1" >
+                  <el-descriptions-item label="税号:" >
                     <span class="highlight-text">{{form.invoiceTax || '--'}}</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="手机:" :span="1" >
+                  <el-descriptions-item label="手机:" >
                     <span class="highlight-text">{{form.invoicePhone || '--'}}</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="地址:" :span="2">
+                  <el-descriptions-item label="地址:" >
                     <span class="highlight-text">{{form.invoiceAddress || '--'}}</span>
                   </el-descriptions-item>
                 </el-descriptions>
@@ -158,30 +217,30 @@
             <!-- 分割线 -->
             <div class="divider vertical"></div>
 
-            <!-- 第3个区域：税率明细 -->
+            <!-- 第2个区域：税率明细 -->
             <el-col class="footer-col" :span="4">
               <div class="footer-content">
                 <el-descriptions :column="1" size="small" style="width: 100%;">
-                  <el-descriptions-item label="21% 税额:" :span="2">
-                    <span class="highlight-text">{{form.customerName || '--'}}</span>
-                  </el-descriptions-item>
-                  <el-descriptions-item label="10% 税额:" :min-width="100">
-                    <span class="highlight-text">{{form.invoiceTax || '--'}}</span>
-                  </el-descriptions-item>
-                  <el-descriptions-item label="4% 税额:" :min-width="100">
-                    <span class="highlight-text">{{form.invoicePhone || '--'}}</span>
+                  <el-descriptions-item v-for="item in form.verifacInvoice?.verifacInvoiceDetailList || []" :key="item.detailId" :label="`${item.detailTipoIva}% 税额:`" >
+                    <span class="highlight-text">{{ formatTwo(item.detailCuotaIva) + ' €'}}</span>
                   </el-descriptions-item>
                 </el-descriptions>
+                <el-switch v-model="form.inTax" :active-value="orderInTaxEnum.IN_Tax" :inactive-value="orderInTaxEnum.NOT_IN_TAX"
+                  active-text="含税" inactive-text="不含税" inline-prompt
+                  :disabled="!canEditStatus"
+                  style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;"
+                  v-hasPermi="['sales:salesCaja:edit']" size="small"
+                />
               </div>
             </el-col>
 
             <!-- 分割线 -->
             <div class="divider vertical"></div>
 
-            <!-- 第2个区域：订单统计数据 -->
-            <el-col class="footer-col" :span="8">
+            <!-- 第3个区域：订单统计数据 -->
+            <el-col class="footer-col" :span="6">
               <div class="footer-content">
-                <el-descriptions :column="4" size="small" style="margin-top: 10px;">
+                <el-descriptions :column="2" size="small" style="margin-top: 10px;">
                   <el-descriptions-item label="销售金额:">
                     <span class="highlight-text">{{ formatTwo(form.totalAmount) + ' €'}} </span>
                   </el-descriptions-item>
@@ -194,10 +253,10 @@
                   <el-descriptions-item label="减免数量:">
                     <span class="highlight-text">{{ form.totalPromotionReduceQuantity ?? 0}}</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="基础金额:" :span="1">
+                  <el-descriptions-item label="基础金额:" >
                     <span class="highlight-text">{{ formatTwo(form.totalBaseAmount) + ' €'}}</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="交税金额:" :span="1">
+                  <el-descriptions-item label="交税金额:">
                     <span class="highlight-text">{{ formatTwo(form.totalTaxAmount) + ' €'}}</span>
                   </el-descriptions-item>
                   <el-descriptions-item label="应收金额:" :span="2" class-name="total-label"
@@ -207,14 +266,36 @@
                 </el-descriptions>
               </div>
             </el-col>
+
+            <!-- 分割线 -->
+            <div class="divider vertical" v-if="form.verifacInvoice"></div>
+            <!-- 第4个区域：二维码 -->
+            <el-col class="footer-col" :span="6" v-if="form.verifacInvoice">
+              <div class="qrcode">
+                <a 
+                  v-if="form.verifacInvoice?.invoiceQr" 
+                  :href="form.verifacInvoice.invoiceQr" 
+                  target="_blank"
+                >
+                  <qrcode-vue 
+                    :value="form.verifacInvoice?.invoiceQr || null" 
+                    :size="120" 
+                    level="H"
+                  />
+                </a>
+                <el-empty v-else :image-size="40" style="padding: 0px;margin: 0px;" />
+                <dict-tag :options="varifac_invoice_type" :value="form.verifacInvoice?.invoiceTipo" />
+              </div>
+            </el-col>
+
           </el-row>
         </div>
       </template>
     </el-card>
-  
+
     <!-- 订单操作记录 -->
     <el-collapse class="card-operation-log">
-      <el-collapse-item  name="1" >
+      <el-collapse-item name="1">
         <template #title>
           <h3 style="margin-left: 20px;">订单操作记录</h3>
         </template>
@@ -223,7 +304,7 @@
             <el-timeline-item v-for="(activity, index) in operateLog" :key="index"
               :type="getTimelineItemType(activity.actionValue)" :timestamp="activity.time" placement="top">
               {{ activity.operator }} - {{ activity.action }}
-              <span v-if="activity.remark"> - -  描述 : </span>
+              <span v-if="activity.remark"> - - 描述 : </span>
               <span class="remark">{{ activity.remark }}</span>
             </el-timeline-item>
           </el-timeline>
@@ -235,8 +316,10 @@
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
       <!-- 强制填写备注 -->
       <el-form :model="approvalForm" label-width="80px">
-        <el-form-item :label="getRemarkMessage(currentAction) + ':'" v-if="actionRequiresRemark.includes(currentAction)">
-          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20" :placeholder="'请输入' + getRemarkMessage(currentAction)" />
+        <el-form-item :label="getRemarkMessage(currentAction) + ':'"
+          v-if="actionRequiresRemark.includes(currentAction)">
+          <el-input v-model="approvalForm.remark" type="textarea" show-word-limit maxlength="20"
+            :placeholder="'请输入' + getRemarkMessage(currentAction)" />
         </el-form-item>
       </el-form>
       <!-- 不强制填写备注 -->
@@ -244,7 +327,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitOperate" >
+          <el-button type="primary" @click="submitOperate">
             确认
           </el-button>
         </span>
@@ -257,10 +340,14 @@
 <script setup>
 import { onMounted, ref  } from 'vue'
 import { ElMessage } from 'element-plus'
-import { listSalesOrder, addSalesOrder, updateSalesOrder, getSalesOrder, delSalesOrder, updateByOtherOperate, refundGoods } from "@/api/sales/salesOrder";
+import { listSalesOrder, addSalesOrder, updateSalesOrder, getSalesOrder, delSalesOrder, updateByOtherOperate, refundGoods, generateInvoice } from "@/api/sales/salesOrder";
 import useUserStore from "@/store/modules/user"
 import { useRouter, useRoute } from "vue-router";
-import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum } from './cashOperationUtil/cashOperationEnum.js';
+import { initOrderDetailData, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum } from './cashOperationUtil/cashOperationEnum.js';
+import { InvoiceTypeEnum } from '@/views/verifuc/verifacInvoice/invoiceConstants.js';
+import {OpenLocationEnum} from "@/views/product/warehouseLocation/warehouseLocation.js"
+import { OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
+import { orderInTaxEnum} from './cashOperationUtil/tenantConfigEnum.js';
 import SnowflakeID from '@/utils/SnowflakeID.js';
 import CustomerSelect from '@/components/Common/CustomerSelect.vue';
 import SalesmanSelect from '@/components/Common/SalesmanSelect.vue';
@@ -268,17 +355,29 @@ import SalesActivitySelect from '@/components/Common/SalesActivitySelect.vue';
 import WarehouseSelect from '@/components/Common/WarehouseSelect.vue';
 import RefundEditTable from "./refundEditTable"
 import { computed } from 'vue';
+import QrcodeVue from 'qrcode.vue';
 
 const userStore = useUserStore();
 const router = useRouter();
 const route = useRoute();
 
 const { proxy } = getCurrentInstance();
-const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_type, sales_order_status, erp_product_sku_type, sales_order_pay_status } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type', 'sales_order_pay_status');
+const { sales_order_source, sales_order_direction, sales_order_type, sales_order_status, sales_order_pay_status, varifac_invoice_type } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_direction', 'sales_order_type', 'sales_order_status', 'sales_order_pay_status', 'varifac_invoice_type');
 
 
 /** 是否允许编辑 */
 const canEditStatus = ref(false)
+const orderInTax = ref(orderInTaxEnum.IN_Tax);  // 订单是否含税，默认含税
+const openLocation = ref(OpenLocationEnum.DISABLE);  // 开启库位的状态
+
+/** 获取租户配置 */
+const getTenantConfig = async () => {
+  const config1 = await proxy.getTenantConfig("orderInTax");
+  orderInTax.value = config1.configValue || orderInTaxEnum.IN_Tax;
+  const config2 = await proxy.getTenantConfig("openLocation");
+  openLocation.value = config2.configValue || OpenLocationEnum.DISABLE;
+}
+getTenantConfig()
 
 const data = reactive({
   form:{
@@ -286,7 +385,7 @@ const data = reactive({
   },
   rules:{
     orderInitNo: [
-    { required: true, message: '初始订单号不能为空' , trigger: ['blur','change'] }
+    { required: true, message: '初始订单号不能为空！' , trigger: ['blur','change'] }
     ],
   }
 })
@@ -296,6 +395,7 @@ const {form, rules} = toRefs(data)
 function reset() {
   const snowflake = new SnowflakeID({ objectId: userStore.id});
   const orderInitNo = snowflake.nextId();
+  const inTaxConfig = orderInTax || orderInTaxEnum.IN_Tax;
   form.value = {
     orderId: null,
     orderDirection: OrderDirectionEnum.SALES,
@@ -313,8 +413,7 @@ function reset() {
     activityId: null,
     orderType: OrderTypeEnum.PRE_ORDER,
     orderStatus: OrderStatusEnum.INIT,
-    orderIsHold: OrderIsHoldEnum.NORMAL,
-    orderPayStatus: OrderPayStatusEnum.ARREARS,
+    orderPayStatus: OrderPayStatusEnum.UN_PAID,
     totalQuantity: 0,
     totalAmount: 0,
     totalDiscountAmount: 0,
@@ -337,6 +436,7 @@ function reset() {
     updateTime: null,
     tenantId: null,
     delFlag: null,
+    inTax: inTaxConfig,
     operateLog: null,
     salesOrderDetailList: [],
     salesOrderPaymentList: [],
@@ -358,11 +458,11 @@ const selectedCustomerData = (data) => {
   if(data){
     form.value.customerId = data.customerId;
     form.value.customerName = data.customerName; 
-    form.value.customerPriceLevel = data.customerLevel?.levelPrice || 1;
-    form.value.customerDiscountRate = data.customerLevel?.levelDiscount || 0;
+    form.value.customerPriceLevel = data.levelPrice || 1;
+    form.value.customerDiscountRate = data.levelDiscount || 0;
     if(data.salesmanVo){
-      form.value.salesmanId = data.salesmanVo?.userId || null;
-      form.value.salesmanName = data.salesmanVo?.userName || null;
+      form.value.salesmanId = data.salesmanId || null;
+      form.value.salesmanName = data.salesmanName || null;
     } else {
       form.value.salesmanId =  null;
       form.value.salesmanName =  null;
@@ -408,12 +508,12 @@ const updateDetailPriceAndDiscount = () => {
       item.detailSalesAmount = item.detailAmount - item.detailDiscountAmount;
 
       // 根据是否含税计算净金额、基础金额和税额
-      if (item.inTax === 0) {
+      if (item.inTax == orderInTaxEnum.IN_Tax) {
         // 含税
         item.detailNetAmount = item.detailSalesAmount;
         item.detailBaseAmount = item.detailNetAmount / (1 + item.detailTaxRate / 100);
         item.detailTaxAmount = item.detailNetAmount - item.detailBaseAmount;
-      } else if (item.inTax === 1) {
+      } else if (item.inTax == orderInTaxEnum.NOT_IN_TAX) {
         // 不含税
         item.detailBaseAmount = item.detailSalesAmount;
         item.detailTaxAmount = item.detailBaseAmount * (item.detailTaxRate / 100);
@@ -451,7 +551,7 @@ const selectedWarehouseData = (data) => {
 const onceAddItemLength = 1;  // 每次添加新增的条数
 /** 添加商品行 */ 
 const addItem = () => {
-  // 创建一个空数组来存储100条新记录
+  // 创建一个空数组来存储n条新记录
   const newItems = Array.from({ length: onceAddItemLength }, () => (
     initOrderDetailData()
   ))
@@ -463,19 +563,6 @@ const addItem = () => {
 
 // -------------------------------- 2 枚举数据 start  ---------------------------------
 
-/**
- * 操作状态枚举：1-初始状态 2-拣货状态 3-复核状态 4-打包状态 5-完成状态
- */
-const OperateStatusEnum = {
-  INIT: 1,
-  PICK: 2,
-  CHECK: 3,
-  PACK: 4,
-  COMPLETE: 5,
-  CONFIRM: 6,
-  VOIDED: 7
-}
-
 // 订单操作类型
 const OperateType = {
   SAVE: 1,
@@ -486,10 +573,16 @@ const OperateType = {
   UN_CHECK: 14,
   PACK: 5,
   UN_PACK: 15,
-  COMPLETE: 6,
-  UN_COMPLETE: 16,
-  CONFIRM: 7,
-  VOIDED: 8
+  // 开启库位的确认操作
+  CONFIRM: 6,
+  UN_CONFIRM: 16,
+  // 未开启库位的确认操作
+  COMPLETE_PAYMENT: 7,
+  UN_COMPLETE_PAYMENT: 17,
+  // 生成发票
+  GENERATE_INVOICE: 8,
+  // 作废
+  VOIDED: 9
 }
 
 /** 获取时间线项目类型 */ 
@@ -500,13 +593,15 @@ const getTimelineItemType = (actionValue) => {
     3: 'primary',
     4: 'primary',
     5: 'primary',
-    6: 'primary',
+    6: 'success',
     7: 'success',
-    8: 'danger',
+    8: 'info',
+    9: 'danger',
     13: 'danger',
     14: 'danger',
     15: 'danger',
     16: 'danger',
+    17: 'danger',
 
   }
   return typeMap[actionValue] || 'info'
@@ -523,9 +618,11 @@ function getRemarkMessage(action) {
     [OperateType.UN_CHECK]: '反复核确认',
     [OperateType.PACK]: '打包确认',
     [OperateType.UN_PACK]: '反打包确认',
-    [OperateType.COMPLETE]: '完成打包',
-    [OperateType.UN_COMPLETE]: '反完成打包',
-    [OperateType.CONFIRM]: '确认订单',
+    [OperateType.CONFIRM]: '确认完成订单',
+    [OperateType.UN_CONFIRM]: '反确认完成',
+    [OperateType.COMPLETE_PAYMENT]: '确认订单',
+    [OperateType.UN_COMPLETE_PAYMENT]: '反确认',
+    [OperateType.GENERATE_INVOICE]: '生成发票',
     [OperateType.VOIDED]: '作废订单',
     
   };
@@ -543,6 +640,7 @@ const handleEdit = () => {
   ElMessage.warning("收银台的订单不允许修改！")
  } else {
   canEditStatus.value = true
+  addItem();
  }
 }
 
@@ -567,10 +665,16 @@ const handleDelete = () => {
 const handleSave = () => {
   // 与校验表单提交校验一致，此处只做提交之前的预校验 */
   proxy.$refs["salesOrderRef"].validate().then(() => {
+    // 必须选择客户
+    if(!form.value.customerId){
+      ElMessage.error("请选择客户信息！");
+      return;
+    }
     // 1 过滤空数据
     form.value.salesOrderDetailList = form.value.salesOrderDetailList.filter(item => item.skuId)
     if(salesOrderDetailLength.value <= 0){
-      ElMessage.error("订单明细不能为空!")
+      ElMessage.error("订单明细不能为空!");
+      addItem();
       return;
     }
     // 2 检查采购条目的输入项 false不通过
@@ -580,6 +684,7 @@ const handleSave = () => {
 
     // 3 提交表单
     openApprovalDialog('保存订单', OperateType.SAVE)
+    canEditStatus.value = false;
   }) 
 }
 
@@ -656,22 +761,32 @@ const handleUnPack = () => {
   openApprovalDialog('反打包', OperateType.UN_PACK)
 }
 
-/** 完成打包 */ 
-const handleComplete = () => {
-  openApprovalDialog('完成打包', OperateType.COMPLETE)
-}
-
-/** 反完成打包 */ 
-const handleUnComplete = () => {
-  openApprovalDialog('反完成打包', OperateType.UN_COMPLETE)
-}
-
 /** 确认 */ 
 const handleConfirm = () => {
-  openApprovalDialog('确认', OperateType.CONFIRM)
+  openApprovalDialog('确认完成', OperateType.CONFIRM)
 }
 
 /** 反确认 */ 
+const handleUnConfirm = () => {
+  openApprovalDialog('反确认完成', OperateType.UN_CONFIRM)
+}
+
+/** 非库位 - 确认 */ 
+const handleCompletePayment = () => {
+  openApprovalDialog('确认', OperateType.COMPLETE_PAYMENT)
+}
+
+/** 非库位 - 反确认 */ 
+const handleUnCompletePayment = () => {
+  openApprovalDialog('反确认', OperateType.UN_COMPLETE_PAYMENT)
+}
+
+/** 生成发票 */ 
+const handleGenerateInvoice = () => {
+  openApprovalDialog('生成发票', OperateType.GENERATE_INVOICE)
+}
+
+/** 作废 */ 
 const handleVoided = () => {
   openApprovalDialog('作废', OperateType.VOIDED)
 }
@@ -742,6 +857,7 @@ const parseJson = () => {
  /** 提交数据预处理 */ 
 const prepareData = () => {
   form.value.operateLog = JSON.stringify(operateLog.value);
+  form.value.invoiceTipo = InvoiceTypeEnum.COMPLETA
 };
 
 /** 提交数据错误处理函数 */ 
@@ -755,8 +871,8 @@ const handleError = (message = "操作失败") => {
 };
 
 // 是否需要填写原因
-const actionRequiresNoRemark = [OperateType.SAVE, OperateType.PICK, OperateType.CHECK, OperateType.PACK, OperateType.COMPLETE, OperateType.CONFIRM];
-const actionRequiresRemark = [OperateType.SAVE_EDIT, OperateType.UN_PICK, OperateType.UN_PACK, OperateType.UN_CHECK, OperateType.UN_COMPLETE, OperateType.VOIDED];
+const actionRequiresNoRemark = [OperateType.SAVE, OperateType.PICK, OperateType.CHECK, OperateType.PACK, OperateType.CONFIRM, OperateType.COMPLETE_PAYMENT, OperateType.GENERATE_INVOICE];
+const actionRequiresRemark = [OperateType.SAVE_EDIT, OperateType.UN_PICK, OperateType.UN_PACK, OperateType.UN_CHECK, OperateType.UN_CONFIRM, OperateType.UN_COMPLETE_PAYMENT, OperateType.VOIDED];
 
 /** 采购订单提交操作 */ 
 const submitOperate = async () => {
@@ -769,7 +885,7 @@ const submitOperate = async () => {
   // 3 定义动作及相应状态
   const actions = {
     [OperateType.SAVE]: {
-      status: OperateStatusEnum.INIT,
+      status: OrderStatusEnum.INIT,
       message: '保存成功',
       actionValue: OperateType.SAVE
     },
@@ -779,52 +895,62 @@ const submitOperate = async () => {
       actionValue: OperateType.SAVE_EDIT
     },
     [OperateType.PICK]: {
-      status: OperateStatusEnum.PICK,
+      status: OrderStatusEnum.PICK,
       message: '拣货',
       actionValue: OperateType.PICK
     },
     [OperateType.UN_PICK]: {
-      status: OperateStatusEnum.INIT,
+      status: OrderStatusEnum.INIT,
       message: '反拣货',
       actionValue: OperateType.UN_PICK
     },
     [OperateType.CHECK]: {
-      status: OperateStatusEnum.CHECK,
+      status: OrderStatusEnum.CHECK,
       message: '复核',
       actionValue: OperateType.CHECK
     },
     [OperateType.UN_CHECK]: {
-      status: OperateStatusEnum.PICK,
+      status: OrderStatusEnum.PICK,
       message: '反复核',
       actionValue: OperateType.UN_CHECK
     },
     [OperateType.PACK]: {
-      status: OperateStatusEnum.PACK,
+      status: OrderStatusEnum.PACK,
       message: '打包',
       actionValue: OperateType.PACK
     },
     [OperateType.UN_PACK]: {
-      status: OperateStatusEnum.CHECK,
+      status: OrderStatusEnum.CHECK,
       message: '反打包',
       actionValue: OperateType.UN_PACK
     },
-    [OperateType.COMPLETE]: {
-      status: OperateStatusEnum.COMPLETE,
-      message: '完成',
-      actionValue: OperateType.COMPLETE
-    },
-    [OperateType.UN_COMPLETE]: {
-      status: OperateStatusEnum.PACK,
-      message: '反完成',
-      actionValue: OperateType.UN_COMPLETE
-    },
     [OperateType.CONFIRM]: {
-      status: OperateStatusEnum.CONFIRM,
-      message: '确认',
+      status: OrderStatusEnum.CONFIRM,
+      message: '确认完成',
       actionValue: OperateType.CONFIRM
     },
+    [OperateType.UN_CONFIRM]: {
+      status: OrderStatusEnum.PACK,
+      message: '反确认完成',
+      actionValue: OperateType.UN_CONFIRM
+    },
+    [OperateType.COMPLETE_PAYMENT]: {
+      status: OrderStatusEnum.CONFIRM,
+      message: '确认',
+      actionValue: OperateType.COMPLETE_PAYMENT
+    },
+    [OperateType.UN_COMPLETE_PAYMENT]: {
+      status: OrderStatusEnum.INIT,
+      message: '确认',
+      actionValue: OperateType.UN_COMPLETE_PAYMENT
+    },
+    [OperateType.GENERATE_INVOICE]: {
+      status: OrderStatusEnum.CONFIRM,
+      message: '确认',
+      actionValue: OperateType.GENERATE_INVOICE
+    },
     [OperateType.VOIDED]: {
-      status: OperateStatusEnum.VOIDED,
+      status: OrderStatusEnum.VOIDED,
       message: '作废',
       actionValue: OperateType.VOIDED
     },
@@ -992,7 +1118,6 @@ getInfoById()
             height: 100%;
             padding: 10px;
             border-radius: 4px;
-
           }
         }
 
@@ -1024,7 +1149,7 @@ getInfoById()
   .title {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 10px;
     h2 {
       margin: 0;
     }
@@ -1079,6 +1204,13 @@ getInfoById()
   color: #409eff;
   /* 高亮文本颜色 */
   font-weight: bold;
+}
+
+.qrcode{
+  display: grid;
+  place-items: center; /* 水平和垂直居中 */
+  width: 100%;
+  height: 100%;
 }
 
 

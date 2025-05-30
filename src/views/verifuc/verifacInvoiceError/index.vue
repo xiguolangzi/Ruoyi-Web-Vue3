@@ -175,7 +175,7 @@
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="160">
         <template #default="scope">
           <el-button link type="primary" size="small" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['verifuc:verifacInvoice:edit']">修改</el-button>
-          <el-button link type="primary" size="small" icon="Edit" @click="handleReSand(scope.row)" v-hasPermi="['rabbitmq:verifacInvoice:edit']" :disabled="invoiceIsSuccess(scope.row)">重发</el-button>
+          <el-button link type="primary" size="small" icon="Edit" @click="handleReSand(scope.row)" v-hasPermi="['verifuc:verifacInvoice:edit']" :disabled="invoiceIsSuccess(scope.row)">重发</el-button>
           <el-button link type="danger" size="small" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['verifuc:verifacInvoice:remove']">作废</el-button>
         </template>
       </el-table-column>
@@ -369,7 +369,7 @@
 <script setup name="VerifacInvoiceError">
 import { listVerifacInvoiceError, getVerifacInvoiceError, delVerifacInvoiceError, addVerifacInvoiceError, updateVerifacInvoiceError, resendApi } from "@/api/verifuc/verifacInvoiceError";
 import useUserStore from "@/store/modules/user";
-import {InvoiceStatusEnum } from "@/views/verifuc/verifacInvoice/constants.js"
+import {InvoiceStatusEnum } from "@/views/verifuc/verifacInvoice/invoiceConstants.js"
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -451,18 +451,23 @@ function cancel() {
   reset();
 }
 
+// 延时处理，解决异步修改结果，导致及时更新数据不准确的问题
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 /**
  * 重发按钮操作
 */ 
 const handleReSand = (row) => {
-  reset();
-  const _id = row.id || ids.value
+  const _id = row.invoiceId || ids.value
   resendApi(_id).then(response => {
     proxy.$modal.msgSuccess("重发成功");
-    handleQuery();
+    sleep(1000).then(()=>{
+      handleQuery();
+    });
   }).catch((e) => {
     proxy.$modal.msgError("重发失败", e.message);
-    handleQuery();
+    sleep(1000).then(()=>{
+      handleQuery();
+    });
   })
 }
 

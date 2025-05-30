@@ -299,6 +299,22 @@
             </el-form-item>
             
           </el-tab-pane>
+
+          <!-- 注册信息 -->
+          <el-tab-pane label="注册信息" name="third">
+            <el-form-item label="注册信息:" prop="apiKey">
+              <el-input
+                v-model="form.apiKey"
+                style="max-width: 600px"
+                placeholder="注册信息"
+              >
+                <template #append>
+                  <el-button type="primary"  @click="getApiKey">注册API</el-button>
+                </template>
+              </el-input>
+            </el-form-item>
+            
+          </el-tab-pane>
         </el-tabs>
 
       </el-form>
@@ -340,6 +356,10 @@ const title = ref("");
 const activeName = ref("first");
 const addressCountryList = ref([]);
 const addressProvinceList = ref([]);
+
+function getApiKey(){
+  ElMessage.error("getApiKey暂未实现！")
+}
 
 
 /**

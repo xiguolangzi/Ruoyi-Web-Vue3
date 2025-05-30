@@ -263,50 +263,50 @@
               <span>SKU单价信息</span>
             </div>
           </template>
-          <el-descriptions direction="vertical" :column="2" size="small" border>
+          <el-descriptions  :column="2" size="small" border>
             <el-descriptions-item label="sku单价" prop="skuPrice" align="center">
-              <el-input-number v-model="currentRow.skuPrice" placeholder="输入sku单价" :max='99999' :min='0' :step="0"
-                value-on-clear="min" style="width: 100%;" :controls="false">
+              <el-input-number v-model="currentRow.skuPrice" placeholder="未设置sku单价" :max='99999' :min='0' :step="0" 
+                :value-on-clear=0 style="width: 100%;" :controls="false" disabled>
                 <template #suffix>
                   <span>€</span>
                 </template>
               </el-input-number>
             </el-descriptions-item>
             <el-descriptions-item label="sku单价2" prop="skuPrice2" align="center">
-              <el-input-number v-model="currentRow.skuPrice2" placeholder="输入sku单价2" :max='99999' :min='0' :step="0"
-                value-on-clear="min" style="width: 100%;" :controls="false">
+              <el-input-number v-model="currentRow.skuPrice2" placeholder="未设置sku单价2" :max='99999' :min='0' :step="0"
+              :value-on-clear=0 style="width: 100%;" :controls="false" disabled>
                 <template #suffix>
                   <span>€</span>
                 </template>
               </el-input-number>
             </el-descriptions-item>
             <el-descriptions-item label="sku单价3" prop="skuPrice3" align="center">
-              <el-input-number v-model="currentRow.skuPrice3" placeholder="输入sku单价3" :max='99999' :min='0' :step="0"
-                value-on-clear="min" style="width: 100%;" :controls="false">
+              <el-input-number v-model="currentRow.skuPrice3" placeholder="未设置sku单价3" :max='99999' :min='0' :step="0"
+              :value-on-clear=0 style="width: 100%;" :controls="false" disabled>
                 <template #suffix>
                   <span>€</span>
                 </template>
               </el-input-number>
             </el-descriptions-item>
             <el-descriptions-item label="sku单价4" prop="skuPrice4" align="center">
-              <el-input-number v-model="currentRow.skuPrice4" placeholder="输入sku单价4" :max='99999' :min='0' :step="0"
-                value-on-clear="min" style="width: 100%;" :controls="false">
+              <el-input-number v-model="currentRow.skuPrice4" placeholder="未设置sku单价4" :max='99999' :min='0' :step="0"
+              :value-on-clear=0 style="width: 100%;" :controls="false" disabled>
                 <template #suffix>
                   <span>€</span>
                 </template>
               </el-input-number>
             </el-descriptions-item>
             <el-descriptions-item label="sku单价5" prop="skuPrice5" align="center">
-              <el-input-number v-model="currentRow.skuPrice5" placeholder="输入sku单价5" :max='99999' :min='0' :step="0"
-                value-on-clear="min" style="width: 100%;" :controls="false">
+              <el-input-number v-model="currentRow.skuPrice5" placeholder="未设置sku单价5" :max='99999' :min='0' :step="0"
+              :value-on-clear=0 style="width: 100%;" :controls="false" disabled>
                 <template #suffix>
                   <span>€</span>
                 </template>
               </el-input-number>
             </el-descriptions-item>
             <el-descriptions-item label="sku单价6" prop="skuPrice6" align="center">
-              <el-input-number v-model="currentRow.skuPrice6" placeholder="输入sku单价6" :max='99999' :min='0' :step="0"
-                value-on-clear="min" style="width: 100%;" :controls="false">
+              <el-input-number v-model="currentRow.skuPrice6" placeholder="未设置sku单价6" :max='99999' :min='0' :step="0"
+              :value-on-clear=0 style="width: 100%;" :controls="false" disabled>
                 <template #suffix>
                   <span>€</span>
                 </template>

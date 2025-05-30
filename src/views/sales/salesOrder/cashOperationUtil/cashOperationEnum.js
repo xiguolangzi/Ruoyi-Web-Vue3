@@ -29,7 +29,6 @@ export const initOrderDetailData = () => ({
   detailRefundedQuantity: 0,
   locationId: null,
   locationWeight: null,
-  inTax: 0,
   skuPrice: 0,
   skuPrice2: 0,
   skuPrice3: 0,
@@ -84,16 +83,6 @@ export const orderSourceEnum = {
   WEB: 3
 }
 
-/**
- * 销售订单是否含税：
- * 0-含税 1-不含税
- */
-export const OrderInTaxEnum = {
-  // 含税
-  TAX: 0,
-  // 不含税
-  NO_TAX: 1
-}
 
 /**
  * 销售订单类型：
@@ -119,14 +108,16 @@ export const OrderTypeEnum = {
 export const OrderStatusEnum = {
   // 初始状态
   INIT: 1,
-  // 拣货状态
+  // 拣货
   PICK: 2,
-  // 复核状态
+  // 复核
   CHECK: 3,
-  // 确认状态
-  CONFIRM: 4,
-  // 取消状态
-  CANCEL: 5
+  // 打包
+  PACK: 4,
+  // 确认
+  CONFIRM: 5,
+  // 作废
+  VOIDED: 6
 }
 
 /**
@@ -140,27 +131,7 @@ export const OrderIsHoldEnum = {
   HOLD: 1
 }
 
-/**
- * 销售订单支付状态
- * 1-结清 2-欠款
- */
-export const OrderPayStatusEnum = {
-  // 结清
-  SETTLE: 1,
-  // 欠款
-  ARREARS: 2
-}
 
-
-
-/**
- * 订单明细是否已退货
- * 0-正常 1-已退货
- */
-export const DetailIsRefundedEnum = {
-  NORMAL: 0,
-  REFUNDED: 1
-}
 
 
 

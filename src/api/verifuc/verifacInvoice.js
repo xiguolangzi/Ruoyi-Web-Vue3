@@ -44,9 +44,9 @@ export function delVerifacInvoice(invoiceId) {
 }
 
 // 重新发送
-export function resendApi(id) {
+export function resendApi(invoiceId) {
   return request({
-    url: '/verifuc/verifacInvoice/resendApi/' + id,
+    url: '/verifuc/verifacInvoice/resendApi/' + invoiceId,
     method: 'delete'
   })
 }

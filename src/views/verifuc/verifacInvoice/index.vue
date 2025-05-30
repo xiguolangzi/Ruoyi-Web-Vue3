@@ -25,8 +25,8 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="发票类型" prop="invoiceType">
-        <el-select v-model="queryParams.invoiceType" placeholder="请选择发票类型" clearable>
+      <el-form-item label="发票类型" prop="invoiceTipo">
+        <el-select v-model="queryParams.invoiceTipo" placeholder="请选择发票类型" clearable>
           <el-option
             v-for="dict in varifac_invoice_type"
             :key="dict.value"
@@ -114,16 +114,6 @@
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button 
-          type="warning" 
-          plain 
-          icon="Edit" 
-          :disabled="multiple"
-          @click="handleReSand"
-          v-hasPermi="['rabbitmq:verifacInvoice:edit']"
-        >重发</el-button>
-      </el-col>
-      <el-col :span="1.5">
         <el-button
           type="danger"
           plain
@@ -131,7 +121,17 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['verifuc:verifacInvoice:remove']"
-        >删除</el-button>
+        >作废</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button 
+          type="info" 
+          plain 
+          icon="Refresh" 
+          :disabled="multiple"
+          @click="handleReSand"
+          v-hasPermi="['rabbitmq:verifacInvoice:edit']"
+        >重发</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -142,13 +142,36 @@
           v-hasPermi="['verifuc:verifacInvoice:export']"
         >导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button 
+          type="primary" 
+          plain 
+          icon="Edit" 
+          @click="handleReSand"
+          v-hasPermi="['rabbitmq:verifacInvoice:edit']"
+        >更正发票</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button 
+          type="primary" 
+          plain 
+          icon="Edit" 
+          @click="handleReSand"
+          v-hasPermi="['rabbitmq:verifacInvoice:edit']"
+        >完整发票替换简易发票</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table class="table-container" v-loading="loading" :data="verifacInvoiceList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
-      
-      <el-table-column label="订单号" align="center" prop="orderNo" min-width="120" show-overflow-tooltip/>
+      <el-table-column label="订单号" align="center" prop="orderNo" min-width="120" show-overflow-tooltip>
+        <template #default="scope">
+          <span class="link-type" @click="handleViewOrder(scope.row)">
+            {{ scope.row.orderNo }}
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column label="发票类型" align="center" prop="invoiceTipo" min-width="120" show-overflow-tooltip>
         <template #default="scope">
           <dict-tag :options="varifac_invoice_type" :value="scope.row.invoiceTipo"/>
@@ -160,7 +183,13 @@
         </template>
       </el-table-column>
       <el-table-column label="发票系列" align="center" prop="invoiceSerie" />
-      <el-table-column label="发票号" align="center" prop="invoiceNumero" />
+      <el-table-column label="发票号" align="center" prop="invoiceNumero" >
+        <template #default="scope">
+          <span class="link-type" @click="handleUpdate(scope.row)">
+            {{ scope.row.invoiceNumero }}
+          </span>
+        </template>
+      </el-table-column>
       <el-table-column label="QR码" align="center" prop="invoiceQr" show-overflow-tooltip/>
       <el-table-column label="税额" align="center" prop="invoiceImporteImpuestos" />
       <el-table-column label="总金额(含税)" align="center" prop="invoiceImporteTotal" />
@@ -177,7 +206,7 @@
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="160">
         <template #default="scope">
           <el-button link type="primary" size="small" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['verifuc:verifacInvoice:edit']">修改</el-button>
-          <el-button link type="primary" size="small" icon="Edit" @click="handleReSand(scope.row)" v-hasPermi="['rabbitmq:verifacInvoice:edit']" :disabled="invoiceIsSuccess(scope.row)">重发</el-button>
+          <el-button link type="primary" size="small" icon="Edit" @click="handleReSand(scope.row)" v-hasPermi="['verifuc:verifacInvoice:edit']" :disabled="invoiceIsSuccess(scope.row)">重发</el-button>
           <el-button link type="danger" size="small" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['verifuc:verifacInvoice:remove']">作废</el-button>
         </template>
       </el-table-column>
@@ -190,133 +219,6 @@
       v-model:limit="queryParams.pageSize"
       @pagination="getList"
     />
-
-    <!-- 添加或修改verifac发票主对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="verifacInvoiceRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="关联的订单ID" prop="orderId">
-          <el-input v-model="form.orderId" placeholder="请输入关联的订单ID" />
-        </el-form-item>
-        <el-form-item label="订单编号" prop="orderNo">
-          <el-input v-model="form.orderNo" placeholder="请输入订单编号" />
-        </el-form-item>
-        <el-form-item label="发票编码" prop="invoiceCode">
-          <el-input v-model="form.invoiceCode" placeholder="请输入发票编码" />
-        </el-form-item>
-        <el-form-item label="发票类型" prop="invoiceType">
-          <el-select v-model="form.invoiceType" placeholder="请选择发票类型">
-            <el-option
-              v-for="dict in varifac_invoice_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="发票前缀" prop="invoiceSerial">
-          <el-input v-model="form.invoiceSerial" placeholder="请输入发票前缀" />
-        </el-form-item>
-        <el-form-item label="发票序号" prop="invoiceNumber">
-          <el-input v-model="form.invoiceNumber" placeholder="请输入发票序号" />
-        </el-form-item>
-        <el-form-item label="发票状态" prop="invoiceStatus">
-          <el-radio-group v-model="form.invoiceStatus">
-            <el-radio
-              v-for="dict in verifac_invoice_status"
-              :key="dict.value"
-              :label="parseInt(dict.value)"
-            >{{dict.label}}</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="QR码" prop="qrUrl">
-          <el-input v-model="form.qrUrl" placeholder="请输入QR码" />
-        </el-form-item>
-        <el-form-item label="发票描述" prop="description">
-          <el-input v-model="form.description" placeholder="请输入发票描述" />
-        </el-form-item>
-        <el-form-item label="开票日期" prop="issueDate">
-          <el-date-picker clearable
-            v-model="form.issueDate"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择开票日期">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="交易日期" prop="operationDate">
-          <el-date-picker clearable
-            v-model="form.operationDate"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择交易日期">
-          </el-date-picker>
-        </el-form-item>
-        <el-form-item label="税额" prop="taxAmount">
-          <el-input v-model="form.taxAmount" placeholder="请输入税额" />
-        </el-form-item>
-        <el-form-item label="总金额(含税)" prop="totalAmount">
-          <el-input v-model="form.totalAmount" placeholder="请输入总金额(含税)" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" placeholder="请输入备注" />
-        </el-form-item>
-        <el-divider content-position="center">verifac发票明细信息</el-divider>
-        <el-row :gutter="10" class="mb8">
-          <el-col :span="1.5">
-            <el-button type="primary" icon="Plus" @click="handleAddVerifacInvoiceDetail">添加</el-button>
-          </el-col>
-          <el-col :span="1.5">
-            <el-button type="danger" icon="Delete" @click="handleDeleteVerifacInvoiceDetail">删除</el-button>
-          </el-col>
-        </el-row>
-        <el-table :data="verifacInvoiceDetailList" :row-class-name="rowVerifacInvoiceDetailIndex" @selection-change="handleVerifacInvoiceDetailSelectionChange" ref="verifacInvoiceDetail">
-          <el-table-column type="selection" width="50" align="center" />
-          <el-table-column label="序号" align="center" prop="index" width="50"/>
-          <el-table-column label="税务类型" prop="taxType" width="150">
-            <template #default="scope">
-              <el-select v-model="scope.row.taxType" placeholder="请选择税务类型">
-                <el-option
-                  v-for="dict in verifac_tax_type"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                ></el-option>
-              </el-select>
-            </template>
-          </el-table-column>
-          <el-table-column label="税率" prop="taxRate" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.taxRate" placeholder="请输入税率" />
-            </template>
-          </el-table-column>
-          <el-table-column label="应税金额" prop="baseAmount" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.baseAmount" placeholder="请输入应税金额" />
-            </template>
-          </el-table-column>
-          <el-table-column label="税额" prop="taxAmount" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.taxAmount" placeholder="请输入税额" />
-            </template>
-          </el-table-column>
-          <el-table-column label="含税总额" prop="netAmount" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.netAmount" placeholder="请输入含税总额" />
-            </template>
-          </el-table-column>
-          <el-table-column label="租户ID" prop="tenantId" width="150">
-            <template #default="scope">
-              <el-input v-model="scope.row.tenantId" placeholder="请输入租户ID" />
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -324,9 +226,13 @@
 import { listVerifacInvoice, getVerifacInvoice, delVerifacInvoice, addVerifacInvoice, updateVerifacInvoice, resendApi } from "@/api/verifuc/verifacInvoice";
 import useUserStore from "@/store/modules/user";
 import { computed } from "vue";
-import {InvoiceStatusEnum } from "./constants.js"
+import {InvoiceStatusEnum } from "./invoiceConstants.js"
+import { useRouter, useRoute } from "vue-router";
+
 // 租户ID字段过滤使用
 const userStore = useUserStore();
+const router = useRouter();
+const route = useRoute();
 
 const { proxy } = getCurrentInstance();
 const { varifac_invoice_type, verifac_invoice_status, verifac_tax_type } = proxy.useDict('varifac_invoice_type', 'verifac_invoice_status', 'verifac_tax_type');
@@ -351,7 +257,7 @@ const data = reactive({
     orderId: null,
     orderNo: null,
     invoiceCode: null,
-    invoiceType: null,
+    invoiceTipo: null,
     invoiceSerial: null,
     invoiceNumber: null,
     invoiceStatus: null,
@@ -369,7 +275,7 @@ const data = reactive({
     invoiceCode: [
       { required: true, message: "发票编码不能为空", trigger: "blur" }
     ],
-    invoiceType: [
+    invoiceTipo: [
       { required: true, message: "发票类型不能为空", trigger: "change" }
     ],
     invoiceNumber: [
@@ -409,18 +315,23 @@ function cancel() {
   reset();
 }
 
+// 延时处理，解决异步修改结果，导致及时更新数据不准确的问题
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 /**
  * 重发按钮操作
 */ 
 const handleReSand = (row) => {
-  reset();
-  const _id = row.id || ids.value
+  const _id = row.invoiceId || ids.value
   resendApi(_id).then(response => {
     proxy.$modal.msgSuccess("重发成功");
-    handleQuery();
+    sleep(1000).then(()=>{
+      handleQuery();
+    });
   }).catch((e) => {
     proxy.$modal.msgError("重发失败", e.message);
-    handleQuery();
+    sleep(1000).then(()=>{
+      handleQuery();
+    });
   })
 }
 
@@ -431,7 +342,7 @@ function reset() {
     orderId: null,
     orderNo: null,
     invoiceCode: null,
-    invoiceType: null,
+    invoiceTipo: null,
     invoiceSerial: null,
     invoiceNumber: null,
     invoiceStatus: null,
@@ -474,21 +385,34 @@ function handleSelectionChange(selection) {
 
 /** 新增按钮操作 */
 function handleAdd() {
-  reset();
-  open.value = true;
-  title.value = "添加verifac发票主";
+  const obj = {path: "/salesManager/editInvoice", name:"editInvoice"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/salesManager/editInvoice" });
+    } 
+  ) 
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
-  reset();
-  const _invoiceId = row.invoiceId || ids.value
-  getVerifacInvoice(_invoiceId).then(response => {
-    form.value = response.data;
-    verifacInvoiceDetailList.value = response.data.verifacInvoiceDetailList;
-    open.value = true;
-    title.value = "修改verifac发票主";
-  });
+  const _invoiceId = row.invoiceId || ids.value[0];
+  const obj = {path: "/salesManager/editInvoice", name:"editInvoice"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/salesManager/editInvoice", query: { invoiceId: _invoiceId } });
+    } 
+  )
+}
+
+/** 查看订单信息 */
+function handleViewOrder(row){
+  const _orderId = row.orderId;
+  const obj = {path: "/salesManager/editSalesOrder", name:"editSalesOrder"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/salesManager/editSalesOrder", query: { orderId: _orderId } });
+    } 
+  )
 }
 
 /** 提交按钮 */

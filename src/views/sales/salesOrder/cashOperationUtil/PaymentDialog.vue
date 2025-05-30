@@ -1,29 +1,54 @@
 <template>
   <el-dialog
     v-model="paymentDialogVisible"
-    title="收银"
     width="600px"
     :before-close="handleClose"
     style="margin-top: 100px !important;"
-    :close-on-click-modal="false" 
-    :close-on-press-escape="false" 
-    :show-close="false"
+
   >
-    <el-form :model="paymentForm" label-width="120px" ref="paymentFormRef">
-      <!-- 订单信息展示 -->
-      <el-form-item label="应收金额:">
-        <span class="amount-display">{{ formatTwo(orderData.totalNetAmount)  + ' €'}}</span>
-      </el-form-item>
+    <template #header>
+      <div class="header-part">
+        <strong style="font-size: 24px; margin-right: 30px;" >收款界面</strong>
+        <dict-tag :options="sales_order_status" :value="orderData.orderStatus" style="margin-right: 20px;"/>
+        <dict-tag :options="sales_order_pay_status" :value="orderData.orderPayStatus"/>
+        
+      </div>
+    </template>
+    <el-form :model="paymentForm" label-width="120px" ref="paymentFormRef" :disabled="orderData.orderType != OrderTypeEnum.PRE_ORDER">
+      <el-row>
+        <el-col :span="12">
+          <!-- 订单信息展示 -->
+          <el-form-item label="应收金额:">
+            <span class="amount-display">{{ formatTwo(orderData.totalNetAmount)  + ' €'}}</span>
+          </el-form-item>
+          
+          <el-form-item label="已收金额:">
+            <span class="amount-display">{{ formatTwo(verifiedAmount)  + ' €'}}</span>
+          </el-form-item>
+          
+          <el-form-item label="待收金额:">
+            <span :class="['amount-display', { 'text-danger': remainAmount > 0 }]">
+              {{ formatTwo(remainAmount) + ' €'}}
+            </span>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <div class="qrcode">
+            <a 
+              v-if="orderData.verifacInvoice?.invoiceQr" 
+              :href="orderData.verifacInvoice.invoiceQr" 
+              target="_blank"
+            >
+              <qrcode-vue 
+                :value="orderData.verifacInvoice?.invoiceQr || null" 
+                :size="120" 
+                level="H"
+              />
+            </a>
+          </div>
+        </el-col>
+      </el-row>
       
-      <el-form-item label="已收金额:">
-        <span class="amount-display">{{ formatTwo(verifiedAmount)  + ' €'}}</span>
-      </el-form-item>
-      
-      <el-form-item label="待收金额:">
-        <span :class="['amount-display', { 'text-danger': remainAmount > 0 }]">
-          {{ formatTwo(remainAmount) + ' €'}}
-        </span>
-      </el-form-item>
       
       <!-- 支付方式输入 -->
       <el-form-item label="现金支付:" prop="cashAmount">
@@ -77,7 +102,6 @@
           </el-form-item>
         </el-col>
         <el-col :span="1.5">
-          <!-- 找零显示 -->
           <el-form-item label="找零金额:" >
             <span class="amount-display text-success">{{ formatTwo(changeAmount)  + ' €'}}</span>
           </el-form-item>
@@ -86,7 +110,7 @@
       
       <div class="dialog-footer">
           <el-button-group>
-            <el-button @click="handleClose" type="danger" >取消收款</el-button>
+            
             <el-button 
               type="primary" 
               @click="handlePartialPayment"
@@ -95,16 +119,16 @@
               部分收款
             </el-button>
             <el-button 
-              type="primary" 
+              type="warning" 
               @click="handleCompletedPayment"
               :disabled="isCompletedPayment"
             >
-              完全收款
+              完成收款
             </el-button>
             <el-button 
-              type="primary" 
+              type="success" 
               @click="handlePrintTicket"
-              :disabled="isCompletedPayment"
+              :disabled="orderData.orderPayStatus != OrderPayStatusEnum.PAID"
             >
               打印小票
             </el-button>
@@ -131,7 +155,7 @@
           </el-table-column>
           <el-table-column prop="payTime" label="支付时间" align="center" >
             <template #default="scope">
-              <span>{{ parseTime(scope.row.payTime, '{y}-{m}-{d}')  }}</span>
+              <span>{{ parseTime(scope.row.payTime, '{m}-{d}-{y} {h}:{i}:{s}')  }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" align="center" width="70">
@@ -151,13 +175,17 @@
 import { ref, computed } from 'vue';
 import { ElMessage, ElNotification } from 'element-plus';
 import {PaymentMethodEnum, OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
+import { OrderDirectionEnum, OrderTypeEnum } from './cashOperationEnum.js';
 import { Delete } from '@element-plus/icons-vue';
 import {completePayment} from '@/api/sales/salesOrder.js';
 import {paymentAutoPrintEnum, canRemainAmountEnum} from "./tenantConfigEnum.js"
+import { now } from 'lodash';
+import QrcodeVue from 'qrcode.vue';
 
 
 const { proxy } = getCurrentInstance();
-const {sales_order_pay_method} = proxy.useDict("sales_order_pay_method")
+const { sales_order_pay_method, sales_order_pay_status} = proxy.useDict("sales_order_pay_method", "sales_order_pay_status")
+const { sales_order_direction, sales_order_type, sales_order_status} = proxy.useDict( 'sales_order_direction', 'sales_order_type', 'sales_order_status');
 
 const props = defineProps({
   orderData: {
@@ -179,7 +207,15 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['paymentComplete'])
+const emit = defineEmits(['printTicket'])
+
+const title = computed(() => {
+  // 单据类型
+  let str1 = props.orderData.orderDirection === OrderDirectionEnum.SALES ? '销售收款' : '退货退款';
+  // 支付状态
+  let str2 = props.orderData.orderPayStatus === OrderPayStatusEnum.PAID ? '结算单' : '欠款单';
+  return `${str1} -- ${str2}`
+})
 
 
 
@@ -193,7 +229,7 @@ const paymentForm = ref({
 })
 const paymentFormRef = ref(null)
 
-// 计算属性 - 已核销金额
+// 已核销金额 = 支付列表 + 找零金额
 const verifiedAmount = computed(() => {
   return (props.orderData.salesOrderPaymentList || []).reduce((sum, payment) => {
     return sum + (Number(payment.payAmount) || 0 )
@@ -206,7 +242,7 @@ const currentPaymentAmount = computed(() => {
          (Number(paymentForm.value.bankAmount) || 0)
 })
 
-// 未核销金额
+// 未核销金额(待收金额)
 const remainAmount = computed(() => {
   const total = Number(props.orderData.totalNetAmount) || 0
   const verified = verifiedAmount.value
@@ -219,8 +255,11 @@ const changeAmount = computed(() => {
   return remainAmount.value < 0 ? Math.abs(remainAmount.value) : 0
 })
 
-// 部分收款 - 状态
+// 部分收款 - 状态 (false 展示，true 隐藏)
 const isPartialPayment = computed(() => {
+  if(props.orderData.orderPayStatus == OrderPayStatusEnum.PAID){
+    return true;
+  }
   if (remainAmount.value > 0){
     if(paymentForm.value.cashAmount <= 0 && paymentForm.value.bankAmount <= 0){
       return true
@@ -232,17 +271,22 @@ const isPartialPayment = computed(() => {
   }     
 })
 
-// 完成收款 - 状态
+// 完成收款 - 状态 (false 展示，true 隐藏)
 const isCompletedPayment = computed(() => {
+  // 订单金额小于等于0
+  if(props.orderData.totalNetAmount <= 0){
+    return true;
+  }
+  // 非未支付状态
+  if(props.orderData.orderPayStatus != OrderPayStatusEnum.UN_PAID){
+    return true;
+  }
   // 欠款收银配置
-  if(props.canRemainAmount == canRemainAmountEnum.OPEN && props.orderData.totalNetAmount > 0){
-    return false
+  if(remainAmount.value > 0 && props.canRemainAmount != canRemainAmountEnum.OPEN){
+    return true;
   }
-  if(remainAmount.value <= 0 && props.orderData.totalNetAmount > 0){
-    return false
-  }else{
-    return true
-  }
+
+  return false;
 })
 
 
@@ -267,7 +311,7 @@ const handlePartialPayment = () => {
   // 2 重置收款表单
   resetPaymentForm()
   // 3 更新订单统计金额数据
-  props.orderData.verifiedAmount = verifiedAmount.value; 
+  props.orderData.verifiedAmount = verifiedAmount.value  - changeAmount.value; 
   props.orderData.remainAmount = props.orderData.totalNetAmount - verifiedAmount.value;
   props.orderData.cashAmount = getTotalByType(PaymentMethodEnum.CASH);
   props.orderData.bankAmount = getTotalByType(PaymentMethodEnum.BANK);
@@ -300,13 +344,12 @@ const handleCompletedPayment = () => {
   // 3 更新订单统计金额数据
   props.orderData.verifiedAmount = verifiedAmount.value - changeAmount.value;
   props.orderData.remainAmount = remainAmount.value <= 0 ? 0 : remainAmount.value;
+
   props.orderData.cashAmount = getTotalByType(PaymentMethodEnum.CASH);
   props.orderData.bankAmount = getTotalByType(PaymentMethodEnum.BANK);
   props.orderData.changeAmount = changeAmount.value;
-  if(remainAmount.value <= 0){
-    props.orderData.orderPayStatus = OrderPayStatusEnum.PAID;
-  } else {
-   props.orderData.orderPayStatus = OrderPayStatusEnum.NOT_COMPLETED;
+
+  if(remainAmount.value > 0){
    // 存在未收欠款的订单需要绑定客户
    if(!props.orderData.customerId){
     ElNotification({
@@ -321,22 +364,26 @@ const handleCompletedPayment = () => {
    }
   }
   // 4 调用支付接口 -> 更新订单信息、支付信息、库存扣减
-  completePayment(props.orderData).then(() => {
-    // 是否自动打印
-    if (props.paymentAutoPrint == paymentAutoPrintEnum.OPEN) {
-      // 打印功能
-      handlePrintTicket()
+  completePayment(props.orderData).then((res) => {
+    if(res.code == 200){
+      props.orderData.orderPayStatus = res.data?.orderPayStatus;
+      props.orderData.orderStatus = res.data?.orderStatus;
+      // 是否自动打印
+      if (props.paymentAutoPrint == paymentAutoPrintEnum.OPEN) {
+        // 打印功能
+        handlePrintTicket()
+      }
     }
-    // 通知父级组件付款完成 -> 初始化订单表单数据
-    console.log('付款完成:----订单数据',props.orderData)
-    emit('paymentComplete')
-    handleClose()
   }).catch(error => {
-    resetPaymentForm()
-    ElMessage.error(error.message);
+    ElNotification({
+      title: 'Error',
+      message: error.message,
+      type: 'error',
+      position: 'bottom-right',
+      // appendTo 挂载到 全屏组件上
+      appendTo: props.notificationContainer
+    })
   });
-
-  
 }
 
 /**
@@ -353,7 +400,7 @@ const createPaymentRecord = (method, amount) => {
     orderNo: props.orderData.orderNo,
     payMethod: method,
     payAmount: amount,
-    payTime: null, // 存储为字符串而非Date对象
+    payTime: now(), // 存储为字符串而非Date对象
     transactionNo: null
   }
 }
@@ -391,7 +438,9 @@ const handleClose = () => {
  * 打印小票
  */
 const handlePrintTicket = () => {
-  // TODO: 打印小票
+  // 调用确认接口 - 返回QR
+  emit('printTicket')
+  // TODO: 打印带有QR的订单信息
   console.log('打印小票',props.orderData)
 }
 
@@ -430,6 +479,7 @@ defineExpose({ openPaymentDialog })
 }
 .text-success {
   color: #67c23a;
+  font-size: 24px;
 }
 .tip-text {
   margin-left: 10px;
@@ -440,5 +490,17 @@ defineExpose({ openPaymentDialog })
 .dialog-footer{
   text-align: center;
   margin-left: 50px;
+}
+
+.qrcode{
+  display: grid;
+  place-items: center; /* 水平和垂直居中 */
+  width: 100%;
+  height: 100%;
+}
+
+.header-part{
+  display: flex;
+  align-items: center;
 }
 </style>

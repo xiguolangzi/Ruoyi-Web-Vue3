@@ -59,7 +59,7 @@ class SnowflakeID {
       (this.machineId << this.machineIdShift) |
       this.sequence;
 
-    if (returnType === 'number') {
+    if (returnType == 'number') {
       if (id > BigInt(Number.MAX_SAFE_INTEGER)) {
         console.warn("⚠️ Warning: ID exceeds MAX_SAFE_INTEGER. Precision may be lost.");
       }

@@ -75,7 +75,9 @@
           :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
           @blur="handleBlur(scope.row, 'detailPrice')"
           @change="updateAmount(scope.row)" 
-          style="width: 100%;" type="number" size="small" />
+          style="width: 100%;" type="number" size="small" 
+          v-focusSelect
+        />
         <span v-else>{{ formatTwo(scope.row.detailPrice) + ' €' }}</span>
       </template>
     </el-table-column>
@@ -87,7 +89,9 @@
           v-model.number="scope.row.detailQuantity" :controls="false" :min="-9999999" :max="9999999" :step="0"
           :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" 
           @blur="handleBlur(scope.row, 'detailQuantity')" 
-          @change="updateAmount(scope.row)" style="width: 100%;" size="small" />
+          @change="updateAmount(scope.row)" style="width: 100%;" size="small" 
+          v-focusSelect
+        />
         <span v-else>{{ scope.row.detailQuantity || 0 }}</span>
       </template>
     </el-table-column>
@@ -99,13 +103,20 @@
           :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" 
           @blur="handleBlur(scope.row, 'detailDiscountRate')" 
           @change="updateAmount(scope.row)" 
-          style="width: 100%;" size="small"  />
+          style="width: 100%;" size="small"  
+          v-focusSelect
+        />
         <span v-else>{{ showDetailDiscountRate(scope.row) || 0 }} %</span>
       </template>
     </el-table-column>
     <el-table-column prop="detailSalesAmount" align="center" label="金额">
       <template #default="scope">
         <span>{{ formatTwo(scope.row.detailSalesAmount) + ' €' }}</span>
+      </template>
+    </el-table-column>
+    <el-table-column prop="detailTaxRate" align="center" label="税率" width="50">
+      <template #default="scope">
+        <span>{{ scope.row.detailTaxRate || 0 }} %</span>
       </template>
     </el-table-column>
     <el-table-column prop="detailSn" align="left" header-align="center" label="机器码" show-overflow-tooltip>
@@ -116,7 +127,9 @@
           :ref="(el) => setInputRef(el, scope.row, 'detailSn')"
           @blur="handleBlur(scope.row, 'detailSn')" 
           @change="updateAmount(scope.row)" 
-          style="width: 100%;" size="small"  type="text" :maxlength="20" />
+          style="width: 100%;" size="small"  type="text" :maxlength="20" 
+          v-focusSelect
+        />
         <span v-else>{{ scope.row.detailSn ?? '--'}}</span>
       </template>
     </el-table-column>
@@ -135,22 +148,6 @@
         <dict-tag :options="erp_product_sku_type" :value="scope.row.skuType" />
       </template>
     </el-table-column>
-    <el-table-column prop="detailTaxRate" align="center" label="税率" width="50">
-      <template #default="scope">
-        <span>{{ scope.row.detailTaxRate || 0 }} %</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="inTax" align="center" label="是否含税" width="80">
-      <template #default="scope">
-        <el-switch 
-          v-model="scope.row.inTax" 
-          :active-value="OrderInTaxEnum.TAX" :inactive-value="OrderInTaxEnum.NO_TAX"
-          active-text="含税" inactive-text="不含税" 
-          inline-prompt disabled
-          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;" size="small"
-          v-hasPermi="['sales:salesOrder:edit']" />
-      </template>
-    </el-table-column>
     <el-table-column label="操作" align="center" width="50">
       <template #default="scope">
         <el-button type="danger" size="small" :icon="Delete" circle @click="removeItem(scope.$index)" />
@@ -164,10 +161,11 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import { initOrderDetailData, OrderInTaxEnum } from '@/views/sales/salesOrder/cashOperationUtil/cashOperationEnum.js';
+import { initOrderDetailData } from '@/views/sales/salesOrder/cashOperationUtil/cashOperationEnum.js';
 import { Delete } from '@element-plus/icons-vue';
 import SkuSelect from '@/components/Common/SkuSelect.vue';
 import ComboConfirmDialog from '@/views/sales/salesOrder/cashOperationUtil/ComboConfirmDialog.vue';
+import { orderInTaxEnum} from '@/views/sales/salesOrder/cashOperationUtil/tenantConfigEnum.js';
 
 const { proxy } = getCurrentInstance();
 const {  erp_product_sku_type } = proxy.useDict('erp_product_sku_type');
@@ -178,14 +176,18 @@ const onceAddItemLength = 1;  // 每次添加新增的条数
 const tableRef = ref(null); // 表格实例
 const inputRef = ref(null); // 输入框实例
 const editingCell = ref(null); // 当前编辑的单元格 { row, prop, rowIndex, colIndex }
-// 可编辑的列
-const editableColumns = ['skuCode', 'detailPrice', 'detailQuantity', 'detailDiscountRate', 'detailSn'];
+const editableColumns = ['skuCode', 'detailPrice', 'detailQuantity', 'detailDiscountRate', 'detailSn']; // 可编辑的列
 
 const props = defineProps({
   tableData: {
     type: Array,
     required: true,
     default: () => [],
+  },
+  inTax: {
+    type: String,
+    required: true,
+    default: '0',
   },
   customerPriceLevel:{
     type: [Number],
@@ -244,7 +246,7 @@ const handleSkuSelected = (data, row) => {
   }
   console.log("获取的sku数据",data)
   console.log("当前行：", row)
-  const { skuId, skuCode, skuImage, skuName, assistName, skuType, comboId, skuValue, batchNo, unitVo, productRateVo, productInventoryForSkuVo, inTax, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6, packQuantity} = data;
+  const { skuId, skuCode, skuImage, skuName, assistName, skuType, comboId, skuValue, batchNo, unitVo, productRateVo, productInventoryForSkuVo, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6, packQuantity} = data;
   row.detailMainSkuId = null;
   row.skuId = skuId;
   row.skuCode = skuCode;
@@ -257,7 +259,6 @@ const handleSkuSelected = (data, row) => {
   row.batchNo = batchNo;
   row.detailSn = '';
   row.unitCode = unitVo?.unitCode;
-  row.inTax = inTax;
   row.skuPrice = skuPrice || 0;
   row.skuPrice2 = skuPrice2 || 0;
   row.skuPrice3 = skuPrice3 || 0;
@@ -291,7 +292,7 @@ const handleSkuSelected = (data, row) => {
   const { detailBaseAmount, detailTaxAmount, detailNetAmount } = calculateAmounts(
     row.detailSalesAmount,
     row.detailTaxRate,
-    row.inTax
+    props.inTax
   );
   row.detailBaseAmount = detailBaseAmount;
   row.detailTaxAmount = detailTaxAmount;
@@ -370,7 +371,7 @@ function calculateAmounts(salesAmount, taxRate, inTax) {
   const rateValue = (taxRate || 0)/100;
   let detailBaseAmount, detailTaxAmount, detailNetAmount;
 
-  if (inTax === 0) {
+  if (inTax == orderInTaxEnum.IN_TAX) {
     // 含税
     detailBaseAmount = salesAmount / (1 + rateValue);
     detailTaxAmount = salesAmount - detailBaseAmount;
@@ -403,7 +404,7 @@ const updateAmount = (row) => {
   const { detailBaseAmount, detailTaxAmount, detailNetAmount } = calculateAmounts(
     row.detailSalesAmount,
     row.detailTaxRate,
-    row.inTax
+    props.inTax
   );
   row.detailBaseAmount = detailBaseAmount;
   row.detailTaxAmount = detailTaxAmount;
@@ -434,25 +435,27 @@ const handleCellClick = (row, column) => {
         const inputEl = inputRef.value.$el.querySelector('input'); // 获取内部的 input 元素
         if (inputEl) {
           inputEl.focus(); // 聚焦输入框
-          setTimeout(() => {
-            inputEl.setSelectionRange(0, inputEl.value.length); // 选中全部内容
-          }, 100); // 增加延迟时间
+          // setTimeout(() => {
+          //   inputEl.setSelectionRange(0, inputEl.value.length); // 选中全部内容
+          // }, 100); // 增加延迟时间
         }
       }
     });
   }
 };
 
+
+
+
+// ---------------------------------  键盘事件 start ---------------------------------
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown);
+});
+
 // 处理输入框失焦
 const handleBlur = (row, prop) => {
   editingCell.value = null;
 };
-
-
-// 键盘事件
-onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
-});
 
 const handleKeyDown = (event) => {
   if (!tableRef.value || !editingCell.value) return;
@@ -497,7 +500,7 @@ const handleKeyDown = (event) => {
     }
   });
 };
-
+// ---------------------------------  键盘事件 end ---------------------------------
 
 
 </script>

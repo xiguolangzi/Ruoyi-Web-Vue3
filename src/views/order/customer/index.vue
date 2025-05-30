@@ -4,7 +4,7 @@
       <el-col :span="4" :xs="24" class="col-category-container">
         <div class="head-container">
           <el-input v-model="categoryName" placeholder="请输入分类名称" clearable prefix-icon="Search"
-            style="margin-bottom: 20px" />
+            style="margin-bottom: 20px" size="small"/>
         </div>
         <div class="head-container">
           <el-tree :data="categoryOptions" :props="{ label: 'label', children: 'children' }"
@@ -13,23 +13,29 @@
         </div>
       </el-col>
       <el-col :span="20" :xs="24" class="col-data-container">
-        <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+        <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px" size="small">
           <el-form-item label="客户编码: " prop="customerCode">
             <el-input v-model="queryParams.customerCode" placeholder="请输入客户编码" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item label="客户名称: " prop="customerName">
             <el-input v-model="queryParams.customerName" placeholder="请输入客户名称" clearable @keyup.enter="handleQuery" />
           </el-form-item>
-          <el-form-item label="CIF/NIE: " prop="invoiceTax">
-            <el-input v-model="queryParams.invoiceTax" placeholder="请输入纳税人税号" clearable @keyup.enter="handleQuery" />
+          <el-form-item label="CIF/NIE: " prop="invoiceNif">
+            <el-input v-model="queryParams.invoiceNif" placeholder="请输入纳税人税号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
-          <el-form-item label="发票名称: " prop="invoiceName">
-            <el-input v-model="queryParams.invoiceName" placeholder="请输入纳税人名称" clearable @keyup.enter="handleQuery" />
+          <el-form-item label="发票名称: " prop="invoiceNombre">
+            <el-input v-model="queryParams.invoiceNombre" placeholder="请输入纳税人名称" clearable @keyup.enter="handleQuery" />
           </el-form-item>
-          <el-form-item label="客户类型: " prop="customerType">
-            <el-select v-model="queryParams.customerType" placeholder="请选择客户类型" clearable>
-              <el-option v-for="dict in order_customer_type" :key="dict.value" :label="dict.label"
-                :value="Number(dict.value)" />
+          <el-form-item label="客户类型: " prop="invoiceRegimen">
+            <el-select v-model="queryParams.invoiceRegimen" placeholder="请选择客户类型" clearable>
+              <el-option v-for="dict in invoice_regimen" :key="dict.value" :label="dict.label"
+                :value="dict.value" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="交易类型: " prop="invoiceCalificacion">
+            <el-select v-model="queryParams.invoiceCalificacion" placeholder="请选择客户类型" clearable>
+              <el-option v-for="dict in invoice_calificacion" :key="dict.value" :label="dict.label"
+                :value="dict.value" />
             </el-select>
           </el-form-item>
           <el-form-item label="客户等级: " prop="levelId">
@@ -39,20 +45,17 @@
             </el-select>
           </el-form-item>
           <el-form-item label="绑定业务员: " prop="salesmanId">
-            <el-select v-model="queryParams.salesmanId" placeholder="请选择客户等级" clearable filterable>
-              <el-option v-for="item in salesmanList" :key="item.userId" :label="item.userName" :value="item.userId" />
-            </el-select>
+            <SalesmanSelect v-model="queryParams.salesmanName"  @selectedData="selectedParamSalesmanData" />
           </el-form-item>
           <el-form-item label="发掘客户者: " prop="findBy">
-            <el-input v-model="queryParams.findBy" placeholder="请输发掘客户者名称" clearable @keyup.enter="handleQuery"
-              maxlength="50" />
+            <UserSelect v-model="queryParams.findByName"  @selectedData="selectedParamFindByData" />
           </el-form-item>
         </el-form>
 
         <el-row :gutter="10" class="mb8">
           <el-col :span="1.5">
             <el-button type="primary" plain icon="Plus" @click="handleAdd"
-              v-hasPermi="['order:customer:add']">新增</el-button>
+              v-hasPermi="['order:customer:add']" >新增</el-button>
           </el-col>
           <el-col :span="1.5">
             <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
@@ -75,62 +78,25 @@
 
 
           <el-table class="table-container" v-loading="loading" :data="customerList" size="small"
-          @selection-change="handleSelectionChange" resizable  ref="customerTable" 
-          @expand-change="handleExpandChange2" row-key="customerId">
-            <el-table-column type="expand">
-              <template #default="props">
-                <div style="padding: 10px 50px;">
-                  <el-descriptions title=">>> 发票信息: " :column="5" size="small">
-                    <el-descriptions-item label="纳税人税号:">{{ props.row.invoiceTax }}</el-descriptions-item>
-                    <el-descriptions-item label="纳税人名称:">{{ props.row.invoiceName }}</el-descriptions-item>
-                    <el-descriptions-item label="纳税人电话:">{{ props.row.invoicePhone }}</el-descriptions-item>
-                    <el-descriptions-item label="纳税人邮编:">{{ props.row.invoicePostcode }}</el-descriptions-item>
-                    <el-descriptions-item label="纳税人地址:">{{ props.row.invoiceAddress }}</el-descriptions-item>
-                  </el-descriptions>
-                  <el-descriptions title=">>> 联系人信息: " :column="5" size="small">
-                    <el-descriptions-item label="联系人名称:">{{ props.row.contactName }}</el-descriptions-item>
-                    <el-descriptions-item label="联系人电话:">{{ props.row.contactPhone }}</el-descriptions-item>
-                    <el-descriptions-item label="联系人邮箱:">{{ props.row.contactEmail }}</el-descriptions-item>
-                    <el-descriptions-item label="联系人地址:" :span="2">{{ props.row.contactAddress }}</el-descriptions-item>
-                  </el-descriptions>
-                  <el-descriptions title=">>> 银行账户信息: " :column="6" size="small">
-                    <template v-for="(bank, index) in props.row.bankAccountList" :key="index">
-                      <el-descriptions-item label="银行名称:">{{ bank.bankName || '--' }}</el-descriptions-item>
-                      <el-descriptions-item label="账户账号:">{{ bank.accountNo || '--' }}</el-descriptions-item>
-                      <el-descriptions-item label="账户名称:">{{ bank.accountName || '--' }}</el-descriptions-item>
-                      <el-descriptions-item label="swiftCode:">{{ bank.swiftCode || '--' }}</el-descriptions-item>
-                      <el-descriptions-item label="是否默认:">
-                        <dict-tag :options="sys_yes_or_no" :value="bank.isDefault" style="display: inline-block;"/>
-                      </el-descriptions-item>
-                      <el-descriptions-item label="备注信息:" >{{ bank.remark || '--' }}</el-descriptions-item>
-                    </template>
-                  </el-descriptions>
-                  <el-descriptions title=">>> 更新信息: " :column="5" size="small">
-                    <el-descriptions-item label="创建人:">{{ props.row.createBy }}</el-descriptions-item>
-                    <el-descriptions-item label="创建时间:">{{ parseTime(props.row.createTime, '{y}-{m}-{d}')
-                      }}</el-descriptions-item>
-                    <el-descriptions-item label="修改人:">{{ props.row.updateBy }}</el-descriptions-item>
-                    <el-descriptions-item label="修改时间:">{{ parseTime(props.row.updateTime, '{y}-{m}-{d}')
-                      }}</el-descriptions-item>
-                    <el-descriptions-item label="备注:">{{ props.row.remark }}</el-descriptions-item>
-                  </el-descriptions>
-                </div>
-
-              </template>
-            </el-table-column>
+            @selection-change="handleSelectionChange" resizable  ref="customerTable" row-key="customerId"
+          >
             <el-table-column type="selection" width="55" align="center" />
-            <el-table-column label="客户分类" align="center" prop="categoryVo.categoryName" min-width="120"
-              show-overflow-tooltip />
-            <el-table-column label="客户编码" align="center" prop="customerCode" show-overflow-tooltip />
-            <el-table-column label="客户名称" align="center" prop="customerName" show-overflow-tooltip />
-            <el-table-column label="客户类型" align="center" prop="customerType" show-overflow-tooltip>
+            <el-table-column label="客户分类" align="left" prop="categoryName" show-overflow-tooltip />
+            <el-table-column label="客户编码" align="left" prop="customerCode" show-overflow-tooltip />
+            <el-table-column label="客户名称" align="left" prop="customerName" show-overflow-tooltip />
+            <el-table-column label="客户类型" align="center" prop="invoiceRegimen" show-overflow-tooltip>
               <template #default="scope">
-                <dict-tag :options="order_customer_type" :value="scope.row.customerType" />
+                <dict-tag :options="invoice_regimen" :value="scope.row.invoiceRegimen" />
               </template>
             </el-table-column>
-            <el-table-column label="客户等级" align="center" prop="leverId">
+            <el-table-column label="交易类型" align="center" prop="invoiceCalificacion" show-overflow-tooltip>
               <template #default="scope">
-                <span>{{ scope.row.customerLevel ? scope.row.customerLevel.levelName : '--' }}</span>
+                <dict-tag :options="invoice_calificacion" :value="scope.row.invoiceCalificacion" />
+              </template>
+            </el-table-column>
+            <el-table-column label="客户等级" align="left" prop="leverId">
+              <template #default="scope">
+                <span>{{ scope.row.levelName?? '--' }}</span>
               </template>
             </el-table-column>
             <el-table-column label="客户状态" align="center" prop="customerStatus">
@@ -138,22 +104,21 @@
                 <dict-tag :options="project_general_status" :value="scope.row.customerStatus" />
               </template>
             </el-table-column>
-            <el-table-column label="绑定业务员" align="center" prop="salesmanId" show-overflow-tooltip>
+            <el-table-column label="绑定业务员" align="left" prop="salesmanName" show-overflow-tooltip>
               <template #default="scope">
-                <span>{{ scope.row.salesmanVo ? scope.row.salesmanVo.userName : '--' }}</span>
+                <span>{{ scope.row.salesmanName?? '--' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="发掘客户者" align="center" prop="findBy" show-overflow-tooltip>
+            <el-table-column label="发掘客户者" align="left" prop="findByName" show-overflow-tooltip>
               <template #default="scope">
-                <span>{{ scope.row.findBy ? scope.row.findBy : '--' }}</span>
+                <span>{{ scope.row.findByName?? '--' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+            <el-table-column label="操作" align="left" class-name="small-padding fixed-width" width="180px">
               <template #default="scope">
-                <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
-                  v-hasPermi="['order:customer:edit']">修改</el-button>
-                <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)"
-                  v-hasPermi="['order:customer:remove']">删除</el-button>
+                <el-button link type="primary" icon="Edit" size="small" @click="handleUpdate(scope.row)"  v-hasPermi="['order:customer:edit']">修改</el-button>
+                <el-button link type="primary" size="small"  @click="handleEditSku(scope.row)"> >>更多详情 </el-button>
+                <el-button link type="danger" icon="Delete" size="small" @click="handleDelete(scope.row)"  v-hasPermi="['order:customer:remove']">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -168,7 +133,7 @@
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="customerRef" :model="form" :rules="rules" label-width="80px">
         <el-tabs type="border-card" v-model="activeTab">
-
+          <!-- 基础信息 -->
           <el-tab-pane label="基础信息" name="basic">
             <el-form-item label="客户分类" prop="categoryId">
               <el-tree-select v-model="form.categoryId" :data="categoryOptions"
@@ -183,10 +148,16 @@
               <el-input v-model="form.customerName" placeholder="请输入客户名称" type="textarea" :maxlength="50"
                 show-word-limit :rows="1" />
             </el-form-item>
-            <el-form-item label="客户类型: " prop="customerType">
-              <el-select v-model="form.customerType" placeholder="请选择客户类型">
-                <el-option v-for="dict in order_customer_type" :key="dict.value" :label="dict.label"
-                  :value="Number(dict.value)"></el-option>
+            <el-form-item label="客户类型: " prop="invoiceRegimen">
+              <el-select v-model="form.invoiceRegimen" placeholder="请选择客户类型">
+                <el-option v-for="dict in invoice_regimen" :key="dict.value" :label="dict.label"
+                  :value="dict.value"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="交易类型: " prop="invoiceCalificacion">
+              <el-select v-model="form.invoiceCalificacion" placeholder="请选择交易类型">
+                <el-option v-for="dict in invoice_calificacion" :key="dict.value" :label="dict.label"
+                  :value="dict.value"></el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="客户等级: " prop="levelId">
@@ -202,29 +173,24 @@
               </el-radio-group>
             </el-form-item>
             <el-form-item label="发掘客户者: " prop="findBy">
-              <el-select v-model="form.findBy" placeholder="请选择发掘客户的员工" clearable filterable style="width: auto;">
-                <el-option v-for="item in userList" :key="item.userId" :label="item.userName" :value="item.userName" />
-              </el-select>
+              <UserSelect v-model="form.findByName" @selectedData="selectedFindByData"/>
             </el-form-item>
             <el-form-item label="绑定业务员: " prop="salesmanId">
-              <el-select v-model="form.salesmanId" placeholder="请选择客户等级" clearable filterable style="width: auto;">
-                <el-option v-for="item in salesmanList" :key="item.userId" :label="item.userName"
-                  :value="item.userId" />
-              </el-select>
+              <SalesmanSelect v-model="form.salesmanName" @selectedData="selectedSalesmanData"/>
             </el-form-item>
             <el-form-item label="备注: " prop="remark">
               <el-input v-model="form.remark" type="textarea" placeholder="请输入备注" maxlength="50" show-word-limit
                 :rows="2" />
             </el-form-item>
           </el-tab-pane>
-
+          <!-- 发票信息 -->
           <el-tab-pane label="发票信息" name="invoiceInfo">
-            <el-form-item label="CIF/NIE: " prop="invoiceTax">
-              <el-input v-model="form.invoiceTax" placeholder="请输入纳税人税号" type="textarea" maxlength="50" show-word-limit
+            <el-form-item label="CIF/NIE: " prop="invoiceNif">
+              <el-input v-model="form.invoiceNif" placeholder="请输入纳税人税号" type="textarea" maxlength="50" show-word-limit
                 :rows="1" />
             </el-form-item>
-            <el-form-item label="发票名称: " prop="invoiceName">
-              <el-input v-model="form.invoiceName" placeholder="请输入纳税人名称" type="textarea" maxlength="50" show-word-limit
+            <el-form-item label="发票名称: " prop="invoiceNombre">
+              <el-input v-model="form.invoiceNombre" placeholder="请输入纳税人名称" type="textarea" maxlength="50" show-word-limit
                 :rows="1" />
             </el-form-item>
             <el-form-item label="发票电话: " prop="invoicePhone">
@@ -239,12 +205,35 @@
               <el-input v-model="form.contactEmail" placeholder="请输入联系人邮箱" type="textarea" maxlength="50"
                 show-word-limit :rows="1" />
             </el-form-item>
-            <el-form-item label="发票地址: " prop="invoiceAddress">
-              <el-input v-model="form.invoiceAddress" placeholder="请输入纳税人地址" type="textarea" maxlength="100"
-                show-word-limit :rows="2" />
+            <el-form-item label="地址-国家:" prop="invoiceAddressCountry">
+              <el-select v-model="form.invoiceAddressCountry" placeholder="请输入地址国家" filterable clearable style="width: 100%" @change="handleAddressCountryChange">
+                <el-option
+                  v-for="item in addressCountryList"
+                  :key="item.countryId"
+                  :label="`${item.countryCode} - ${item.nameEs} - ${item.nameZh}`"
+                  :value="item.nameEs"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="地址-省份:" prop="invoiceAddressProvince">
+              <el-select v-model="form.invoiceAddressProvince" placeholder="请输入地址省份" filterable clearable style="width: 100%" v-if="addressProvinceList.length > 0">
+                <el-option
+                  v-for="item in addressProvinceList"
+                  :key="item.provinceId"
+                  :label="`${item.provinceCode} - ${item.provinceNameEs} - ${item.provinceNameZh}`"
+                  :value="item.provinceNameEs"
+                >
+                </el-option>
+              </el-select>
+              <el-input v-else v-model="form.invoiceAddressProvince" placeholder="请输入地址省份" type="textarea" maxlength="50" show-word-limit :rows="1"/>
+            </el-form-item>
+            
+            <el-form-item label="地址-明细:" prop="invoiceAddressDetail">
+              <el-input v-model="form.invoiceAddressDetail" placeholder="请输入地址明细" type="textarea" maxlength="200" show-word-limit :rows="2"/>
             </el-form-item>
           </el-tab-pane>
-
+          <!-- 联系人信息 -->
           <el-tab-pane label="联系人信息" name="contactInfo">
             <el-form-item label="联系人名称: " prop="contactName">
               <el-input v-model="form.contactName" placeholder="请输入联系人名称" type="textarea" maxlength="50" show-word-limit
@@ -254,59 +243,11 @@
               <el-input v-model="form.contactPhone" placeholder="请输入联系人电话" type="textarea" maxlength="20"
                 show-word-limit :rows="1" />
             </el-form-item>
-            <el-form-item label="联系人地址: " prop="contactAddress">
-              <el-input v-model="form.contactAddress" placeholder="请输入联系人地址" type="textarea" maxlength="100"
+            <el-form-item label="联系人地址: " prop="contactAddressDetail">
+              <el-input v-model="form.contactAddressDetail" placeholder="请输入联系人详细地址" type="textarea" maxlength="200"
                 show-word-limit :rows="2" />
             </el-form-item>
           </el-tab-pane>
-
-          <el-tab-pane label="银行账户" name="bankAccount">
-            <el-table :data="form.bankAccountList" border style="width: 100%;" ref="bankAccountList" @expand-change="handleExpandChange" row-key="accountId">
-              <el-table-column type="expand" >
-                <template #default="props">
-                  <div style="padding: 10px;">
-                    <el-descriptions title="发票信息" :column="2" size="small">
-                      <el-descriptions-item label="银行名称:">
-                        <el-input v-model="props.row.bankName" placeholder="请输入银行名称" type="textarea" maxlength="50" :rows="1"/>
-                      </el-descriptions-item>
-                      <el-descriptions-item label="账户名称:">
-                        <el-input v-model="props.row.accountName" placeholder="请输入银行名称" type="textarea" maxlength="50" :rows="1"/>
-                      </el-descriptions-item>
-                      <el-descriptions-item label="swiftCode:">
-                        <el-input v-model="props.row.swiftCode" placeholder="请输入开户行" type="textarea" maxlength="20" :rows="1"/>
-                      </el-descriptions-item>
-                      <el-descriptions-item label="备注信息:">
-                        <el-input v-model="props.row.remark" placeholder="请输入备注信息" type="textarea" maxlength="50" :rows="1"/>
-                      </el-descriptions-item>
-                    </el-descriptions>
-                  </div>
-                </template>
-              </el-table-column>
-              <el-table-column label="银行账号" align="center" prop="accountNo" show-overflow-tooltip >
-                <template #default="scope">
-                  <el-input v-model="scope.row.accountNo" placeholder="银行账号" type="textarea" maxlength="64" :rows="1"/>
-                </template>
-              </el-table-column>
-              <el-table-column label="默认" align="center" prop="isDefault" show-overflow-tooltip width="65">
-                <template #default="scope">
-                    <el-switch v-model="scope.row.isDefault" :active-value="sys_yes_or_no[0].value"
-                      :inactive-value="sys_yes_or_no[1].value" inline-prompt active-text="si" inactive-text="no"
-                      style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; width: 100%;"
-                      @change="handleDefaultChange(scope.row, scope.$index)" size="small" />
-                </template>
-              </el-table-column>
-              <el-table-column label="操作" width="60" align="center">
-                <template #default="scope">
-                  <el-button type="danger" size="small" plain @click="removeBankAccount(scope.$index)" style="width: 100%;">删除</el-button>
-                </template>
-              </el-table-column>
-            </el-table>
-            <el-button type="primary" plain @click="addBankAccount" v-if="form.bankAccountList.length < 5" style="margin-top: 10px;">
-              添加 银行信息
-            </el-button>
-          </el-tab-pane>
-
-
         </el-tabs>
       </el-form>
       <template #footer>
@@ -316,23 +257,78 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 详情抽屉弹窗 -->
+    <el-drawer v-model="drawer" direction="rtl" append-to-body >
+      <template #header>
+        <span>客户详情 : {{ currentRow?.customerName || '' }}</span>
+      </template>
+      <div v-if="currentRow">
+        <el-card shadow="hover" style="margin-bottom: 5px;">
+          <template #header>
+            <div class="clearfix" style="display: flex;">
+              <span style="margin-right: 20px;">发票信息</span>
+            </div>
+          </template>
+          <el-descriptions  :column="2" size="small">
+            <el-descriptions-item label="纳税人税号:">{{ currentRow.invoiceNif }}</el-descriptions-item>
+            <el-descriptions-item label="纳税人名称:">{{ currentRow.invoiceNombre }}</el-descriptions-item>
+            <el-descriptions-item label="纳税人电话:">{{ currentRow.invoicePhone }}</el-descriptions-item>
+            <el-descriptions-item label="纳税人邮编:">{{ currentRow.invoicePostcode }}</el-descriptions-item>
+            <el-descriptions-item label="纳税人地址:" :span="2">
+              {{ currentRow.invoiceAddressCountry + ' '+ currentRow.invoiceAddressProvince + ' ' + currentRow.invoiceAddressDetail }}
+            </el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+        <el-card shadow="hover" style="margin-bottom: 5px;">
+          <template #header>
+            <div class="clearfix" style="display: flex;">
+              <span style="margin-right: 20px;">联系人信息</span>
+            </div>
+          </template>
+          <el-descriptions  :column="2" size="small">
+            <el-descriptions-item label="联系人名称:">{{ currentRow.contactName }}</el-descriptions-item>
+            <el-descriptions-item label="联系人电话:">{{ currentRow.contactPhone }}</el-descriptions-item>
+            <el-descriptions-item label="联系人邮箱:" :span="2">{{ currentRow.contactEmail }}</el-descriptions-item>
+            <el-descriptions-item label="联系人地址:" :span="2">{{ currentRow.contactAddress }}</el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+        <el-card shadow="hover">
+          <template #header>
+            <div class="clearfix" style="display: flex;">
+              <span style="margin-right: 20px;">更新信息</span>
+            </div>
+          </template>
+          <el-descriptions :column="2" size="small">
+            <el-descriptions-item label="创建人:">{{ currentRow.createBy }}</el-descriptions-item>
+            <el-descriptions-item label="创建时间:">{{ parseTime(currentRow.createTime, '{y}-{m}-{d}')}}</el-descriptions-item>
+            <el-descriptions-item label="修改人:">{{ currentRow.updateBy }}</el-descriptions-item>
+            <el-descriptions-item label="修改时间:">{{ parseTime(currentRow.updateTime, '{y}-{m}-{d}')}}</el-descriptions-item>
+            <el-descriptions-item label="备注:" :span="2">{{ currentRow.remark }}</el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
 <script setup name="Customer">
 import { listCustomer, getCustomer, delCustomer, addCustomer, updateCustomer } from "@/api/order/customer";
 import {listCustomerLevel} from "@/api/order/customerLevel";
+import { listAddressCountry } from "@/api/address/addressCountry";
+import { listAddressProvince } from "@/api/address/addressProvince";
+import {categoryTreeSelect} from "@/api/order/customerCategory";
 import useUserStore from "@/store/modules/user";
 import { ref } from "vue";
-import {categoryTreeSelect} from "@/api/order/customerCategory";
-import { listSalesman } from "@/api/system/user";
-import { listUser } from "@/api/system/user";
+import SalesmanSelect from '@/components/Common/SalesmanSelect.vue';
+import UserSelect from "@/components/Common/UserSelect.vue";
+
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
-const { order_customer_type, project_general_status, sys_yes_or_no } = proxy.useDict('order_customer_type', 'project_general_status', 'sys_yes_or_no');
+const { invoice_regimen, invoice_calificacion, project_general_status, sys_yes_or_no } = proxy.useDict('invoice_regimen', 'invoice_calificacion', 'project_general_status', 'sys_yes_or_no');
 
 const customerList = ref([]);
 const open = ref(false);
@@ -346,6 +342,8 @@ const title = ref("");
 const categoryName = ref(""); // 分类名称
 const categoryOptions = ref(null);
 const activeTab = ref('basic'); // 当前激活的标签页
+const addressCountryList = ref([]);
+const addressProvinceList = ref([]);
 
 
 
@@ -359,10 +357,10 @@ const data = reactive({
     customerCode: null,
     customerName: null,
     customerStatus: null,
-    customerType: null,
-    customerLevel: null,
-    invoiceTax: null,
-    invoiceName: null,
+    invoiceRegimen: null,
+    invoiceCalificacion: null,
+    invoiceNif: null,
+    invoiceNombre: null,
     invoicePhone: null,
     invoicePostcode: null,
     tenantId: null,
@@ -377,23 +375,29 @@ const data = reactive({
     customerName: [
       { required: true, message: "客户名称不能为空", trigger: "blur" }
     ],
-    customerType: [
+    invoiceRegimen: [
       { required: true, message: "客户类型不能为空", trigger: "change" }
     ],
-    invoiceTax: [
-      { required: true, message: "纳税人编号不能为空", trigger: "blur" }
+    invoiceCalificacion: [
+      { required: true, message: "交易类型不能为空", trigger: "change" }
     ],
-    invoiceName: [
-      { required: true, message: "纳税人名称不能为空", trigger: "blur" }
+    invoiceNif: [
+      { required: true, message: "Nif不能为空", trigger: "blur" }
+    ],
+    invoiceNombre: [
+      { required: true, message: "公司/个人名称不能为空", trigger: "blur" }
     ],
     invoicePhone: [
-      { required: true, message: "纳税人电话不能为空", trigger: "blur" }
+      { required: true, message: "电话不能为空", trigger: "blur" }
     ],
     invoicePostcode: [
-      { required: true, message: "纳税人邮编不能为空", trigger: "blur" }
+      { required: true, message: "邮编不能为空", trigger: "blur" }
     ],
-    invoiceAddress: [
-      { required: true, message: "纳税人地址不能为空", trigger: "blur" }
+    invoiceAddressCountry: [
+      { required: true, message: "地址-国家 不能为空", trigger: "blur" }
+    ],
+    invoiceAddressProvince: [
+      { required: true, message: "地址-省份 不能为空", trigger: "blur" }
     ],
   }
 });
@@ -412,7 +416,115 @@ function getList() {
   });
 }
 
+// ***************************************  6 抽屉数据部分 start *********************************************
+// 抽屉弹窗
+const drawer = ref(false);
+const currentRow = ref(null)
+const handleEditSku = (row) => {
+  currentRow.value = row;
+  drawer.value = true;
+}
+// ***************************************  6 抽屉数据部分 end *********************************************
+
+// --------------------- 查询客户 start -------------------
+/** 查询发掘客户的用户 */
+function selectedFindByData(data){
+  if(data){
+    form.value.findById = data.userId;
+    form.value.findByName = data.userName;
+  } else {
+    form.value.findById = null;
+    form.value.findByName = null;
+  }
+}
+
+/** 查询业务员 */
+function selectedSalesmanData(data){
+  if(data){
+    form.value.salesmanId = data.userId;
+    form.value.salesmanName = data.userName;
+  } else {
+    form.value.salesmanId = null;
+    form.value.salesmanName = null;
+  }
+  
+}
+
+function selectedParamSalesmanData(data){
+  if(data){
+    queryParams.value.salesmanId = data.userId;
+    queryParams.value.salesmanName = data.userName;
+  } else {
+    queryParams.value.salesmanId = null;
+    queryParams.value.salesmanName = null;
+  }
+} 
+
+function selectedParamFindByData(data){
+  if(data){ 
+    queryParams.value.findBy = data.userId;
+    queryParams.value.findByName = data.userName;
+  } else {
+    queryParams.value.findBy = null;
+    queryParams.value.findByName = null;
+  }
+
+}
+
+
+// ----------------------- 查询客户 end -------------------
+
 // ---------------------- 1 分类树相关 start ----------------
+/**
+ * 获取地址数据
+ */
+ const getAddressCountryList = () => {
+  const param = {
+    pageNum: 1,
+    pageSize: 500
+  }
+  listAddressCountry(param).then(response => {
+    if(response.rows){
+      addressCountryList.value = response.rows;
+    }
+  }).catch(error => {
+    console.error("获取地址国家列表失败：", error);
+  });
+}
+getAddressCountryList();
+
+/**
+ * 获取省份地址数据
+ */
+const getAddressProvinceList = () => {
+  const param = {
+    pageNum: 1,
+    pageSize: 500,
+    countryCode: 'ES'
+  }
+  listAddressProvince(param).then(response => {
+    if(response.rows){
+      addressProvinceList.value = response.rows;
+    }
+  }).catch(error => {
+    console.error("获取地址省份列表失败：", error);
+  })
+}
+
+const handleAddressCountryChange = () => {
+  form.value.invoiceAddressProvince = null;
+  form.value.invoiceAddressDetail = null;
+  if(form.value.invoiceAddressCountry){
+    if(form.value.invoiceAddressCountry == 'España'){
+      getAddressProvinceList();
+    } else{
+      addressProvinceList.value = [];
+    }
+  } else{
+    addressProvinceList.value = [];
+  }
+}
+
 /** 通过条件过滤节点  */
 const filterNode = (value, data) => {
   if (!value) return true;
@@ -455,93 +567,6 @@ function getCustomerLevelList() {
 
 getCustomerLevelList()
 // ---------------------- 2 客户等级相关 end ----------------
-// ---------------------- 3 获取员工信息 start -------------
-const userList = ref([]);
-const getUserList = async () => {
-  listUser()
-    .then(response => {
-      userList.value = response.rows || []
-    })
-    .catch(error => {
-      ElMessage.error("获取员工列表时出错:", error)
-    })
-};
-getUserList()
-
-
-// ---------------------- 3 获取员工信息 end -------------
-
-// ---------------------- 4 获取业务员数据 start ----------------
-const salesmanList = ref([]);
-const getSalesman = async () => {
-  listSalesman()
-    .then(response => {
-      salesmanList.value = response.rows || []
-    })
-    .catch(error => {
-      ElMessage.error("获取业务员列表时出错:", error)
-    })
-};
-
-getSalesman()
-
-// ---------------------- 4 获取业务员数据 end    ----------------
-
-// --------------------- 5 银行账户数据 start -------------------------------
-const generateRowKey = () => `row_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-const initBankAccount = () => {
-  return {
-    accountId: generateRowKey(),
-    accountName: null,
-    accountNo: null,
-    bankName: null,
-    swiftCode: null,
-    remark: null,
-    isDefault: '1'
-  }
-}
-
-const removeBankAccount = (index) => {
-  form.value.bankAccountList.splice(index, 1);
-}
-
-const addBankAccount = () => {
-  form.value.bankAccountList.push(initBankAccount());
-}
-
-const handleDefaultChange = (row, index) => {
-  if (row.isDefault === '0') {
-    // 遍历所有数据，将非选中行的 isDefault 设置为 '0'
-    form.value.bankAccountList.forEach((item, i) => {
-      if (i !== index) {
-        item.isDefault = '1';
-      }
-    });
-  }
-}
-// ---------------------- 5 银行账户数据 end -------------------------------
-// ---------------------- 6 el-table-expand - 添加银行账户 start --------------------------
-const bankAccountList = ref(null);
-const expandedRow = ref(null);
-const handleExpandChange = (row) => {
-  if (expandedRow.value && expandedRow.value !== row) {
-    bankAccountList.value.toggleRowExpansion(expandedRow.value, false);
-  }
-  expandedRow.value = row;
-};
-// ----------------------- 6 el-table-expand - 添加银行账户 end --------------------------
-// ---------------------- 7 el-table-expand - 客户列表查询 start --------------------------
-const customerTable = ref(null);
-const expandedRow2 = ref(null);
-const handleExpandChange2 = (row) => {
-  if (expandedRow2.value && expandedRow2.value !== row) {
-    customerTable.value.toggleRowExpansion(expandedRow2.value, false);
-  }
-  expandedRow2.value = row;
-};
-// ----------------------- 7 el-table-expand - 客户列表查询  end --------------------------
-
-
 
 // 取消按钮
 function cancel() {
@@ -561,10 +586,11 @@ function reset() {
     contactPhone: null,
     contactEmail: null,
     contactAddress: null,
-    customerType: null,
-    customerLevel: null,
-    invoiceTax: null,
-    invoiceName: null,
+    invoiceRegimen: '01',
+    invoiceCalificacion: 'S1',
+    levelId: null,
+    invoiceNif: null,
+    invoiceNombre: null,
     invoicePhone: null,
     invoicePostcode: null,
     invoiceAddress: null,
@@ -576,7 +602,6 @@ function reset() {
     createTime: null,
     updateBy: null,
     updateTime: null,
-    bankAccountList:[]
   };
   proxy.resetForm("customerRef");
   activeTab.value = 'basic';
@@ -624,17 +649,6 @@ function handleUpdate(row) {
 /** 提交按钮 */
 function submitForm() {
   proxy.$refs["customerRef"].validate(valid => {
-    // 银行账户数据 - 去除没有银行账号的数据
-    form.value.bankAccountList = form.value.bankAccountList.filter(item => item.accountNo) || [];
-    // 银行账户数据 - 将账户ID预制的ID值清空
-    if (form.value.bankAccountList.length === 0) {
-      form.value.bankAccountList = [];
-    } else {
-      form.value.bankAccountList.forEach(item => {
-        item.accountId = null;
-      });
-    }
-    
     if (valid) {
       if (form.value.customerId != null) {
         updateCustomer(form.value).then(response => {
@@ -658,7 +672,11 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _customerIds = row.customerId || ids.value;
-  proxy.$modal.confirm('是否确认删除客户编号为"' + _customerIds + '"的数据项？').then(function() {
+  if (!_customerIds) {
+    proxy.$modal.msgWarning("请选择要删除的数据");
+    return;
+  }
+  proxy.$modal.confirm(row?.customerCode ? '是否确认删除客户编号为"' + row.customerCode + '"的数据项？' : '是否确认删除已选中的数据项？').then(function() {
     return delCustomer(_customerIds);
   }).then(() => {
     getList();

@@ -1,6 +1,6 @@
 <template>
   <el-table ref="tableRef" :data="tableData" border show-summary :summary-method="getSummaries" :stripe="true"
-    size="small" style="width: 100%; height: 100%;" @cell-click="handleCellClick" :row-class-name="setRowClassName">
+    size="small" style="width: 100%; height: 100%;" @cell-click="handleCellClick" :row-class-name="setRowClassName" >
     <!-- 动态控制展开列显示 -->
     <el-table-column v-if="hasComboItems" type="expand" width="50">
       <template #default="scope">
@@ -51,7 +51,7 @@
         <el-input v-if="isEditing(scope.row, 'detailPrice')" :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
           v-model.number="scope.row.detailPrice" size="small" @blur="handleBlur(scope.row, 'detailPrice')"
           @focus="handleFocus" @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_PRICE)" style="width: 100%;" type="number"
-          :disabled="editPrice != canEditPriceEnum.ALLOW" />
+          :disabled="editPrice != canEditPriceEnum.ALLOW || disabled" />
         <span v-else>{{ formatTwo(scope.row.detailPrice) + ' €' }}</span>
       </template>
     </el-table-column>
@@ -60,6 +60,7 @@
         <el-input v-if="isEditing(scope.row, 'detailQuantity')"
           :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" v-model.number="scope.row.detailQuantity"
           size="small" @blur="handleBlur(scope.row, 'detailQuantity')" @focus="handleFocus"
+          :disabled="disabled"
           @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_QUANTITY)" style="width: 100%;" type="number" />
         <span v-else>{{ scope.row.detailQuantity || 0 }}</span>
       </template>
@@ -69,7 +70,8 @@
         <el-input v-if="isEditing(scope.row, 'detailDiscountRate')"
           :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" v-model.number="scope.row.detailDiscountRate"
           size="small" @blur="handleBlur(scope.row, 'detailDiscountRate')" @focus="handleFocus"
-          @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_DISCOUNT_RATE)" style="width: 100%;" type="number" :disabled="editDiscountRate != canEditDiscountRateEnum.ALLOW" />
+          @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_DISCOUNT_RATE)" style="width: 100%;" type="number" 
+          :disabled="editDiscountRate != canEditDiscountRateEnum.ALLOW || disabled" />
         <span v-else>{{ showDetailDiscountRate(scope.row) || 0 }} %</span>
       </template>
     </el-table-column>
@@ -82,7 +84,8 @@
       <template #default="scope">
         <el-input v-if="isEditing(scope.row, 'detailSn')" :ref="(el) => setInputRef(el, scope.row, 'detailSn')"
           v-model="scope.row.detailSn" size="small" @blur="handleBlur(scope.row, 'detailSn')" @focus="handleFocus"
-          @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_SN)" style="width: 100%;" type="text" :maxlength="20" />
+          @change="updateAmount(scope.$index, scope.row, OperateLogTypeEnum.EDIT_SN)" 
+          style="width: 100%;" type="text" :maxlength="20" :disabled="disabled" />
         <span v-else>{{ scope.row.detailSn ?? '--'}}</span>
       </template>
     </el-table-column>
@@ -106,17 +109,9 @@
         <span>{{ scope.row.detailTaxRate || 0 }} %</span>
       </template>
     </el-table-column>
-    <el-table-column prop="inTax" align="center" label="是否含税" width="80">
-      <template #default="scope">
-        <el-switch v-model="scope.row.inTax" :active-value="OrderInTaxEnum.TAX" :inactive-value="OrderInTaxEnum.NO_TAX"
-          active-text="含税" inactive-text="不含税" inline-prompt
-          style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;" disabled
-          v-hasPermi="['sales:salesCaja:admin']" size="small"/>
-      </template>
-    </el-table-column>
     <el-table-column label="操作" align="center" width="50">
       <template #default="scope">
-        <el-button type="danger" size="small" :icon="Delete" circle @click="handleDeleteRow(scope.$index, scope.row)" />
+        <el-button type="danger" size="small" :icon="Delete" circle @click="handleDeleteRow(scope.$index, scope.row)" :disabled="disabled" />
       </template>
     </el-table-column>
   </el-table>
@@ -124,9 +119,8 @@
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
-import { OrderInTaxEnum } from './cashOperationEnum.js';
 import { Delete } from '@element-plus/icons-vue';
-import {canEditPriceEnum, canEditDiscountRateEnum} from './tenantConfigEnum.js';
+import {canEditPriceEnum, canEditDiscountRateEnum, orderInTaxEnum} from './tenantConfigEnum.js';
 import { OperateLogTypeEnum } from "./operateLogTypeEnum.js"
 
 const { proxy } = getCurrentInstance();
@@ -146,6 +140,14 @@ const props = defineProps({
     type: String,
     default: false,
   },
+  inTax: {
+    type: String,
+    default: orderInTaxEnum.IN_Tax
+  },
+  disabled:{
+    type: Boolean,
+    default: true,
+  }
 });
 
 /**
@@ -228,7 +230,7 @@ function calculateAmounts(salesAmount, taxRate, inTax) {
   const rateValue = (taxRate || 0)/100;
   let detailBaseAmount, detailTaxAmount, detailNetAmount;
 
-  if (inTax === 0) {
+  if (inTax == 0) {
     // 含税
     detailBaseAmount = salesAmount / (1 + rateValue);
     detailTaxAmount = salesAmount - detailBaseAmount;
@@ -269,7 +271,7 @@ const updateAmount = (index, row, logType) => {
   const { detailBaseAmount, detailTaxAmount, detailNetAmount } = calculateAmounts(
     row.detailSalesAmount,
     row.detailTaxRate,
-    row.inTax
+    props.inTax
   );
   row.detailBaseAmount = detailBaseAmount;
   row.detailTaxAmount = detailTaxAmount;

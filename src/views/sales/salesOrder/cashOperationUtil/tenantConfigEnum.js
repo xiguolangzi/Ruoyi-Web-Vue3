@@ -45,3 +45,11 @@ export const cajaShowKeyboardEnum = {
   SHOW: '0',
   NOT_SHOW: '1'
 }
+
+/**
+ *  订单是否函数：0-含税 1-不含税
+ */
+export const orderInTaxEnum = {
+  IN_Tax: '0',
+  NOT_IN_TAX: '1'
+}

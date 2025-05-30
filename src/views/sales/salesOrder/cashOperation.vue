@@ -7,9 +7,15 @@
 
         <!-- 上部分：流水展示 -->
         <el-main class="main-data-container">
-          <EditableTable ref="editableTableRef" :tableData="form.salesOrderDetailList" :editPrice="canEditPrice"
-            :editDiscountRate="canEditDiscountRate" @handleClickChangeImage="changeCurrentSkuData"
-            @deleteRow="handleDeleteRow" @addLog="handleUpdateDetailAddLog" />
+          <EditableTable ref="editableTableRef" 
+            :tableData="form.salesOrderDetailList" 
+            :editPrice="canEditPrice"
+            :editDiscountRate="canEditDiscountRate" 
+            :inTax="form.inTax" 
+            :disabled="orderIsDisabled"
+            @handleClickChangeImage="changeCurrentSkuData"
+            @deleteRow="handleDeleteRow" 
+            @addLog="handleUpdateDetailAddLog" />
         </el-main>
 
         <!-- 下部分：商品输入框和汇总信息 -->
@@ -19,7 +25,7 @@
               <!-- 第1个区域：商品搜索和图片展示 -->
               <el-col class="footer-col" :style="{ width: '190px', flex: 'none' }">
                 <div class="footer-col-content">
-                  <SkuSelect ref="skuSelectRef" @selectedData="selectedSkuData" />
+                  <SkuSelect ref="skuSelectRef" @selectedData="selectedSkuData" :disabled="orderIsDisabled"/>
                   <div class="sku-image-container">
                     <ImageNormal v-if="currentSku" :src="currentSku.skuImage" />
                     <el-empty v-else :image-size="80" style="padding: 0px;margin: 0px;" />
@@ -33,8 +39,14 @@
                   <div class="section-title">
                     <span>订单设置：</span>
                     <div>
+                      <el-switch v-model="form.inTax" :active-value="orderInTaxEnum.IN_Tax" :inactive-value="orderInTaxEnum.NOT_IN_TAX"
+                        active-text="含税" inactive-text="不含税" inline-prompt
+                        style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;"
+                        :disabled="orderIsDisabled"
+                        v-hasPermi="['sales:salesCaja:edit']" size="small"
+                      />
                       <el-badge :value="10" :max="99" :show-zero="false" style="margin-left: 20px;">
-                        <el-button type="primary" size="small">挂单</el-button>
+                        <el-button type="primary" size="small" style="margin-left: 20px;">挂单</el-button>
                       </el-badge>
                     </div>
 
@@ -129,22 +141,22 @@
                 <!-- 业务员 -->
                 <el-divider content-position="left"> <span>订单绑定业务员</span> </el-divider>
                 <el-form-item label=" 业务员:" >
-                  <SalesmanSelect v-model="form.salesmanName"  @selectedData="selectedSalesmanData" />
+                  <SalesmanSelect  @selectedData="selectedSalesmanData" :disabled="orderIsDisabled"/>
                 </el-form-item>
                 <!-- 客户信息 -->
                 <el-divider content-position="left"> <span>客户信息</span> </el-divider>
                 <el-form-item label="客户信息:" >
-                  <CustomerSelect v-model="form.customerName"  @selectedData="selectedCustomerData" />
+                  <CustomerSelect  @selectedData="selectedCustomerData" :disabled="orderIsDisabled"/>
                 </el-form-item>
                 <!-- 仓库信息 -->
                 <el-divider content-position="left"> <span>仓库信息</span> </el-divider>
                 <el-form-item label="仓库信息:" >
-                  <WarehouseSelect v-model="form.warehouseName"  @selectedData="selectedWarehouseData" />
+                  <WarehouseSelect  @selectedData="selectedWarehouseData" :disabled="orderIsDisabled"/>
                 </el-form-item>
                 <!-- 业务活动信息 -->
                 <el-divider content-position="left"> <span>业务活动</span> </el-divider>
                 <el-form-item label="业务活动:" >
-                  <SalesActivitySelect v-model="form.activityName" @selectedData="selectedSalesActivityData" />
+                  <SalesActivitySelect  @selectedData="selectedSalesActivityData" :disabled="orderIsDisabled"/>
                 </el-form-item>
                 <el-divider content-position="left"> <span>促销活动查询</span> </el-divider>
               </div>
@@ -387,7 +399,7 @@
 
     <!-- 收款确认 对话框 -->
     <PaymentDialog ref="paymentDialog" :orderData="form" :paymentAutoPrint="paymentAutoPrint"
-      :canRemainAmount="canRemainAmount" @paymentComplete="handlePaymentComplete" :notification-container="cashierContainer"/>
+      :canRemainAmount="canRemainAmount" @printTicket="handlePrintTicket" :notification-container="cashierContainer"/>
 
     <!-- 通用认证对话框 -->
     <AuthManagerDialog ref="authManager" :notification-container="cashierContainer" />
@@ -400,35 +412,39 @@
 
 <script setup name="cashOperation">
 import { ref, onMounted, onUnmounted, watch, toRaw } from 'vue';
+import { addSalesOrder, updateSalesOrder, getSalesOrder, generateInvoice} from "@/api/sales/salesOrder";
+import { addSalesOrderLog } from "@/api/sales/salesOrderLog";
 import TouchKeyboard from '@/components/TouchKeyboard/index.vue';
-import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum, OrderPayStatusEnum } from './cashOperationUtil/cashOperationEnum.js';
+import { InvoiceTypeEnum } from '@/views/verifuc/verifacInvoice/invoiceConstants.js';
 import CustomerSelect from '@/components/Common/CustomerSelect.vue';
 import SalesmanSelect from '@/components/Common/SalesmanSelect.vue';
 import SalesActivitySelect from '@/components/Common/SalesActivitySelect.vue';
 import WarehouseSelect from '@/components/Common/WarehouseSelect.vue';
 import SkuSelect from '@/components/Common/SkuSelect.vue';
 import EditableTable from './cashOperationUtil/EditableTable.vue';
+import ImageNormal from '@/components/ImageNormal/index.vue';
+import ComboConfirmDialog from './cashOperationUtil/ComboConfirmDialog.vue';
+import PaymentDialog from './cashOperationUtil/PaymentDialog.vue';
+import AuthManagerDialog from '@/components/AuthManagerDialog/index.vue';
+
 import {playKeyHappySound} from '@/utils/playKeySound.js';
 import { getDeviceFingerprint } from "@/utils/fingerprintJS";
 import { getSalesCajaByMacAddress } from "@/api/sales/salesCaja";
 import { ElMessageBox, ElNotification } from 'element-plus';
 import { getShiftRecordsIsActive, getLastShiftRecords, addSalesShiftRecords, continueSalesShiftRecords, getSalesShiftRecords, finishSalesShiftRecords } from '@/api/sales/SalesShiftRecords';
-import useUserStore from "@/store/modules/user";
+import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum } from './cashOperationUtil/cashOperationEnum.js';
+import {canEditPriceEnum, canEditDiscountRateEnum, paymentAutoPrintEnum, canRemainAmountEnum, canDeleteOrderDetailEnum, cajaShowKeyboardEnum, orderInTaxEnum} from './cashOperationUtil/tenantConfigEnum.js';
+import { OperateLogTypeEnum } from './cashOperationUtil/operateLogTypeEnum.js';
+import { OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
 import {UserTypeEnum} from "@/views/system/tenant/tenantConstants.js";
+
+import useUserStore from "@/store/modules/user";
 import { cloneDeep } from 'lodash';
-import ImageNormal from '@/components/ImageNormal/index.vue';
-import { addSalesOrder, updateSalesOrder } from "@/api/sales/salesOrder";
 import SnowflakeID from '@/utils/SnowflakeID.js';
 import IndexedDBUtil from '@/indexedDB/index.js';
-import ComboConfirmDialog from './cashOperationUtil/ComboConfirmDialog.vue';
-import PaymentDialog from './cashOperationUtil/PaymentDialog.vue';
-import {canEditPriceEnum, canEditDiscountRateEnum, paymentAutoPrintEnum, canRemainAmountEnum, canDeleteOrderDetailEnum, cajaShowKeyboardEnum} from './cashOperationUtil/tenantConfigEnum.js';
-import { addSalesOrderLog } from "@/api/sales/salesOrderLog";
-import AuthManagerDialog from '@/components/AuthManagerDialog/index.vue';
-import { OperateLogTypeEnum } from './cashOperationUtil/operateLogTypeEnum.js';
+import { useRouter } from "vue-router";
+import { computed } from 'vue';
 
-
-import { useRouter, useRoute } from "vue-router";
 const router = useRouter();
 
 const { proxy } = getCurrentInstance();
@@ -448,17 +464,16 @@ const paymentAutoPrint = ref(paymentAutoPrintEnum.OPEN);  // 是否开启完成�
 const canRemainAmount = ref(canRemainAmountEnum.OPEN); // 是否开启欠款支付
 const canDeleteOrderDetail = ref(canDeleteOrderDetailEnum.OPEN);  // 是否开启删除订单行
 const cajaShowKeyboard = ref(cajaShowKeyboardEnum.SHOW); // 是否展示触摸键盘配置
-
-/** 跳转退货界面*/
-const openReturnView = () => {
-  // 跳转
-  router.push({ path: "/cashier/refundedOperation" })
-}
-
+const orderInTax = ref(orderInTaxEnum.IN_Tax);  // 订单是否含税，默认含税
 const DB_NAME = "OrderDB";    // 本地缓存数据库
 const STORE_NAME_ORDER = "order"; // 本地缓存表明
+const authManager = ref(null);  // 引用认证组件
+const oldOrderDetailList = ref([]);   // 旧订单详情
+const cashierContainer = ref(null); // 父组件绑定
+const isFullScreen = ref(false);  // 全屏
+const paymentDialog = ref(null);  // 绑定收款组件
 
-// **************** 获取配置 end *******************
+
 /** 获取租户配置 */
 const getTenantConfig = async () => {
   const config = await proxy.getTenantConfig("editPrice");
@@ -473,13 +488,26 @@ const getTenantConfig = async () => {
   canDeleteOrderDetail.value = config5?.configValue || canDeleteOrderDetailEnum.OPEN;
   const config6 = await proxy.getTenantConfig("cajaShowKeyboard");
   cajaShowKeyboard.value = config6.configValue || cajaShowKeyboardEnum.SHOW;
+  const config7 = await proxy.getTenantConfig("orderInTax");
+  orderInTax.value = config7.configValue || orderInTaxEnum.IN_Tax;
+  
 }
 getTenantConfig()
 
+const orderIsDisabled = computed(()=>{
+  if(form.value.orderType != OrderTypeEnum.PRE_ORDER){
+    return true;
+  }
+  if(form.value.orderStatus != OrderStatusEnum.INIT){
+    return true;
+  }
+  if(form.value.orderPayStatus == OrderPayStatusEnum.PAID){
+    return true;
+  }
+  return false;
+  
+})
 
-// --------------****************************
-// 引用认证组件
-const authManager = ref(null);
 
 // 表格组件 - 处理删除行（管理员认证）
 const handleDeleteRow = (index, row) => {
@@ -487,7 +515,6 @@ const handleDeleteRow = (index, row) => {
     handleDeleteRowData(index, row)
     return
   }
-
   // 需要认证时调用
   authManager.value.requestAuth(handleDeleteRowData, index, row)
 }
@@ -498,7 +525,7 @@ const handleDeleteRow = (index, row) => {
  * @param row 订单行数据
  */
 const handleDeleteRowData = (index, row) => {
-  handleAddSalesOrderLog(OperateLogTypeEnum.DELETE_ORDER_DETAIL, row)
+  handleAddSalesOrderLog(OperateLogTypeEnum.DELETE_ORDER_DETAIL, row, index)
   form.value.salesOrderDetailList.splice(index, 1); // 删除指定行
   oldOrderDetailList.value.splice(index, 1);
 }
@@ -521,13 +548,7 @@ const changeCurrentSkuData = (data) => {
   currentSku.value = data || null;
 }
 
-// ------------------------------------- 9 操作日志 start -------------------------------------
-
-/**
- * 插入订单操作日志 删除日志
- */
-const oldOrderDetailList = ref([])
-
+// ------------------------------- 操作日志 start ----------------------------
 /**
  * 添加订单操作日志
  * @param operateLogType 操作日志类型
@@ -645,14 +666,11 @@ const handleAddSalesOrderLog = (operateLogType, row, index) =>{
   })
 }
 
-// ------------------------------------- 9 操作日志 end -------------------------------------
+// ------------------------------ 操作日志 end -------------------------------------
 
-// ------------------------------------- 10 form 订单表单 start -------------------------------------
+// ------------------------------- 订单表单form  + 本地存储 start --------------------------
 const data = reactive({
-  form: {
-    salesOrderDetailList: [], // 初始化为空数组
-    salesOrderPaymentList: [],
-  },
+  form: getInitialForm(),
   rules: {
     tenantId: [
       { required: true, message: "租户id不能为空", trigger: "blur" }
@@ -662,77 +680,32 @@ const data = reactive({
 
 const { form, rules } = toRefs(data);
 
-// 挂单 - 数据本地存储
-const indexedDBForm = () =>{
-  try {
-    // 先去掉 Proxy，转为普通对象
-    const data = {
-      ...toRaw(form.value),
-      salesOrderDetailList: toRaw(form.value.salesOrderDetailList),
-      salesOrderPaymentList: toRaw(form.value.salesOrderPaymentList)
+// 2. 添加初始化函数
+function getInitialForm() {
+  // 先尝试从本地存储获取
+  const savedData = localStorage.getItem('currentOrderForm');
+  if (savedData) {
+    try {
+      const parsed = JSON.parse(savedData);
+      if (parsed.orderInitNo) {
+        // 同步历史数据
+        oldOrderDetailList.value = cloneDeep(parsed.salesOrderDetailList);
+        return parsed;
+      }
+    } catch (e) {
+      console.error("解析本地存储数据失败:", e);
     }
-    IndexedDBUtil.saveData(DB_NAME, STORE_NAME_ORDER, data);
-  } catch (error) {
-    console.error("存储数据失败:", error);
   }
-}
-
-/**
- * 订单数据持久化 localStory
- */
-const localStorageForm = () =>{
-  try {
-    // 先去掉 Proxy，转为普通对象
-    const data = {
-      ...toRaw(form.value),
-      salesOrderDetailList: toRaw(form.value.salesOrderDetailList),
-      salesOrderPaymentList: toRaw(form.value.salesOrderPaymentList)
-    }
-    localStorage.setItem('currentOrderForm', JSON.stringify(data));
-    const oldDetailData = toRaw(oldOrderDetailList.value)
-    localStorage.setItem('oldDetailData', JSON.stringify(oldDetailData))
-  } catch (error) {
-    console.error("localStorage存储数据失败:", error);
-  }
-}
-/**
- * 获取本地存储数据
- */
-const getLocalStorageForm = () =>{
-  try {
-    const data = localStorage.getItem('currentOrderForm');
-    if (data) {
-      const parsedData = JSON.parse(data);
-      form.value = parsedData;
-      form.value.salesOrderDetailList = parsedData.salesOrderDetailList;
-      form.value.salesOrderPaymentList = parsedData.salesOrderPaymentList;
-    }
-    const oldDetailData = localStorage.getItem('oldDetailData');
-    if (oldDetailData){
-      const parsedOldDetailData = JSON.parse(oldDetailData);
-      oldOrderDetailList.value = parsedOldDetailData;
-    }
-  } catch(error) {
-    console.error("localStorage获取数据失败:", error);
-  }
-}
-/**
- * 删除本地存储数据
- */
-const removeLocalStorageForm = () =>{
-  try {
-    localStorage.removeItem('currentOrderForm');
-    localStorage.removeItem('oldDetailData');
-  } catch (error) {
-    console.error("localStorage删除数据失败:", error);
-  }
+  // 没有有效本地数据时返回reset值
+  return reset();
 }
 
 // 销售订单表单数据重置
 function reset() {
   const snowflake = new SnowflakeID({ objectId: userStore.id});
   const orderInitNo = snowflake.nextId();
-  form.value = {
+  const inTaxConfig = orderInTax || orderInTaxEnum.IN_Tax;
+  return {
     orderId: null,
     orderDirection: OrderDirectionEnum.SALES,
     orderInitNo: orderInitNo,
@@ -750,7 +723,7 @@ function reset() {
     orderType: OrderTypeEnum.PRE_ORDER,
     orderStatus: OrderStatusEnum.INIT,
     orderIsHold: OrderIsHoldEnum.NORMAL,
-    orderPayStatus: OrderPayStatusEnum.SETTLE,
+    orderPayStatus: OrderPayStatusEnum.UN_PAID,
     totalQuantity: 0,
     totalAmount: 0,
     totalDiscountAmount: 0,
@@ -773,30 +746,75 @@ function reset() {
     updateTime: null,
     tenantId: null,
     delFlag: null,
+    inTax: inTaxConfig,
     operateLog: null,
     salesOrderDetailList: [],
     salesOrderPaymentList: [],
+    verifacInvoice: {},
   };
-
-  proxy.resetForm("salesOrderRef");
-  getLocalStorageForm(); //  获取本地存储数据
-  
 }
+
+onMounted(() => {
+  console.log("组件挂载，检查数据状态");
+  // 确保form有有效数据
+  if (!form.value.orderInitNo) {
+    form.value = reset();
+    localStorageForm();
+  }
+});
 
 // form.value 变化 则 本地存储数据
 watch(
   () => form.value,
-  (newValue, oldValue) => {
-    localStorageForm(); // 订单数据持久化 localStory
+  (newValue) => {
+    // 添加判断，避免存储空数据
+    if (newValue.orderInitNo) {
+      localStorageForm();
+      console.log("表单数据变化，更新本地存储:", newValue);
+    }
   },
   { deep: true }
 );
 
-onMounted(() => {
-  console.log("mounted***************66666");
-  reset();
-});
-// ------------------------------------- 10 form 订单表单 End -------------------------------------
+
+/**
+ * 订单数据持久化 localStory
+ */
+const localStorageForm = () =>{
+  try {
+    // 先去掉 Proxy，转为普通对象
+    const newValue = {
+      ...toRaw(form.value),
+      inTax: toRaw(form.value.inTax),
+      salesOrderDetailList: toRaw(form.value.salesOrderDetailList),
+      salesOrderPaymentList: toRaw(form.value.salesOrderPaymentList),
+      verifacInvoice: toRaw(form.value.verifacInvoice)
+    }
+    localStorage.setItem('currentOrderForm', JSON.stringify(newValue));
+    console.log("当前订单数据本地存储成功:", newValue);
+    // 历史数据
+    const oldDetailData = toRaw(oldOrderDetailList.value)
+    localStorage.setItem('oldDetailData', JSON.stringify(oldDetailData))
+    console.log("历史数据本地存储成功:", oldDetailData);
+  } catch (error) {
+    console.error("保存数据到本地存储失败:", error);
+  }
+}
+
+/**
+ * 删除本地存储数据
+ */
+const removeLocalStorageForm = () =>{
+  try {
+    localStorage.removeItem('currentOrderForm');
+    localStorage.removeItem('oldDetailData');
+    console.log("当前订单、历史数据 本地存储数据删除成功");
+  } catch (error) {
+    console.error("当前订单、历史数据 本地存储数据 删除失败:", error);
+  }
+}
+
+// ------------------------------- 订单表单form  + 本地存储 End --------------------------
 
 
 // -------------------------------- 5 交班业务 start  ----------------------------------
@@ -1127,37 +1145,21 @@ onMounted(() => {
 // ----------------- 4 caja注册检查 end  -------------------------
 
 
-
-// -----------------  3 全屏锁屏 start     -------------------------
-const cashierContainer = ref(null);
-const isFullScreen = ref(false);
-
-const toggleFullScreen = () => {
-  if (isFullScreen.value) {
-    document.exitFullscreen();
-  } else {
-    cashierContainer.value.requestFullscreen();
-  }
-  isFullScreen.value = !isFullScreen.value;
-};
-// -----------------  3 全屏锁屏 end     -------------------------
-
-
 // ------------------ 2 侧边栏按钮区域 start  -------------------
 const actions = [
   { label: "全屏", action: "toggleFullScreen", keyDown:"F3" },
   { label: "交班", action: "shift", keyDown: "F4" },
   { label: "挂单", action: "holdOrder", keyDown: "F5" },
-  { label: "取单", action: "holdOrder", keyDown: "F6" },
+  { label: "发票", action: "factura", keyDown: "F6" },
   { label: "收款", action: "handlerPayment", keyDown: "F7" },
   { label: "钱箱", action: "openCashDrawer", keyDown: "F8" },
-  { label: "重打", action: "reprint", keyDown: "F9" },
-  { label: "无价打印", action: "reprint", keyDown: "F10" },
-  { label: "赠品", action: "reprint", keyDown: "F11" },
-  { label: "通用商品", action: "reprint", keyDown: "F12" },
+  { label: "打印小票", action: "print", keyDown: "F9" },
+  { label: "无价打印", action: "printNoPrice", keyDown: "F10" },
+  { label: "通用商品", action: "reprint", keyDown: "F11" },
+  { label: "赠品", action: "reprint", keyDown: "F12" },
   { label: "整单折扣", action: "reprint", keyDown: "Ctrl + F1" },
   { label: "折上折", action: "reprint", keyDown: "Ctrl + F2" },
-  { label: "拆单", action: "splitOrder", keyDown: "Ctrl + F3" },
+  { label: "重置", action: "resetForm", keyDown: "Ctrl + F3" },
   { label: "退货", action: "refund", keyDown: "Ctrl + F4" }
 ];
 
@@ -1172,25 +1174,308 @@ const handleAction = (action) => {
       playKeyHappySound();
       handleShift();
       break;
+    case "factura":
+      console.log("发票");
+      playKeyHappySound()
+      handlePrintInvoice()
+      break;
     case "holdOrder":
       console.log("挂单");
       playKeyHappySound()
       console.log("表单form的数据：*****", form.value)
       indexedDBForm()
       break;
-    case "splitOrder":
-      console.log("拆单");
+    case "resetForm":
+      console.log("重置订单");
+      playKeyHappySound()
+      resetForm()
       break;
     case "handlerPayment":
-      handlerPayment()
       console.log("收款"); 
+      playKeyHappySound()
+      handlerPayment()
       break;
     case "refund":
+      console.log("退货"); 
+      playKeyHappySound()
       openReturnView()
-      console.log("开始打开退货窗口");
+      console.log("跳转至退货窗口");
+      break;
+    case "print":
+      console.log("打印小票"); 
+      playKeyHappySound()
+      handlePrintTicket()
+      break;
+    case "printNoPrice":
+      console.log("打印无价小票");
+      playKeyHappySound()
+      handlePrintNoPriceTicket()
       break;
   }
 };
+
+/** 重置订单业务 */
+const resetForm = () => { 
+  console.log("重置订单");
+  // 清除当前表单的缓存
+  removeLocalStorageForm()
+  form.value =  reset();
+}
+
+/** 挂单 - 数据本地存储 */ 
+const indexedDBForm = () =>{
+  try {
+    // 先去掉 Proxy，转为普通对象
+    const data = {
+      ...toRaw(form.value),
+      inTax: toRaw(form.value.inTax),
+      salesOrderDetailList: toRaw(form.value.salesOrderDetailList),
+      salesOrderPaymentList: toRaw(form.value.salesOrderPaymentList)
+    }
+    IndexedDBUtil.saveData(DB_NAME, STORE_NAME_ORDER, data);
+    console.log("挂单 - 数据持久化IndexedDB存储数据成功:", data);
+  } catch (error) {
+    console.error("存储数据失败:", error);
+  }
+}
+
+/** 全屏 */
+const toggleFullScreen = () => {
+  if (isFullScreen.value) {
+    document.exitFullscreen();
+  } else {
+    cashierContainer.value.requestFullscreen();
+  }
+  isFullScreen.value = !isFullScreen.value;
+};
+
+/** 交班 */
+const handleShift = () => {
+  getSalesShiftRecords(shiftForm.value.shiftId).then((response) => {
+    if (response.data.shiftStatus == ShiftStatusEnum.ACTIVE) {
+      // 更新交班记录
+      shiftForm.value = response.data;
+    }
+  });
+  // 弹出交班对话框
+  handlerOpenDialog()
+}
+
+/** 收款操作 */
+const handlerPayment = () => {
+  // 1 非初始订单、已完成的支付的订单 直接查询
+  if(form.value.orderType != OrderTypeEnum.PRE_ORDER || form.value.orderPayStatus != OrderPayStatusEnum.UN_PAID){
+    getSalesOrder(form.value.orderId).then((res)=>{
+      form.value = res.data
+    })
+    // 打开收款界面
+    paymentDialog.value.openPaymentDialog()
+    return;
+  }
+  // 2 修改/新增操作
+  form.value.cajaId = currentCaja.value.cajaId;
+  form.value.shiftId = shiftForm.value.shiftId;
+  if(form.value.orderId){
+    // 修改订单信息 -> 返回计算后的订单信息
+    updateSalesOrder(form.value).then((res) => {
+      if(res.code == 200 && res.data){
+        form.value = res.data;
+        oldOrderDetailList.value = cloneDeep(res.data.salesOrderDetailList) ;
+        // 打开收款界面
+        paymentDialog.value.openPaymentDialog()
+
+      } else {
+        ElNotification({
+          title: 'Error',
+          message: res.msg,
+          type: 'error',
+          position: 'bottom-right',
+          // appendTo 挂载到 全屏组件上
+          appendTo: cashierContainer.value
+        })
+      }
+    }).catch(error => {
+      ElNotification({
+        title: 'Error',
+        message: error.message,
+        type: 'error',
+        position: 'bottom-right',
+        // appendTo 挂载到 全屏组件上
+        appendTo: cashierContainer.value
+      })
+    });
+
+  } else {
+    // 添加订单信息 -> 返回计算后的订单信息
+    addSalesOrder(form.value).then((res) => {
+      console.log("添加订单信息返回：", res.data);
+        form.value = res.data; 
+        oldOrderDetailList.value = cloneDeep(res.data.salesOrderDetailList);
+        // 打开收款界面
+        paymentDialog.value.openPaymentDialog()
+      }
+    ).catch(error => {
+      ElNotification({
+        title: 'Error',
+        message: "收款操作异常：" + error.message,
+        type: 'error',
+        position: 'bottom-right',
+        // appendTo 挂载到 全屏组件上
+        appendTo: cashierContainer.value
+      })
+    });
+  }
+  
+};
+
+/** 退货 */
+const openReturnView = () => {
+  // 跳转
+  router.push({ path: "/cashier/refundedOperation" })
+}
+
+/**
+ * 打印小票
+ */
+const handlePrintTicket = () => {
+  console.log('开始打印小票业务:')
+  form.value.invoiceTipo = InvoiceTypeEnum.SIMPLIFICADA
+  // 生成发票 - 返回带有QR的订单信息
+  generateInvoice(form.value).then((res)=>{
+    console.log("确认发票响应的结果：", res)
+    if(res.data){
+      form.value = res.data;
+      if(form.value.verifacInvoice && form.value.verifacInvoice.invoiceQr){
+        // 打印简易发票
+        printTicket80(form.value)
+      } else{
+        ElMessageBox.confirm('发票信息异常，请稍后再试，是否打印临时小票？', '警告提示', {
+          confirmButtonText: 'OK',
+          showCancelButton: false,
+          type: 'error',
+        }).then(() => {
+          // 打印订单
+          printPedido80(form.value)
+        })
+      }
+    }
+  }).catch((e)=>{
+    // 错误信息展示
+    console.log("确认发票异常：",e)
+    ElNotification({
+      title: 'Error',
+      message: "确认发票异常：" + e,
+      type: 'error',
+      position: 'bottom-right',
+      // appendTo 挂载到 全屏组件上
+      appendTo: cashierContainer.value
+    })
+
+  })
+}
+
+/** 打印简易发票 */ 
+function printTicket80(orderFormData){
+  // TODO: 业务待完成
+  console.log("打印的简易发票信息是：",orderFormData)
+}
+
+/** 没有QR，打印pedido临时订单 */ 
+function printPedido80(orderFormData){
+  // TODO: 业务待完成
+  console.log("打印的临时订单信息是：",orderFormData)
+}
+
+/** 打印完整发票 */
+function printInvoiceA4(orderFormData){
+  // TODO: 业务待完成
+  console.log("打印的完整发票信息是：",orderFormData)
+}
+
+
+/** 打印无价小票 */
+const handlePrintNoPriceTicket = () => {
+  // TODO: 待完成业务
+  console.log("开始执行打印小票")
+}
+
+/** 开局完整发票 */
+function handlePrintInvoice(){
+  if(form.value.customerId == null){
+    ElNotification({
+      title: 'Error',
+      message: "完整发票需要绑定客户信息！",
+      type: 'error',
+      position: 'bottom-right',
+      // appendTo 挂载到 全屏组件上
+      appendTo: cashierContainer.value
+    })
+    return;
+  }
+  // 检查订单状态是否已支付
+  if(form.value.orderPayStatus == OrderPayStatusEnum.UN_PAID){
+    ElNotification({
+      title: 'Error',
+      message: "请先完成支付！",
+      type: 'error',
+      position: 'bottom-right',
+      // appendTo 挂载到 全屏组件上
+      appendTo: cashierContainer.value
+    })
+    return;
+  }
+  form.value.invoiceTipo = InvoiceTypeEnum.COMPLETA;
+  generateInvoice(form.value).then((res)=>{
+    console.log("确认发票响应的结果：", res)
+    if(res.data){
+      form.value = res.data;
+      if(form.value.verifacInvoice && form.value.verifacInvoice.invoiceQr && form.value.verifacInvoice.invoiceTipo == InvoiceTypeEnum.COMPLETA){
+        // 打印完整发票
+        printInvoiceA4(form.value)
+      } else if(!form.value.verifacInvoice || !form.value.verifacInvoice.invoiceQr){
+        ElMessageBox.confirm('发票信息异常，请稍后再试，是否打印临时小票？', '警告提示', {
+          confirmButtonText: 'OK',
+          showCancelButton: false,
+          type: 'error',
+        }).then(() => {
+          // 打印订单
+          printPedido80(form.value)
+        })
+      } else if(form.value.verifacInvoice.invoiceTipo == InvoiceTypeEnum.SIMPLIFICADA){
+        ElMessageBox.confirm('该订单已生成过简易发票，不可再次生成完整发票，是否打印简易发票？', '警告提示', {
+          confirmButtonText: 'OK',
+          showCancelButton: false,
+          type: 'error',
+        }).then(() => {
+          // 打印订单
+          printTicket80(form.value)
+        })
+      } else {
+        ElNotification({
+          title: 'Error',
+          message: "该订单已生成其他类型的发票，请到发票管理中确认！",
+          type: 'error',
+          position: 'bottom-right',
+          // appendTo 挂载到 全屏组件上
+          appendTo: cashierContainer.value
+        })
+      }
+    }
+  }).catch((e)=>{
+    // 错误信息展示
+    ElNotification({
+      title: 'Error',
+      message: "确认发票异常：" + e,
+      type: 'error',
+      position: 'bottom-right',
+      // appendTo 挂载到 全屏组件上
+      appendTo: cashierContainer.value
+    })
+
+  })
+  
+}
+
 
 
 // ----------------- 2 侧边栏按钮区域 end  -------------------
@@ -1213,7 +1498,8 @@ onMounted(() => {
 
 // 处理焦点事件
 const handleFocus = (event) => {
-  if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+  console.log("调用软键盘事件******")
+  if (event.target.tagName == 'INPUT' || event.target.tagName == 'TEXTAREA') {
     keyboardRef.value?.setActiveInput(event.target); // 将聚焦的输入框传递给键盘组件
     // 将 skuSelectRef 传递给键盘组件
     if (keyboardRef.value) {
@@ -1232,11 +1518,11 @@ const selectedCustomerData = (data) => {
     form.value.invoiceTax = data.invoiceTax;
     form.value.invoicePhone = data.invoicePhone;
     form.value.invoiceAddress = data.invoiceAddress;
-    form.value.customerPriceLevel = data.customerLevel?.levelPrice || 1;
-    form.value.customerDiscountRate = data.customerLevel?.levelDiscount || 0;
+    form.value.customerPriceLevel = data.levelPrice || 1;
+    form.value.customerDiscountRate = data.levelDiscount || 0;
     if(data.salesmanVo){
-      form.value.salesmanId = data.salesmanVo?.userId || null;
-      form.value.salesmanName = data.salesmanVo?.userName || null;
+      form.value.salesmanId = data.salesmanId || null;
+      form.value.salesmanName = data.salesmanName || null;
     } else {
       form.value.salesmanId =  null;
       form.value.salesmanName =  null;
@@ -1250,6 +1536,7 @@ const selectedCustomerData = (data) => {
   // 更新价格和折扣
   updateDetailPriceAndDiscount();
 }
+
 
 // 根据客户信息 折扣/价格 更新明细价格/折扣 根据是否含税计算最终金额
 const updateDetailPriceAndDiscount = () => {
@@ -1277,18 +1564,10 @@ const updateDetailPriceAndDiscount = () => {
       item.detailSalesAmount = item.detailAmount - item.detailDiscountAmount;
 
       // 根据是否含税计算净金额、基础金额和税额
-      if (item.inTax === 0) {
-        // 含税
-        item.detailNetAmount = item.detailSalesAmount;
-        item.detailBaseAmount = item.detailNetAmount / (1 + item.detailTaxRate / 100);
-        item.detailTaxAmount = item.detailNetAmount - item.detailBaseAmount;
-      } else if (item.inTax === 1) {
-        // 不含税
-        item.detailBaseAmount = item.detailSalesAmount;
-        item.detailTaxAmount = item.detailBaseAmount * (item.detailTaxRate / 100);
-        item.detailNetAmount = item.detailBaseAmount + item.detailTaxAmount;
-      }
-
+      const {detailNetAmount, detailBaseAmount, detailTaxAmount} = calculateAmounts(item.detailSalesAmount, item.detailTaxRate)
+      item.detailNetAmount = detailNetAmount;
+      item.detailBaseAmount = detailBaseAmount;
+      item.detailTaxAmount = detailTaxAmount;
       console.log("订单明细计算结果：", item);
     });
 
@@ -1415,36 +1694,26 @@ const focusSkuInput = () => {
   }
 };
 
-/** 交班 */
-const handleShift = () => {
-  getSalesShiftRecords(shiftForm.value.shiftId).then((response) => {
-    if (response.data.shiftStatus == ShiftStatusEnum.ACTIVE) {
-      // 更新交班记录
-      shiftForm.value = response.data;
-    }
-  });
-  // 弹出交班对话框
-  handlerOpenDialog()
-}
+
 
 // ----------------- 0 快捷键 end -----------------
 
 // -------------------------------------- 9 订单明细计算 start ------------------------------------------
 /** 计算含税和不含税的金额 */
-function calculateAmounts(detailPrice, taxRate, inTax) {
-  const rateValue = (taxRate || 0)/100;
+function calculateAmounts(detailSalesAmount, detailTaxRate) {
+  const rateValue = (detailTaxRate || 0)/100;
   let detailBaseAmount, detailTaxAmount, detailNetAmount;
 
-  if (inTax === 0) {
+  if (form.value.inTax == '0') {
     // 含税
-    detailBaseAmount = detailPrice / (1 + rateValue);
-    detailTaxAmount = detailPrice - detailBaseAmount;
-    detailNetAmount = detailPrice;
+    detailBaseAmount = detailSalesAmount / (1 + rateValue);
+    detailTaxAmount = detailSalesAmount - detailBaseAmount;
+    detailNetAmount = detailSalesAmount;
   } else {
     // 不含税
-    detailBaseAmount = detailPrice;
-    detailTaxAmount = detailPrice * (rateValue);
-    detailNetAmount = detailPrice + detailTaxAmount;
+    detailBaseAmount = detailSalesAmount;
+    detailTaxAmount = detailSalesAmount * (rateValue);
+    detailNetAmount = detailSalesAmount + detailTaxAmount;
   }
 
   return { detailBaseAmount, detailTaxAmount, detailNetAmount };
@@ -1461,7 +1730,7 @@ const handleAddComboDetails = (comboDetail) => {
 /** 销售订单明细添加按钮操作 */
 function handleAddSalesOrderDetail(sku) {
   const obj = initOrderDetailData();
-  const { skuId, skuCode, skuImage, skuName, assistName, skuType, comboId, skuValue, batchNo, unitVo, productRateVo, inTax, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6 } = sku;
+  const { skuId, skuCode, skuImage, skuName, assistName, skuType, comboId, skuValue, batchNo, unitVo, productRateVo, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6 } = sku;
   obj.detailMainSkuId = null;
   obj.skuId = skuId;
   obj.skuCode = skuCode;
@@ -1474,7 +1743,6 @@ function handleAddSalesOrderDetail(sku) {
   obj.batchNo = batchNo;
   obj.detailSn = null;
   obj.skuUnit = unitVo?.unitCode;
-  obj.inTax = inTax;
   obj.skuPrice = skuPrice;
   obj.skuPrice2 = skuPrice2;
   obj.skuPrice3 = skuPrice3;
@@ -1506,7 +1774,6 @@ function handleAddSalesOrderDetail(sku) {
   const { detailBaseAmount, detailTaxAmount, detailNetAmount } = calculateAmounts(
     obj.detailSalesAmount,
     obj.detailTaxRate,
-    obj.inTax
   );
   obj.detailBaseAmount = detailBaseAmount;
   obj.detailTaxAmount = detailTaxAmount;
@@ -1575,74 +1842,11 @@ const totalNetAmount = computed(() => {
 });
 
 
-/**
- * 完成支付操作
- */
-const handlePaymentComplete = () => {
-  console.log('支付完成:')
-  // TODO:初始化当前表单数据
-  removeLocalStorageForm()
-  reset()
-}
 
 
-const paymentDialog = ref(null)
-// 9 收款操作
-const handlerPayment = () => {
-  form.value.cajaId = currentCaja.value.cajaId;
-  form.value.shiftId = shiftForm.value.shiftId;
-  if(form.value.orderId){
-    // 修改订单信息 -> 返回计算后的订单信息
-    updateSalesOrder(form.value).then((res) => {
-      if(res.code == 200 && res.data){
-        form.value = res.data;
-        oldOrderDetailList.value = cloneDeep(res.data.salesOrderDetailList) ;
-        // 打开收款界面
-        paymentDialog.value.openPaymentDialog()
 
-      } else {
-        ElNotification({
-          title: 'Error',
-          message: res.msg,
-          type: 'error',
-          position: 'bottom-right',
-          // appendTo 挂载到 全屏组件上
-          appendTo: cashierContainer.value
-        })
-      }
-    }).catch(error => {
-      ElNotification({
-        title: 'Error',
-        message: error.message,
-        type: 'error',
-        position: 'bottom-right',
-        // appendTo 挂载到 全屏组件上
-        appendTo: cashierContainer.value
-      })
-    });
 
-  } else {
-    // 添加订单信息 -> 返回计算后的订单信息
-    addSalesOrder(form.value).then((res) => {
-      console.log("添加订单信息返回：", res.data);
-        form.value = res.data; 
-        oldOrderDetailList.value = cloneDeep(res.data.salesOrderDetailList);
-        // 打开收款界面
-        paymentDialog.value.openPaymentDialog()
-      }
-    ).catch(error => {
-      ElNotification({
-        title: 'Error',
-        message: "收款操作异常：" + error.message,
-        type: 'error',
-        position: 'bottom-right',
-        // appendTo 挂载到 全屏组件上
-        appendTo: cashierContainer.value
-      })
-    });
-  }
-  
-};
+
 
 // ----------------------------------------- 8 计算表格数据 end ----------------------
 

@@ -80,3 +80,11 @@ export function updateByOtherOperate(data) {
   })
 }
 
+// 订单生成发票 F1 F2 F3 Q1 Q2 Q3 Q4
+export function generateInvoice(data) {
+  return request({
+    url: '/sales/salesOrder/generateInvoice',
+    method: 'post',
+    data: data
+  })
+}

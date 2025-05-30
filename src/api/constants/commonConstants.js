@@ -1,3 +1,6 @@
+/**
+ * 通用常量
+ */
 export const MaxLengthEnum = {
   // 编号长度
   noLength: 30,

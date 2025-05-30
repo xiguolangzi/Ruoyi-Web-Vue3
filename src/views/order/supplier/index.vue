@@ -53,6 +53,29 @@
               @keyup.enter="handleQuery"
             />
           </el-form-item>
+          <el-form-item label="国家" prop="contactAddressCountry">
+            <el-select v-model="queryParams.contactAddressCountry" placeholder="请输入地址国家" filterable clearable style="width: 100%" @change="handleAddressCountryParamChange">
+                <el-option
+                  v-for="item in addressCountryList"
+                  :key="item.countryId"
+                  :label="`${item.countryCode} - ${item.nameEs} - ${item.nameZh}`"
+                  :value="item.nameEs"
+                >
+                </el-option>
+              </el-select>
+          </el-form-item>
+          <el-form-item label="省份" prop="contactAddressProvince">
+            <el-select v-model="queryParams.contactAddressProvince" placeholder="请输入地址省份" filterable clearable style="width: 100%" v-if="addressProvinceList.length > 0">
+              <el-option
+                v-for="item in addressProvinceList"
+                :key="item.provinceId"
+                :label="`${item.provinceCode} - ${item.provinceNameEs} - ${item.provinceNameZh}`"
+                :value="item.provinceNameEs"
+              >
+              </el-option>
+            </el-select>
+            <el-input v-else v-model="queryParams.contactAddressProvince" placeholder="请输入地址省份" type="textarea" maxlength="50" show-word-limit :rows="1"/>
+          </el-form-item>
           <el-form-item label="供应商状态" prop="supplierStatus">
             <el-select v-model="queryParams.supplierStatus" placeholder="请选择供应商状态" clearable>
               <el-option
@@ -113,61 +136,37 @@
           <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
         </el-row>
 
-        <el-table class="table-container" v-loading="loading" :data="supplierList" @selection-change="handleSelectionChange" ref="supplierTable" @expand-change="handleExpandChange2" row-key="supplierId">
-          <el-table-column type="expand">
-            <template #default="props">
-              <div style="padding: 10px 50px;">
-                <el-descriptions title=">>> 联系人信息: " :column="5" size="small">
-                  <el-descriptions-item label="联系人名称:">{{ props.row.contactName }}</el-descriptions-item>
-                  <el-descriptions-item label="联系人电话:">{{ props.row.contactPhone }}</el-descriptions-item>
-                  <el-descriptions-item label="联系人邮箱:">{{ props.row.contactEmail }}</el-descriptions-item>
-                  <el-descriptions-item label="联系人地址:" :span="2">{{ props.row.contactAddress }}</el-descriptions-item>
-                </el-descriptions>
-                <el-descriptions title=">>> 银行账户信息: " :column="6" size="small">
-                  <template v-for="(bank, index) in props.row.bankAccountList" :key="index">
-                    <el-descriptions-item label="银行名称:">{{ bank.bankName || '--' }}</el-descriptions-item>
-                    <el-descriptions-item label="账户账号:">{{ bank.accountNo || '--' }}</el-descriptions-item>
-                    <el-descriptions-item label="账户名称:">{{ bank.accountName || '--' }}</el-descriptions-item>
-                    <el-descriptions-item label="swiftCode:">{{ bank.swiftCode || '--' }}</el-descriptions-item>
-                    <el-descriptions-item label="是否默认:">
-                      <dict-tag :options="sys_yes_or_no" :value="bank.isDefault" style="display: inline-block;"/>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="备注信息:" >{{ bank.remark || '--' }}</el-descriptions-item>
-                  </template>
-                </el-descriptions>
-                <el-descriptions title=">>> 更新信息: " :column="5" size="small">
-                  <el-descriptions-item label="创建人:">{{ props.row.createBy }}</el-descriptions-item>
-                  <el-descriptions-item label="创建时间:">{{ parseTime(props.row.createTime, '{y}-{m}-{d}')
-                    }}</el-descriptions-item>
-                  <el-descriptions-item label="修改人:">{{ props.row.updateBy }}</el-descriptions-item>
-                  <el-descriptions-item label="修改时间:">{{ parseTime(props.row.updateTime, '{y}-{m}-{d}')
-                    }}</el-descriptions-item>
-                  <el-descriptions-item label="备注:">{{ props.row.remark }}</el-descriptions-item>
-                </el-descriptions>
-              </div>
-
-            </template>
-          </el-table-column>
+        <el-table class="table-container" v-loading="loading" :data="supplierList" 
+        @selection-change="handleSelectionChange" ref="supplierTable" row-key="supplierId">
           <el-table-column type="selection" width="55" align="center" />
-          <el-table-column label="供应商分类" align="center"  min-width="120" show-overflow-tooltip >
+          <el-table-column label="供应商分类" align="left"  min-width="120" show-overflow-tooltip >
             <template #default="scope">
-              <span>{{ scope.row.categoryVo ?  scope.row.categoryVo.categoryName : '--' }}</span>
+              <span>{{ scope.row.categoryName?? '--' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="供应商编码" align="center" prop="supplierCode" min-width="150" show-overflow-tooltip />
-          <el-table-column label="供应商名称" align="center" prop="supplierName" min-width="120" show-overflow-tooltip />
-          <el-table-column label="状态" align="center" prop="supplierStatus" min-width="80" >
+          <el-table-column label="供应商编码" align="left" prop="supplierCode" min-width="150" show-overflow-tooltip />
+          <el-table-column label="供应商名称" align="left" prop="supplierName" min-width="120" show-overflow-tooltip />
+          <el-table-column label="状态" align="center" prop="supplierStatus" width="80" show-overflow-tooltip>
             <template #default="scope">
               <dict-tag :options="project_general_status" :value="scope.row.supplierStatus"/>
             </template>
           </el-table-column>
-          <el-table-column label="账期天数" align="center" prop="paymentTerm" min-width="80" />
-          <el-table-column label="账期额度" align="center" prop="creditLimit" min-width="80" />
-          <el-table-column label="已用额度" align="center" prop="usedCredit" min-width="80" />
-          <el-table-column label="操作" align="center" class-name="small-padding fixed-width" min-width="150">
+          <el-table-column label="账期天数" align="right" header-align="center" prop="paymentTerm" width="80" show-overflow-tooltip/>
+          <el-table-column label="账期额度" align="right" header-align="center" prop="creditLimit" width="100" show-overflow-tooltip >
             <template #default="scope">
-              <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['order:supplier:edit']">修改</el-button>
-              <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['order:supplier:remove']">删除</el-button>
+              {{ formatTwo(scope.row.creditLimit) + '€' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="已用额度" align="right" header-align="center" prop="usedCredit" width="100" show-overflow-tooltip >
+            <template #default="scope">
+              {{ formatTwo(scope.row.usedCredit) + '€' }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" align="center" class-name="small-padding fixed-width" width="180" >
+            <template #default="scope">
+              <el-button link type="primary" size="small" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['order:supplier:edit']">修改</el-button>
+              <el-button link type="primary" size="small"  @click="handleEditSku(scope.row)"> >>更多详情 </el-button>
+              <el-button link type="danger"  size="small" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['order:supplier:remove']">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -214,8 +213,32 @@
             <el-form-item label="联系人邮箱:" prop="contactEmail">
               <el-input v-model="form.contactEmail" placeholder="请输入联系人邮箱" type="textarea" maxlength="50" show-word-limit :rows="1" />
             </el-form-item>
-            <el-form-item label="供应商地址:" prop="contactAddress">
-              <el-input v-model="form.contactAddress" placeholder="请输入供应商地址" type="textarea" maxlength="100" show-word-limit :rows="1" />
+            <el-form-item label="地址-国家:" prop="contactAddressCountry">
+              <el-select v-model="form.contactAddressCountry" placeholder="请输入地址国家" filterable clearable style="width: 100%" @change="handleAddressCountryChange">
+                <el-option
+                  v-for="item in addressCountryList"
+                  :key="item.countryId"
+                  :label="`${item.countryCode} - ${item.nameEs} - ${item.nameZh}`"
+                  :value="item.nameEs"
+                >
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="地址-省份:" prop="contactAddressProvince">
+              <el-select v-model="form.contactAddressProvince" placeholder="请输入地址省份" filterable clearable style="width: 100%" v-if="addressProvinceList.length > 0">
+                <el-option
+                  v-for="item in addressProvinceList"
+                  :key="item.provinceId"
+                  :label="`${item.provinceCode} - ${item.provinceNameEs} - ${item.provinceNameZh}`"
+                  :value="item.provinceNameEs"
+                >
+                </el-option>
+              </el-select>
+              <el-input v-else v-model="form.contactAddressProvince" placeholder="请输入地址省份" type="textarea" maxlength="50" show-word-limit :rows="1"/>
+            </el-form-item>
+            
+            <el-form-item label="地址-明细:" prop="contactAddressDetail">
+              <el-input v-model="form.contactAddressDetail" placeholder="请输入地址明细" type="textarea" maxlength="200" show-word-limit :rows="2"/>
             </el-form-item>
             <el-form-item label="供应商状态:" prop="supplierStatus">
               <el-radio-group v-model="form.supplierStatus">
@@ -306,6 +329,59 @@
         </div>
       </template>
     </el-dialog>
+
+    <!-- 详情抽屉弹窗 -->
+    <el-drawer v-model="drawer" direction="rtl" append-to-body >
+      <template #header>
+        <span>客户详情 : {{ currentRow?.supplierName ||  ''}}</span>
+      </template>
+      <div v-if="currentRow">
+        <el-card shadow="hover" style="margin-bottom: 5px;">
+          <template #header>
+            <div class="clearfix" style="display: flex;">
+              <span style="margin-right: 20px;">联系人信息</span>
+            </div>
+          </template>
+          <el-descriptions  :column="2" size="small">
+            <el-descriptions-item label="联系人名称:">{{ currentRow.contactName }}</el-descriptions-item>
+            <el-descriptions-item label="联系人电话:">{{ currentRow.contactPhone }}</el-descriptions-item>
+            <el-descriptions-item label="联系人邮箱:" :span="2">{{ currentRow.contactEmail }}</el-descriptions-item>
+            <el-descriptions-item label="联系人地址:" :span="2">{{ currentRow.contactAddress }}</el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+        <el-card shadow="hover" style="margin-bottom: 5px;">
+          <template #header>
+            <div class="clearfix" style="display: flex;">
+              <span style="margin-right: 20px;">银行账户信息</span>
+            </div>
+          </template>
+          <el-descriptions  :column="2" size="small" v-for="(bank, index) in currentRow.bankAccountList" :key="index" style="margin-bottom: 10px;">
+              <el-descriptions-item label="银行名称:">{{ bank.bankName || '--' }}</el-descriptions-item>
+              <el-descriptions-item label="账户账号:">{{ bank.accountNo || '--' }}</el-descriptions-item>
+              <el-descriptions-item label="账户名称:">{{ bank.accountName || '--' }}</el-descriptions-item>
+              <el-descriptions-item label="swiftCode:">{{ bank.swiftCode || '--' }}</el-descriptions-item>
+              <el-descriptions-item label="是否默认:" :span="2">
+                <dict-tag :options="sys_yes_or_no" :value="bank.isDefault" style="display: inline-block;"/>
+              </el-descriptions-item>
+              <el-descriptions-item label="备注信息:" :span="2">{{ bank.remark || '--' }}</el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+        <el-card shadow="hover">
+          <template #header>
+            <div class="clearfix" style="display: flex;">
+              <span style="margin-right: 20px;">更新信息</span>
+            </div>
+          </template>
+          <el-descriptions :column="2" size="small">
+            <el-descriptions-item label="创建人:">{{ currentRow.createBy }}</el-descriptions-item>
+            <el-descriptions-item label="创建时间:">{{ parseTime(currentRow.createTime, '{y}-{m}-{d}')}}</el-descriptions-item>
+            <el-descriptions-item label="修改人:">{{ currentRow.updateBy }}</el-descriptions-item>
+            <el-descriptions-item label="修改时间:">{{ parseTime(currentRow.updateTime, '{y}-{m}-{d}')}}</el-descriptions-item>
+            <el-descriptions-item label="备注:" :span="2">{{ currentRow.remark }}</el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+      </div>
+    </el-drawer>
   </div>
 </template>
 
@@ -313,6 +389,9 @@
 import { listSupplier, getSupplier, delSupplier, addSupplier, updateSupplier } from "@/api/order/supplier";
 import {categoryTreeSelect } from "@/api/order/supplierCategory";
 import useUserStore from "@/store/modules/user";
+import { listAddressCountry } from "@/api/address/addressCountry";
+import { listAddressProvince } from "@/api/address/addressProvince";
+
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -332,6 +411,8 @@ const title = ref("");
 const categoryName = ref(""); // 分类名称
 const categoryOptions = ref(null);
 const activeTab = ref('basic'); // 当前激活的标签页
+const addressCountryList = ref([]);
+const addressProvinceList = ref([]);
 
 
 
@@ -391,7 +472,87 @@ function getList() {
   });
 }
 
+// ***************************************  6 抽屉数据部分 start *********************************************
+// 抽屉弹窗
+const drawer = ref(false);
+const currentRow = ref(null)
+const handleEditSku = (row) => {
+  currentRow.value = row;
+  drawer.value = true;
+}
+// ***************************************  6 抽屉数据部分 end *********************************************
+
+// ------------------------------ 地址处理 start ---------------------------------
+/**
+ * 获取地址数据
+ */
+ const getAddressCountryList = () => {
+  const param = {
+    pageNum: 1,
+    pageSize: 500
+  }
+  listAddressCountry(param).then(response => {
+    if(response.rows){
+      addressCountryList.value = response.rows;
+    }
+  }).catch(error => {
+    console.error("获取地址国家列表失败：", error);
+  });
+}
+getAddressCountryList();
+
+/**
+ * 获取省份地址数据
+ */
+const getAddressProvinceList = () => {
+  const param = {
+    pageNum: 1,
+    pageSize: 500,
+    countryCode: 'ES'
+  }
+  listAddressProvince(param).then(response => {
+    if(response.rows){
+      addressProvinceList.value = response.rows;
+    }
+  }).catch(error => {
+    console.error("获取地址省份列表失败：", error);
+  })
+}
+
+/** 表单国家变更 - 获取地址省份数据 */
+const handleAddressCountryChange = () => {
+  form.value.contactAddressProvince = null;
+  form.value.contactAddressDetail = null;
+  if(form.value.contactAddressCountry){
+    if(form.value.contactAddressCountry == 'España'){
+      getAddressProvinceList();
+    } else{
+      addressProvinceList.value = [];
+    }
+  } else{
+    addressProvinceList.value = [];
+  }
+}
+
+/** 查询条件国家变更 - 获取地址省份数据 */
+const handleAddressCountryParamChange = ()=>{
+  queryParams.value.contactAddressProvince = null;
+  if(queryParams.value.contactAddressCountry){
+    if(queryParams.value.contactAddressCountry == 'España'){
+      getAddressProvinceList();
+    } else{
+      addressProvinceList.value = [];
+    }
+  } else{
+    addressProvinceList.value = [];
+  }
+}
+
+// ------------------------------ 地址处理 end ---------------------------------
+
 // ------------------------------- 1 分类树相关 start -------------------------------
+
+
 /** 通过条件过滤节点  */
 const filterNode = (value, data) => {
   if (!value) return true;
@@ -464,18 +625,6 @@ const handleExpandChange = (row) => {
   expandedRow.value = row;
 };
 // -------------------------------- 3 el-table-expand - 添加银行账户 end --------------------------
-
-// -------------------------------- 4 el-table-expand - 客户列表查询 start --------------------------
-const supplierTable = ref(null);
-const expandedRow2 = ref(null);
-const handleExpandChange2 = (row) => {
-  if (expandedRow2.value && expandedRow2.value !== row) {
-    supplierTable.value.toggleRowExpansion(expandedRow2.value, false);
-  }
-  expandedRow2.value = row;
-};
-// -------------------------------- 4 el-table-expand - 客户列表查询  end --------------------------
-
 
 
 // 取消按钮

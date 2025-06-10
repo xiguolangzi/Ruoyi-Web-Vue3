@@ -93,12 +93,8 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="计量单位" align="center" prop="unitVo.unitCode" :width="80">
-        <template #default="scope">
-          <span>{{ scope.row.unitVo?.unitCode || '--' }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="商品价格" header-align="center" align="right" prop="productPrice" :width="80">
+      <el-table-column label="计量单位" align="center" prop="unitCode" :width="80" />
+      <el-table-column label="商品价格"  align="right" prop="productPrice" :width="80">
         <template #default="scope">
           <span>{{ formatTwo(scope.row.productPrice) }} €</span>
         </template>
@@ -108,9 +104,9 @@
           <el-tag :type="scope.row.inTax == 0 ? 'success' : 'danger'">{{ scope.row.inTax == 0 ? "含税" : "不含税" }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="税率" align="center" prop="productRateVo.rateValue" :width="80">
+      <el-table-column label="税率" align="center" prop="rateValue" :width="80">
         <template #default="scope">
-          <span>{{ scope.row.productRateVo?.rateValue || '--' }} %</span>
+          <span>{{ scope.row.rateValue || '--' }} %</span>
         </template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="productStatus" :width="80">
@@ -118,17 +114,15 @@
           <dict-tag :options="product_status" :value="scope.row.productStatus" />
         </template>
       </el-table-column>
-
-
-      <el-table-column label="商品分类/品牌" header-align="center" show-overflow-tooltip>
+      <el-table-column label="商品分类/品牌"  show-overflow-tooltip>
         <template #default="scope">
           <div>
             <strong>分类：</strong>
-            <span>{{ scope.row.productCategoryVo?.categoryName || '--' }} </span>
+            <span>{{ scope.row.categoryName || '--' }} </span>
           </div>
           <div>
             <strong>品牌：</strong>
-            <span>{{ scope.row.brandForProductVo?.brandName || '--' }}</span>
+            <span>{{ scope.row.brandName || '--' }}</span>
           </div>
         </template>
       </el-table-column>
@@ -174,30 +168,30 @@
               <span> {{ productDetail.productCode }} </span>
             </el-descriptions-item>
           </el-descriptions>
-          <el-descriptions direction="vertical" :column="4" size="small" border style="margin-top: 20px">
-            <el-descriptions-item label="商品分类" :span="2" align="center">
-              {{productDetail.productCategoryVo?.categoryName || '--'}}
+
+          <el-descriptions direction="vertical" :column="3" size="small" border style="margin-top: 20px">
+            <el-descriptions-item label="商品分类"  align="center">
+              {{productDetail.categoryName || '--'}}
             </el-descriptions-item>
-            <el-descriptions-item label="商品单价" align="center">
-              {{ formatTwo(productDetail.productPrice) }} €
-            </el-descriptions-item>
-            <el-descriptions-item label="商品品牌" align="center">
-              {{ productDetail.brandForProductVo?.brandName || '--' }}
-            </el-descriptions-item>
-            <el-descriptions-item label="商品税率" align="center">
-              {{productDetail.productRateVo?.rateValue || '--'}} %
-            </el-descriptions-item>
-            <el-descriptions-item label="计量单位" align="center">
-              {{productDetail.unitVo?.unitCode || '--'}}
+            <el-descriptions-item label="商品品牌"  align="center">
+              {{ productDetail.brandName || '--' }}
             </el-descriptions-item>
             <el-descriptions-item label="商品状态" align="center">
               <dict-tag :options="product_status" :value="productDetail.productStatus" />
             </el-descriptions-item>
-            <el-descriptions-item label="成本核算方式" :span="2" align="center">
-              <dict-tag :options="product_cost_method" :value="productDetail.costMethod" />
+            <el-descriptions-item label="基础单价" align="center">
+              {{ formatTwo(productDetail.productPrice) }} €
             </el-descriptions-item>
+            <el-descriptions-item label="商品税率" align="center">
+              {{productDetail.rateValue || '--'}} %
+            </el-descriptions-item>
+            <el-descriptions-item label="计量单位" align="center">
+              {{productDetail.unitCode || '--'}}
+            </el-descriptions-item>
+          </el-descriptions>
+          <el-descriptions direction="vertical" :column="4" size="small" border >
             <el-descriptions-item label="创建人" align="center">
-              <span>{{ productDetail.createBy }} </span>
+              <span> {{ productDetail.createBy }} </span>
             </el-descriptions-item>
             <el-descriptions-item label="创建时间" align="center">
               <span>{{ productDetail.createTime }} </span>

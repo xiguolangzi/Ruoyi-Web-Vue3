@@ -63,24 +63,24 @@
         </template>
       </el-table-column>
       <el-table-column label="采购订单" align="left" header-align="center" prop="purchaseOrderNo" min-width="100" show-overflow-tooltip/>
-      <el-table-column label="商品编码" align="left" header-align="center" prop="productSkuVo.productCode" min-width="100" show-overflow-tooltip/>
-      <el-table-column label="商品名称" align="left" header-align="center" prop="productSkuVo.skuName" min-width="100" show-overflow-tooltip/> 
-      <el-table-column label="sku编码" align="left" header-align="center" prop="productSkuVo.skuCode" min-width="100" show-overflow-tooltip>
+      <el-table-column label="商品编码" align="left" header-align="center" prop="productCode" min-width="100" show-overflow-tooltip/>
+      <el-table-column label="商品名称" align="left" header-align="center" prop="skuName" min-width="100" show-overflow-tooltip/> 
+      <el-table-column label="sku编码" align="left" header-align="center" prop="skuCode" min-width="100" show-overflow-tooltip>
         <template #default="scope">
           <el-popover trigger="hover" placement="left">
-            <image-preview :src="scope.row.productSkuVo?.skuImage" :width="60" :height="60" />
+            <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
             <template #reference>
-              <el-link type="primary" :underline="false">{{ scope.row.productSkuVo?.skuCode }}</el-link>
+              <el-link type="primary" :underline="false">{{ scope.row.skuCode }}</el-link>
             </template>
           </el-popover>
         </template>
       </el-table-column>
       <el-table-column label="sku值" align="center" min-width="100" show-overflow-tooltip>
          <template #default="scope">
-          <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) === 'default'">
+          <div v-if="getSkuValue(scope.row.skuValue) === 'default'">
             --  <!-- 直接显示默认 SKU -->
           </div>
-          <div v-else v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
+          <div v-else v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
             <strong>{{ item[0] }}:</strong>
             <span>{{ item[1] }}</span>
           </div>
@@ -88,7 +88,7 @@
       </el-table-column>
       <el-table-column label="计量单位" align="center" prop="unitVo.skuUnit" >
          <template #default="scope">
-            {{scope.row.unitVo?.unitCode || '--' }}
+            {{scope.row.unitCode || '--' }}
         </template>
       </el-table-column>
       <el-table-column label="入库数量" align="center" prop="receivedQuantity" />

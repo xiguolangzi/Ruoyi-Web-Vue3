@@ -80,24 +80,21 @@
               </el-button>
 
               <!-- 确认状态 -->
-              <el-button type="warning" 
-                v-if="form.orderStatus == OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER" 
-                @click="handleGenerateInvoice"
-                v-hasPermi="['sales:salesOrder:approve']"
-              >
+              <el-button type="warning"
+                v-if="form.orderStatus == OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER"
+                @click="handleGenerateInvoice" v-hasPermi="['sales:salesOrder:approve']">
                 生成发票
               </el-button>
-              <el-button type="danger" 
-                v-if="form.orderStatus == OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER" 
-                @click="handleUnConfirm"
-                v-hasPermi="['sales:salesOrder:approve']"
-              >
+              <el-button type="danger"
+                v-if="form.orderStatus == OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER"
+                @click="handleUnConfirm" v-hasPermi="['sales:salesOrder:approve']">
                 反确认
               </el-button>
 
               <!-- 确认状态 -->
-              <el-button type="danger" v-if="form.orderStatus == OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER" @click="handleVoided"
-                v-hasPermi="['sales:salesOrder:approve']">
+              <el-button type="danger"
+                v-if="form.orderStatus == OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER"
+                @click="handleVoided" v-hasPermi="['sales:salesOrder:approve']">
                 作废
               </el-button>
             </el-button-group>
@@ -118,16 +115,15 @@
                 确认订单
               </el-button>
               <!-- 确认状态 -->
-              <el-button type="primary" v-if="form.orderStatus === OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER" :disabled="canEditStatus"
-                @click="handleUnCompletePayment" v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
+              <el-button type="primary"
+                v-if="form.orderStatus === OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER"
+                :disabled="canEditStatus" @click="handleUnCompletePayment"
+                v-hasPermi="['sales:salesOrder:add','sales:salesOrder:edit']">
                 反确认
               </el-button>
-              <el-button type="danger" 
-                v-if="form.orderStatus === OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER" 
-                :disabled="canEditStatus" 
-                @click="handleGenerateInvoice"
-                v-hasPermi="['sales:salesOrder:approve']"
-              >
+              <el-button type="danger"
+                v-if="form.orderStatus === OrderStatusEnum.CONFIRM && form.orderType == OrderTypeEnum.PRE_ORDER"
+                :disabled="canEditStatus" @click="handleGenerateInvoice" v-hasPermi="['sales:salesOrder:approve']">
                 生成发票
               </el-button>
             </el-button-group>
@@ -181,13 +177,15 @@
               :disabled="form.orderStatus != OrderStatusEnum.INIT" />
           </el-form-item>
           <el-form-item label="备注信息:" prop="remark">
-            <el-input v-model="form.remark" placeholder="请输入备注" size="small" type="text" maxlength="200" show-word-limit :rows="1"/>
+            <el-input v-model="form.remark" placeholder="请输入备注" size="small" type="text" maxlength="200" show-word-limit
+              :rows="1" />
           </el-form-item>
         </el-row>
 
         <!-- 商品明细 -->
-        <RefundEditTable :tableData="form.salesOrderDetailList" :inTax="form.inTax" :customerPriceLevel="form.customerPriceLevel"
-          :customerDiscountRate="form.customerDiscountRate" />
+        <RefundEditTable :tableData="form.salesOrderDetailList" :inTax="form.inTax"
+          :customerPriceLevel="form.customerPriceLevel" :customerDiscountRate="form.customerDiscountRate"
+          :customerRegimen="form.customerRegimen" :customerCalificacion="form.customerCalificacion" />
       </el-form>
 
       <!-- 合计信息 -->
@@ -195,20 +193,28 @@
         <div class="fixed-footer">
           <el-row class="footer-row">
             <!-- 第1个区域：订单配置数据 -->
-            <el-col class="footer-col" :span="6">
+            <el-col class="footer-col" :span="5">
               <div class="footer-content">
                 <el-descriptions :column="1" size="small">
-                  <el-descriptions-item label="客户名称:" >
+                  <el-descriptions-item label="客户名称:">
                     <span class="highlight-text">{{form.customerName || '--'}}</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="税号:" >
-                    <span class="highlight-text">{{form.invoiceTax || '--'}}</span>
+                  <el-descriptions-item label="税号:">
+                    <span class="highlight-text">{{ form.invoiceNif || '--' }}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <dict-tag :options="invoice_regimen" :value="form.customerRegimen" />
+                      <dict-tag :options="invoice_calificacion" :value="form.customerCalificacion" />
+                    </div>
                   </el-descriptions-item>
-                  <el-descriptions-item label="手机:" >
+                  <el-descriptions-item label="公司名称:">
+                    <span class="highlight-text">{{form.customerNombre || '--'}}</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="手机:">
                     <span class="highlight-text">{{form.invoicePhone || '--'}}</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="地址:" >
-                    <span class="highlight-text">{{form.invoiceAddress || '--'}}</span>
+                  <el-descriptions-item label="地址:">
+                    <span class="highlight-text">{{form.invoiceAddressCountry + ' ' + form.invoiceAddressProvince + ' '
+                      + form.invoicePostcode + ' ' + form.invoiceAddressDetail }}</span>
                   </el-descriptions-item>
                 </el-descriptions>
               </div>
@@ -218,19 +224,42 @@
             <div class="divider vertical"></div>
 
             <!-- 第2个区域：税率明细 -->
-            <el-col class="footer-col" :span="4">
+            <el-col class="footer-col" :span="8">
               <div class="footer-content">
-                <el-descriptions :column="1" size="small" style="width: 100%;">
-                  <el-descriptions-item v-for="item in form.verifacInvoice?.verifacInvoiceDetailList || []" :key="item.detailId" :label="`${item.detailTipoIva}% 税额:`" >
-                    <span class="highlight-text">{{ formatTwo(item.detailCuotaIva) + ' €'}}</span>
-                  </el-descriptions-item>
-                </el-descriptions>
-                <el-switch v-model="form.inTax" :active-value="orderInTaxEnum.IN_Tax" :inactive-value="orderInTaxEnum.NOT_IN_TAX"
-                  active-text="含税" inactive-text="不含税" inline-prompt
+                <el-table class="table-container" :data="form.verifacInvoice?.verifacInvoiceDetailList" size="small"
+                  style="margin-bottom: 20px;">
+                  <el-table-column prop="detailBase" label="Base" sortable align="center" min-width="80">
+                    <template #default="scope">
+                      <span>{{ formatTwo(scope.row.detailBase) + ' €' }} </span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="detailTipoIva" label="IVA%" align="center" min-width="50">
+                    <template #default="scope">
+                      <span>{{ (scope.row.detailTipoIva || 0 )+ ' %' }} </span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="detailCuotaIva" label="IVA" align="center" min-width="80">
+                    <template #default="scope">
+                      <span>{{ formatTwo(scope.row.detailCuotaIva) + ' €' }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="detailTipoRe" label="RE%" align="center" min-width="50">
+                    <template #default="scope">
+                      <span>{{ (scope.row.detailTipoRe || 0 ) + ' %' }}</span>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="detailCuotaRe" label="RE" align="center" min-width="80">
+                    <template #default="scope">
+                      <span>{{ formatTwo(scope.row.detailCuotaRe) + ' €' }}</span>
+                    </template>
+                  </el-table-column>
+                </el-table>
+                <el-switch v-model="form.inTax" :active-value="orderInTaxEnum.IN_Tax"
+                  :inactive-value="orderInTaxEnum.NOT_IN_TAX" active-text="含税" inactive-text="不含税" inline-prompt
                   :disabled="!canEditStatus"
                   style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;"
-                  v-hasPermi="['sales:salesCaja:edit']" size="small"
-                />
+                  v-hasPermi="['sales:salesCaja:edit']" size="small" 
+                  @change="updateDetailPriceAndDiscount()"/>
               </div>
             </el-col>
 
@@ -253,11 +282,14 @@
                   <el-descriptions-item label="减免数量:">
                     <span class="highlight-text">{{ form.totalPromotionReduceQuantity ?? 0}}</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="基础金额:" >
+                  <el-descriptions-item label="基础金额:" :span="2">
                     <span class="highlight-text">{{ formatTwo(form.totalBaseAmount) + ' €'}}</span>
                   </el-descriptions-item>
-                  <el-descriptions-item label="交税金额:">
+                  <el-descriptions-item label="基础税金额:">
                     <span class="highlight-text">{{ formatTwo(form.totalTaxAmount) + ' €'}}</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="附加税金额:">
+                    <span class="highlight-text">{{ formatTwo(form.totalReAmount) + ' €'}}</span>
                   </el-descriptions-item>
                   <el-descriptions-item label="应收金额:" :span="2" class-name="total-label"
                     label-class-name="total-content2">
@@ -268,20 +300,12 @@
             </el-col>
 
             <!-- 分割线 -->
-            <div class="divider vertical" v-if="form.verifacInvoice"></div>
+            <div class="divider vertical" ></div>
             <!-- 第4个区域：二维码 -->
-            <el-col class="footer-col" :span="6" v-if="form.verifacInvoice">
+            <el-col class="footer-col" :span="2" >
               <div class="qrcode">
-                <a 
-                  v-if="form.verifacInvoice?.invoiceQr" 
-                  :href="form.verifacInvoice.invoiceQr" 
-                  target="_blank"
-                >
-                  <qrcode-vue 
-                    :value="form.verifacInvoice?.invoiceQr || null" 
-                    :size="120" 
-                    level="H"
-                  />
+                <a v-if="form.verifacInvoice?.invoiceQr" :href="form.verifacInvoice.invoiceQr" target="_blank">
+                  <qrcode-vue :value="form.verifacInvoice?.invoiceQr || null" :size="120" level="H" />
                 </a>
                 <el-empty v-else :image-size="40" style="padding: 0px;margin: 0px;" />
                 <dict-tag :options="varifac_invoice_type" :value="form.verifacInvoice?.invoiceTipo" />
@@ -344,6 +368,7 @@ import { listSalesOrder, addSalesOrder, updateSalesOrder, getSalesOrder, delSale
 import useUserStore from "@/store/modules/user"
 import { useRouter, useRoute } from "vue-router";
 import { initOrderDetailData, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum } from './cashOperationUtil/cashOperationEnum.js';
+import { CustomerNormalEnum, CustomerRegimenEnum,  CustomerCalificacionEnum} from "@/views/order/customer/customerEnum.js"
 import { InvoiceTypeEnum } from '@/views/verifuc/verifacInvoice/invoiceConstants.js';
 import {OpenLocationEnum} from "@/views/product/warehouseLocation/warehouseLocation.js"
 import { OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
@@ -363,21 +388,30 @@ const route = useRoute();
 
 const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_direction, sales_order_type, sales_order_status, sales_order_pay_status, varifac_invoice_type } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_direction', 'sales_order_type', 'sales_order_status', 'sales_order_pay_status', 'varifac_invoice_type');
+const {invoice_regimen, invoice_calificacion} = proxy.useDict('invoice_regimen', 'invoice_calificacion');
 
-
+// ------------------------------ 获取租户配置 start ------------------------------
 /** 是否允许编辑 */
 const canEditStatus = ref(false)
 const orderInTax = ref(orderInTaxEnum.IN_Tax);  // 订单是否含税，默认含税
 const openLocation = ref(OpenLocationEnum.DISABLE);  // 开启库位的状态
-
-/** 获取租户配置 */
-const getTenantConfig = async () => {
-  const config1 = await proxy.getTenantConfig("orderInTax");
-  orderInTax.value = config1.configValue || orderInTaxEnum.IN_Tax;
-  const config2 = await proxy.getTenantConfig("openLocation");
-  openLocation.value = config2.configValue || OpenLocationEnum.DISABLE;
+/** 异步获取租户配置 */
+const loadTenantConfig = async () => {
+  try {
+    const config1 = await proxy.getTenantConfig("orderInTax");
+    orderInTax.value = (config1 != null) ? config1 : orderInTaxEnum.IN_Tax;
+    const config2 = await proxy.getTenantConfig("openLocation");
+    openLocation.value = (config2 != null) ? config2 : OpenLocationEnum.DISABLE;
+  } catch (error) {
+    console.error("加载租户配置失败:", error);
+    // 设置默认值
+    orderInTax.value = orderInTaxEnum.IN_Tax;
+    openLocation.value = OpenLocationEnum.DISABLE;
+  }
 }
-getTenantConfig()
+
+loadTenantConfig();
+// ------------------------------ 获取租户配置 end ------------------------------
 
 const data = reactive({
   form:{
@@ -410,6 +444,10 @@ function reset() {
     salesmanName: null,
     customerId: null,
     customerName: null,
+    customerRegimen: CustomerNormalEnum.CUSTOMER_REGIMEN_NORMAL,
+    customerCalificacion: CustomerNormalEnum.CUSTOMER_CALIFICACION_NORMAL,
+    customerPriceLevel: 1,
+    customerDiscountRate: 0,
     activityId: null,
     orderType: OrderTypeEnum.PRE_ORDER,
     orderStatus: OrderStatusEnum.INIT,
@@ -454,26 +492,23 @@ const salesOrderDetailLength = computed(()=>{
 
 /** 获取选中的客户数据 */
 const selectedCustomerData = (data) => {
+  data = data || {};
   console.log('收银台获取的客户数据:', data)
-  if(data){
-    form.value.customerId = data.customerId;
-    form.value.customerName = data.customerName; 
-    form.value.customerPriceLevel = data.levelPrice || 1;
-    form.value.customerDiscountRate = data.levelDiscount || 0;
-    if(data.salesmanVo){
-      form.value.salesmanId = data.salesmanId || null;
-      form.value.salesmanName = data.salesmanName || null;
-    } else {
-      form.value.salesmanId =  null;
-      form.value.salesmanName =  null;
-    }
-  } else {
-    form.value.customerId =  null;
-    form.value.customerName =  null; 
-    form.value.customerPriceLevel =  1;
-    form.value.customerDiscountRate =  0;
-  }
-
+  form.value.customerId = data.customerId || null;
+  form.value.customerRegimen = data.invoiceRegimen || CustomerNormalEnum.CUSTOMER_REGIMEN_NORMAL;
+  form.value.customerCalificacion = data.invoiceCalification || CustomerNormalEnum.CUSTOMER_CALIFICACION_NORMAL;
+  form.value.invoiceNombre = data.invoiceNombre || null;
+  form.value.invoiceNif = data.invoiceNif || null;
+  form.value.invoicePhone = data.invoicePhone || null;
+  form.value.invoiceEmail = data.contactEmail || null;
+  form.value.invoicePostcode = data.invoicePostcode || null;
+  form.value.invoiceAddressCountry = data.invoiceAddressCountry || null;
+  form.value.invoiceAddressProvince = data.invoiceAddressProvince || null;
+  form.value.invoiceAddressDetail = data.invoiceAddressDetail || null;
+  form.value.customerPriceLevel = data.levelPrice || 1;
+  form.value.customerDiscountRate = data.levelDiscount || 0;
+  form.value.salesmanId = data.salesmanId || null;
+  form.value.salesmanName = data.salesmanName || null;
   // 更新价格和折扣
   updateDetailPriceAndDiscount();
 
@@ -496,35 +531,66 @@ const updateDetailPriceAndDiscount = () => {
 
       // 更新价格
       item.detailPrice = priceMap[form.value.customerPriceLevel] || item.skuPrice;
-      console.log("更新后的价格：", item.detailPrice);
-
       // 更新折扣率
       item.detailDiscountRate = +form.value.customerDiscountRate || 0;
-      console.log("更新后的折扣率：", item.detailDiscountRate);
-
       // 计算订单金额
       item.detailAmount = item.detailPrice * item.detailQuantity;
       item.detailDiscountAmount = item.detailAmount * (item.detailDiscountRate / 100);
       item.detailSalesAmount = item.detailAmount - item.detailDiscountAmount;
 
       // 根据是否含税计算净金额、基础金额和税额
-      if (item.inTax == orderInTaxEnum.IN_Tax) {
-        // 含税
-        item.detailNetAmount = item.detailSalesAmount;
-        item.detailBaseAmount = item.detailNetAmount / (1 + item.detailTaxRate / 100);
-        item.detailTaxAmount = item.detailNetAmount - item.detailBaseAmount;
-      } else if (item.inTax == orderInTaxEnum.NOT_IN_TAX) {
-        // 不含税
-        item.detailBaseAmount = item.detailSalesAmount;
-        item.detailTaxAmount = item.detailBaseAmount * (item.detailTaxRate / 100);
-        item.detailNetAmount = item.detailBaseAmount + item.detailTaxAmount;
-      }
-
-      console.log("订单明细计算结果：", item);
+      const { detailBaseAmount, detailTaxAmount, detailReAmount, detailNetAmount } = calculateAmounts(item.detailSalesAmount, item.detailTaxRate, item.detailReRate)
+      item.detailBaseAmount = detailBaseAmount;
+      item.detailNetAmount = detailNetAmount;
+      item.detailReAmount = detailReAmount;
+      item.detailTaxAmount = detailTaxAmount;
+      console.log("订单明细计算结果---：", item);
     });
 
   }
 };
+
+/** 计算含税和不含税的金额 */
+function calculateAmounts(detailSalesAmount, detailTaxRate, detailReRate) {
+  const rateValue = (detailTaxRate || 0) / 100;
+  const reRate = form.value.customerRegimen == CustomerRegimenEnum.CUSTOMER_REGIMEN_RE ? (detailReRate || 0) / 100 : 0;
+  let detailBaseAmount, detailTaxAmount, detailReAmount, detailNetAmount;
+
+  if (form.value.inTax == orderInTaxEnum.IN_Tax) {
+    // 含税
+    detailBaseAmount = detailSalesAmount / (1 + rateValue);
+    // 是否免税
+    if (form.value.customerCalificacion != CustomerCalificacionEnum.CUSTOMER_CALIFICACION_NORMAL) {
+      // 免税
+      detailTaxAmount = 0
+      detailReAmount = 0
+      detailNetAmount = detailBaseAmount;
+    } else {
+      // 非免税
+      detailTaxAmount = detailBaseAmount * rateValue;
+      detailReAmount = detailBaseAmount * reRate;
+      detailNetAmount = detailBaseAmount + detailTaxAmount + detailReAmount;
+    }
+
+  } else {
+    // 不含税
+    detailBaseAmount = detailSalesAmount;
+    // 是否免税
+    if (form.value.customerCalificacion != CustomerCalificacionEnum.CUSTOMER_CALIFICACION_NORMAL) {
+      // 免税
+      detailTaxAmount = 0
+      detailReAmount = 0
+      detailNetAmount = detailBaseAmount;
+    } else {
+      // 非免税
+      detailTaxAmount = detailBaseAmount * rateValue;
+      detailReAmount = detailBaseAmount * reRate;
+      detailNetAmount = detailBaseAmount + detailTaxAmount + detailReAmount;
+    }
+  }
+
+  return { detailBaseAmount, detailTaxAmount, detailReAmount, detailNetAmount };
+}
 
 /** 获取选中的业务员数据 */
 const selectedSalesmanData = (data) => {

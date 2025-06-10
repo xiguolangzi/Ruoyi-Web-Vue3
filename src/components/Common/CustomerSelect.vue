@@ -60,7 +60,7 @@ const fetchData = async (query = "") => {
     const queryParams = {
       invoicePhone: null,
       contactEmail: null,
-      invoiceTax: null,
+      invoiceNif: null,
       pageNum: pageNum.value,
       pageSize
     };
@@ -74,7 +74,7 @@ const fetchData = async (query = "") => {
       queryParams.invoicePhone = query;
     } else {
       // 其他情况
-      queryParams.invoiceTax = query;
+      queryParams.invoiceNif = query;
     }
 
     console.log("请求参数:", queryParams);

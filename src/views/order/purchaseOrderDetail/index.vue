@@ -67,13 +67,13 @@
           </router-link>
         </template>
       </el-table-column>
-      <el-table-column label="商品名称" align="left" header-align="center" prop="productSkuVo.skuName"  min-width="150" show-overflow-tooltip/>
-      <el-table-column label="sku编码" align="left" header-align="center" prop="productSkuVo.skuCode" min-width="150" show-overflow-tooltip>
+      <el-table-column label="商品名称" align="left" header-align="center" prop="skuName"  min-width="150" show-overflow-tooltip/>
+      <el-table-column label="sku编码" align="left" header-align="center" prop="skuCode" min-width="150" show-overflow-tooltip>
         <template v-slot="scope">
           <el-popover trigger="hover" placement="left">
-            <image-preview :src="scope.row.productSkuVo?.skuImage" :width="60" :height="60" />
+            <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
             <template #reference>
-              <el-link type="primary" :underline="false">{{ scope.row.productSkuVo?.skuCode }}</el-link>
+              <el-link type="primary" :underline="false">{{ scope.row.skuCode }}</el-link>
             </template>
         </el-popover>
         </template>
@@ -83,12 +83,12 @@
           {{ scope.row.unitVo?.unitCode || '--' }}
         </template>
       </el-table-column>
-      <el-table-column label="suk规格" align="left" header-align="center" prop="productSkuVo.skuValue" min-width="100" show-overflow-tooltip>
+      <el-table-column label="suk规格" align="left" header-align="center" prop="skuValue" min-width="100" show-overflow-tooltip>
         <template #default="scope">
-          <div v-if="getSkuValue(scope.row.productSkuVo?.skuValue) === 'default'">
+          <div v-if="getSkuValue(scope.row.skuValue) === 'default'">
             --  <!-- 直接显示默认 SKU -->
           </div>
-          <div v-else v-for="(item, index) in getSkuValue(scope.row.productSkuVo?.skuValue)" :key="index">
+          <div v-else v-for="(item, index) in getSkuValue(scope.row.skuValue)" :key="index">
             <strong>{{ item[0] }}:</strong>
             <span>{{ item[1] }}</span>
           </div>

@@ -58,28 +58,31 @@
                 type="date"
                 format="MM/DD/YYYY"
                 placeholder="Pick a day"
-                :disabled-date="disabledDate"
-                :shortcuts="shortcuts"
                 size="small"
               />
             </el-descriptions-item>
           </el-descriptions>
         </el-col>
-          <!-- 客户信息 -->
+        <!-- 客户信息 -->
         <el-col :span="8" class="customer"> 
           <el-descriptions :column="1" size="small">
             <el-descriptions-item label="客户名称:" >
-              <CustomerSelect v-model="form.customerName" @selectedData="selectedCustomerData" size="small"
+              <CustomerSelect v-model="form.destinatarioNombre" @selectedData="selectedCustomerData" size="small"
         :disabled="form.orderStatus != InvoiceStatusEnum.SUCCESS" />
             </el-descriptions-item>
             <el-descriptions-item label="税号:" >
-              <span class="highlight-text">{{form.invoiceTax || '--'}}</span>
+                <span class="highlight-text">{{form.destinatarioNif || '--'}}</span>
+                <dict-tag :options="invoice_regimen" :value="form.destinatarioRegimen" />
+                <dict-tag :options="invoice_calificacion" :value="form.destinatarioCalifacation" />
             </el-descriptions-item>
             <el-descriptions-item label="手机:" >
-              <span class="highlight-text">{{form.invoicePhone || '--'}}</span>
+              <span class="highlight-text">{{form.destinatarioPhone || '--'}}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="邮箱:" >
+              <span class="highlight-text">{{form.destinatarioPEmail || '--'}}</span>
             </el-descriptions-item>
             <el-descriptions-item label="地址:" >
-              <span class="highlight-text">{{form.invoiceAddress || '--'}}</span>
+              <span class="highlight-text">{{form.destinatarioAddressCountry + ' ' + form.destinatarioAddressProvince + ' ' + form.destinatarioPostcode  + ' ' + form.destinatarioAddressDetail }}</span>
             </el-descriptions-item>
           </el-descriptions>
         </el-col>
@@ -87,16 +90,19 @@
         <el-col :span="8" class="mainData"> 
           <el-descriptions :column="1" size="small">
             <el-descriptions-item label="公司名称:" >
-              <span class="highlight-text">{{form.invoiceTax || '--'}}</span>
+              <span class="highlight-text">{{form.emisorNombre || '--'}}</span>
             </el-descriptions-item>
             <el-descriptions-item label="税号:" >
-              <span class="highlight-text">{{form.invoiceTax || '--'}}</span>
+              <span class="highlight-text">{{form.emisorNif || '--'}}</span>
             </el-descriptions-item>
             <el-descriptions-item label="手机:" >
-              <span class="highlight-text">{{form.invoicePhone || '--'}}</span>
+              <span class="highlight-text">{{form.emisorPhone || '--'}}</span>
+            </el-descriptions-item>
+            <el-descriptions-item label="邮箱:" >
+              <span class="highlight-text">{{form.emisorEmail || '--'}}</span>
             </el-descriptions-item>
             <el-descriptions-item label="地址:" >
-              <span class="highlight-text">{{form.invoiceAddress || '--'}}</span>
+              <span class="highlight-text">{{form.emisorAddressCountry + ' ' + form.emisorAddressProvince + ' ' + form.emisorPostcode  + ' ' + form.emisorAddressDetail }}</span>
             </el-descriptions-item>
           </el-descriptions>
         </el-col>
@@ -116,7 +122,7 @@
         <!-- 基本信息 -->
 
         <!-- 商品明细 -->
-        <el-table class="table-container" v-loading="loading" :data="form.salesOrderDetailList" size="small">
+        <el-table class="table-container"  :data="form.salesOrderDetailList" size="small">
           <el-table-column  label="Codigo"  align="center">
             <template #default="scope">
               <span> {{ scope.row.skuCode }}</span>
@@ -157,33 +163,33 @@
             <!-- 第1个区域：税率明细 -->
             <el-col class="footer-col" :span="12">
               <div class="footer-content">
-                <el-table class="table-container" v-loading="loading" :data="form.verifacInvoiceDetailList" size="small">
-                  <el-table-column prop="detailBase" label="Base" align="center" >
+                <el-table class="table-container"  :data="form.verifacInvoiceDetailList" size="small">
+                  <el-table-column prop="detailBase" label="Base" align="center" min-width="80">
                     <template #default="scope"> 
                       <span>{{ formatTwo(scope.row.detailBase) + ' €' }} </span>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="detailTipoIva" label="Tipo IVA" align="center" >
+                  <el-table-column prop="detailTipoIva" label="IVA%" align="center" min-width="50">
                     <template #default="scope"> 
                       <span>{{ (scope.row.detailTipoIva || 0 )+ ' %' }} </span>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="detailCuotaIva" label="Cuota IVA" align="center" >
+                  <el-table-column prop="detailCuotaIva" label="IVA" align="center" min-width="80">
                     <template #default="scope"> 
                       <span>{{ formatTwo(scope.row.detailCuotaIva) + ' €' }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="detailTipoRe" label="Tipo RE" align="center" >
+                  <el-table-column prop="detailTipoRe" label="RE%" align="center" min-width="50">
                     <template #default="scope"> 
                       <span>{{ (scope.row.detailTipoRe || 0 )  + ' %' }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="detailCuotaRe" label="Cuota RE" align="center" >
+                  <el-table-column prop="detailCuotaRe" label="RE" align="center" min-width="80">
                     <template #default="scope"> 
                       <span>{{ formatTwo(scope.row.detailCuotaRe) + ' €' }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column prop="detailSumaTotal" label="Suma total" align="center" >
+                  <el-table-column prop="detailSumaTotal" label="Total" align="center" min-width="80">
                     <template #default="scope"> 
                       <span>{{ formatTwo(scope.row.detailSumaTotal) + ' €' }}</span>
                     </template>
@@ -299,7 +305,7 @@ const router = useRouter();
 const route = useRoute();
 
 const { proxy } = getCurrentInstance();
-const { varifac_invoice_type, verifac_invoice_status, verifac_tax_type } = proxy.useDict('varifac_invoice_type', 'verifac_invoice_status', 'verifac_tax_type');
+const { varifac_invoice_type, verifac_invoice_status, invoice_regimen, invoice_calificacion } = proxy.useDict('varifac_invoice_type', 'verifac_invoice_status', 'invoice_regimen', 'invoice_calificacion');
 
 /** 是否允许编辑 */
 const canEditStatus = ref(false)
@@ -330,8 +336,23 @@ function reset() {
     orderNetAmount: null,
     emisorNif: null,
     emisorNombre: null,
+    emisorEmail: null,
+    emisorPhone: null,
+    emisorPostcode: null,
+    emisorAddressCountry: null,
+    emisorAddressProvince: null,
+    emisorAddressDetail: null,
+    customerId: null,
     destinatarioNif: null,
     destinatarioNombre: null,
+    destinatarioEmail: null,
+    destinatarioPhone: null,
+    destinatarioPostcode: null,
+    destinatarioAddressCountry: null,
+    destinatarioAddressProvince: null,
+    destinatarioAddressDetail: null,
+    destinatarioRegimen: null,
+    destinatarioCalifacation: null,
     invoiceIdFactura: null,
     invoiceTipo: InvoiceTypeEnum.COMPLETA,
     invoiceSerie: null,
@@ -363,8 +384,15 @@ const selectedCustomerData = (data) => {
   console.log('收银台获取的客户数据:', data)
   if(data){
     form.value.customerId = data.customerId || null;
-    form.value.destinatarioNif = data.customerTaxNo || null;
-    form.value.destinatarioNombre = data.customerName || null; 
+    form.value.destinatarioNif = data.invoiceNif || null;
+    form.value.destinatarioNombre = data.invoiceNombre || null; 
+    form.value.destinatarioAddressCountry = data.invoiceAddressCountry || null;
+    form.value.destinatarioAddressProvince = data.invoiceAddressProvince || null;
+    form.value.destinatarioAddressDetail = data.invoiceAddressDetail || null;
+    form.value.destinatarioPostcode = data.invoicePostcode || null;
+    form.value.destinatarioPhone = data.invoicePhone || null;
+    form.value.destinatarioEmail = data.contactEmail || null;
+
   }
 }
 

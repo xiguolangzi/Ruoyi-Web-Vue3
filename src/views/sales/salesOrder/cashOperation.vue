@@ -53,16 +53,16 @@
                   </div>
                   <el-descriptions :column="2" size="small" style="width: 100%;">
                     <el-descriptions-item label="客户名称:" :span="2">
-                      <span class="highlight-text">{{form.customerName || '--'}}</span>
+                      <span class="highlight-text">{{form.invoiceNombre || '--'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="税号:" :min-width="100">
-                      <span class="highlight-text">{{form.invoiceTax || '--'}}</span>
+                      <span class="highlight-text">{{form.invoiceNif || '--'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="手机:" :min-width="100">
                       <span class="highlight-text">{{form.invoicePhone || '--'}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="地址:" :span="2">
-                      <span class="highlight-text">{{form.invoiceAddress || '--'}}</span>
+                      <span class="highlight-text">{{form.invoiceAddressCountry + ' ' + form.invoicePostcode + ' ' + form.invoiceAddressProvince + ' ' + form.invoiceAddressDetail}}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="仓库:">
                       <span class="highlight-text">{{form.warehouseName || '--'}}</span>
@@ -98,13 +98,16 @@
                     <el-descriptions-item label="减免数量:">
                       <span class="highlight-text">{{ form.totalPromotionReduceQuantity ?? 0}}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="基础金额:">
+                    <el-descriptions-item label="基础金额:" >
                       <span class="highlight-text">{{ formatTwo(form.totalBaseAmount) + ' €'}}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="交税金额:" :span="2">
+                    <el-descriptions-item label="基础税额:" >
                       <span class="highlight-text">{{ formatTwo(form.totalTaxAmount) + ' €'}}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="应收金额:" :span="2" class-name="total-label2"
+                    <el-descriptions-item label="附加税额:" >
+                      <span class="highlight-text">{{ formatTwo(form.totalReAmount) + ' €'}}</span>
+                    </el-descriptions-item>
+                    <el-descriptions-item label="应收金额:"  class-name="total-label2"
                       label-class-name="total-content2">
                       <span>{{ formatTwo(form.totalNetAmount) + ' €'}}</span>
                     </el-descriptions-item>
@@ -434,11 +437,13 @@ import { ElMessageBox, ElNotification } from 'element-plus';
 import { getShiftRecordsIsActive, getLastShiftRecords, addSalesShiftRecords, continueSalesShiftRecords, getSalesShiftRecords, finishSalesShiftRecords } from '@/api/sales/SalesShiftRecords';
 import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum } from './cashOperationUtil/cashOperationEnum.js';
 import {canEditPriceEnum, canEditDiscountRateEnum, paymentAutoPrintEnum, canRemainAmountEnum, canDeleteOrderDetailEnum, cajaShowKeyboardEnum, orderInTaxEnum} from './cashOperationUtil/tenantConfigEnum.js';
+import { CustomerNormalEnum, CustomerRegimenEnum,  CustomerCalificacionEnum} from "@/views/order/customer/customerEnum.js"
 import { OperateLogTypeEnum } from './cashOperationUtil/operateLogTypeEnum.js';
 import { OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
 import {UserTypeEnum} from "@/views/system/tenant/tenantConstants.js";
 
 import useUserStore from "@/store/modules/user";
+import {useCajaStore} from "@/store/modules/caja";
 import { cloneDeep } from 'lodash';
 import SnowflakeID from '@/utils/SnowflakeID.js';
 import IndexedDBUtil from '@/indexedDB/index.js';
@@ -451,6 +456,7 @@ const { proxy } = getCurrentInstance();
 const { sales_order_source, sales_order_is_hold, sales_order_in_tax, sales_order_direction, sales_order_detail_type, sales_order_type, sales_order_status, erp_product_sku_type } = proxy.useDict('sales_order_source', 'sales_order_is_hold', 'sales_order_in_tax', 'sales_order_direction', 'sales_order_detail_type', 'sales_order_type', 'sales_order_status', 'erp_product_sku_type');
 
 const userStore = useUserStore(); // 获取当前用户信息
+const cajaStore = useCajaStore(); // caja 状态
 const dialogVisible = ref(false) // 交班窗口
 const activeTab = ref('first')  // 交班默认tab窗口
 const keyboardRef = ref(null);  // 键盘组件实例
@@ -458,13 +464,6 @@ const skuSelectRef = ref(null); // skuSelect组件实例
 const editableTableRef = ref(null); // 表格组件实例
 const currentSku = ref(null)
 const currentWarehouse = ref(null);
-const canEditPrice = ref(canEditPriceEnum.NOT_ALLOW);  // 表格子组件编辑单价disable控制
-const canEditDiscountRate = ref(canEditDiscountRateEnum.NOT_ALLOW); // 表格子组件编辑折扣disable控制
-const paymentAutoPrint = ref(paymentAutoPrintEnum.OPEN);  // 是否开启完成支付自动打印
-const canRemainAmount = ref(canRemainAmountEnum.OPEN); // 是否开启欠款支付
-const canDeleteOrderDetail = ref(canDeleteOrderDetailEnum.OPEN);  // 是否开启删除订单行
-const cajaShowKeyboard = ref(cajaShowKeyboardEnum.SHOW); // 是否展示触摸键盘配置
-const orderInTax = ref(orderInTaxEnum.IN_Tax);  // 订单是否含税，默认含税
 const DB_NAME = "OrderDB";    // 本地缓存数据库
 const STORE_NAME_ORDER = "order"; // 本地缓存表明
 const authManager = ref(null);  // 引用认证组件
@@ -473,26 +472,48 @@ const cashierContainer = ref(null); // 父组件绑定
 const isFullScreen = ref(false);  // 全屏
 const paymentDialog = ref(null);  // 绑定收款组件
 
+// ------------------ 获取租户配置 start ------------------
+const canEditPrice = ref(canEditPriceEnum.NOT_ALLOW);  // 表格子组件编辑单价disable控制
+const canEditDiscountRate = ref(canEditDiscountRateEnum.NOT_ALLOW); // 表格子组件编辑折扣disable控制
+const paymentAutoPrint = ref(paymentAutoPrintEnum.OPEN);  // 是否开启完成支付自动打印
+const canRemainAmount = ref(canRemainAmountEnum.OPEN); // 是否开启欠款支付
+const canDeleteOrderDetail = ref(canDeleteOrderDetailEnum.OPEN);  // 是否开启删除订单行
+const cajaShowKeyboard = ref(cajaShowKeyboardEnum.SHOW); // 是否展示触摸键盘配置
+const orderInTax = ref(orderInTaxEnum.IN_Tax);  // 订单是否含税，默认含税
 
-/** 获取租户配置 */
-const getTenantConfig = async () => {
-  const config = await proxy.getTenantConfig("editPrice");
-  canEditPrice.value = config?.configValue || canEditPriceEnum.NOT_ALLOW;
-  const config2 = await proxy.getTenantConfig("editDiscountRate");
-  canEditDiscountRate.value = config2?.configValue || canEditDiscountRateEnum.NOT_ALLOW;
-  const config3 = await proxy.getTenantConfig("paymentAutoPrint");
-  paymentAutoPrint.value = config3?.configValue || paymentAutoPrintEnum.OPEN;
-  const config4 = await proxy.getTenantConfig("canRemainAmount");
-  canRemainAmount.value = config4?.configValue || canRemainAmountEnum.OPEN;
-  const config5 = await proxy.getTenantConfig("canDeleteOrderDetail");
-  canDeleteOrderDetail.value = config5?.configValue || canDeleteOrderDetailEnum.OPEN;
-  const config6 = await proxy.getTenantConfig("cajaShowKeyboard");
-  cajaShowKeyboard.value = config6.configValue || cajaShowKeyboardEnum.SHOW;
-  const config7 = await proxy.getTenantConfig("orderInTax");
-  orderInTax.value = config7.configValue || orderInTaxEnum.IN_Tax;
-  
+/** 异步获取租户配置 */
+const loadTenantConfig = async () => {
+  try {
+    const config = await proxy.getTenantConfig("editPrice");
+    canEditPrice.value = (config != null) ? config : canEditPriceEnum.NOT_ALLOW;
+    const config2 = await proxy.getTenantConfig("editDiscountRate");
+    canEditDiscountRate.value = (config2 != null) ? config2 : canEditDiscountRateEnum.NOT_ALLOW;
+    const config3 = await proxy.getTenantConfig("paymentAutoPrint");
+    paymentAutoPrint.value = (config3 != null) ? config3 : paymentAutoPrintEnum.OPEN;
+    const config4 = await proxy.getTenantConfig("canRemainAmount");
+    canRemainAmount.value = (config4 != null) ? config4 : canRemainAmountEnum.OPEN;
+    const config5 = await proxy.getTenantConfig("canDeleteOrderDetail");
+    canDeleteOrderDetail.value = (config5 != null) ? config5 : canDeleteOrderDetailEnum.OPEN;
+    const config6 = await proxy.getTenantConfig("cajaShowKeyboard");
+    cajaShowKeyboard.value = (config6 != null) ? config6 : cajaShowKeyboardEnum.SHOW;
+    const config7 = await proxy.getTenantConfig("orderInTax");
+    orderInTax.value = (config7 != null) ? config7 : orderInTaxEnum.IN_Tax;
+  } catch (error) {
+    console.error("加载租户配置失败:", error);
+    // 设置默认值
+    canEditPrice.value =  canEditPriceEnum.NOT_ALLOW;
+    canEditDiscountRate.value =  canEditDiscountRateEnum.NOT_ALLOW;
+    paymentAutoPrint.value =  paymentAutoPrintEnum.OPEN;
+    canRemainAmount.value =  canRemainAmountEnum.OPEN;
+    canDeleteOrderDetail.value =  canDeleteOrderDetailEnum.OPEN;
+    cajaShowKeyboard.value =  cajaShowKeyboardEnum.SHOW;
+    orderInTax.value =  orderInTaxEnum.IN_Tax;
+  }
 }
-getTenantConfig()
+
+loadTenantConfig();
+
+// ------------------ 获取租户配置 end ------------------
 
 const orderIsDisabled = computed(()=>{
   if(form.value.orderType != OrderTypeEnum.PRE_ORDER){
@@ -830,6 +851,8 @@ const checkSalesShiftRecords = () => {
     // 1.1 存在进行中的交班
     if (response.rows.length > 0) {
       shiftForm.value = response.rows[0];
+      // 设置交班状态
+      cajaStore.setShift({shiftId:shiftForm.value.shiftId,shiftNo:shiftForm.value.shiftNo})
       console.log("获取当前交班信息：",shiftForm.value);
       // 1.1.1 判断收银员是否是同一人(租户管理员可以)
       if (shiftForm.value.userId != userStore.id && userStore.userType == UserTypeEnum.NORMAL) {
@@ -908,12 +931,13 @@ const handlerDoShift = () => {
           // 交班成功 关闭收银窗口
           proxy.$modal.msgSuccess('交班成功')
           proxy.$tab.closePage()
+          cajaStore.clearShift();
         }).catch(err => {
           proxy.$modal.msgError("交班失败：",err.message);
         })
       }
     }).catch(() => {
-      proxy.$modal.msgSuccess("取消借宿交班成功！");
+      proxy.$modal.msgSuccess("取消结束交班成功！");
       dialogVisible.value = true;  // 不允许退出交班界面
       return;
     })
@@ -930,6 +954,8 @@ const handlerDoShift = () => {
       addSalesShiftRecords(shiftForm.value).then(res => {
         // 更新ID和编号
         shiftForm.value = res.data;
+        // 更新交班状态
+        cajaStore.setShift({shiftId:shiftForm.value.shiftId,shiftNo:shiftForm.value.shiftNo})
         proxy.$modal.msgSuccess('值班成功');
         //关闭交班界面
         dialogVisible.value = false;
@@ -938,11 +964,13 @@ const handlerDoShift = () => {
         proxy.$modal.msgError("开始值班失败：",err.message);
         console.log("开始值班失败：",err);
         dialogVisible.value = true; // 不允许退出交班界面
+        cajaStore.clearShift();
         return;
       })
     }).catch(() => {
       proxy.$modal.msgSuccess("取消开始值班成功！");
       dialogVisible.value = true;  // 不允许退出交班界面
+      cajaStore.clearShift();
       return;
     });
   };
@@ -1080,11 +1108,16 @@ const checkCajaRegister = async () => {
     // 3 判断是否注册
     if (!cajaInfo) {
       handleCajaNoRegister();
+      // 清空收银台状态
+      cajaStore.clearCaja()
       return;
     }
 
     // 更新当前收银台信息
     currentCaja.value = cajaInfo;
+    // 更新收银台状态
+    cajaStore.setCaja(cajaInfo)
+    
     console.log('当前收银台信息:', cajaInfo);
 
     // 4 检查收银台状态
@@ -1116,6 +1149,7 @@ const checkCajaRegister = async () => {
   }
 };
 
+/** 禁用收银台  */
 const handleCajaNoRegister = () => {
   try {
     let messageStr = ''
@@ -1511,28 +1545,23 @@ const handleFocus = (event) => {
 
 /** 获取选中的客户数据 */
 const selectedCustomerData = (data) => {
-  console.log('收银台获取的客户数据:', data)
-  if(data){
-    form.value.customerId = data.customerId;
-    form.value.customerName = data.customerName; 
-    form.value.invoiceTax = data.invoiceTax;
-    form.value.invoicePhone = data.invoicePhone;
-    form.value.invoiceAddress = data.invoiceAddress;
-    form.value.customerPriceLevel = data.levelPrice || 1;
-    form.value.customerDiscountRate = data.levelDiscount || 0;
-    if(data.salesmanVo){
-      form.value.salesmanId = data.salesmanId || null;
-      form.value.salesmanName = data.salesmanName || null;
-    } else {
-      form.value.salesmanId =  null;
-      form.value.salesmanName =  null;
-    }
-  } else {
-    form.value.customerId =  null;
-    form.value.customerName =  null; 
-    form.value.customerPriceLevel =  1;
-    form.value.customerDiscountRate =  0;
-  }
+  data = data || {};
+  console.log('收银台获取的客户数据---:', data)
+  form.value.customerId = data.customerId || null;
+  form.value.customerRegimen = data.invoiceRegimen || CustomerNormalEnum.CUSTOMER_REGIMEN_NORMAL;
+  form.value.customerCalificacion = data.invoiceCalification || CustomerNormalEnum.CUSTOMER_CALIFICACION_NORMAL;
+  form.value.invoiceNombre = data.invoiceNombre || null; 
+  form.value.invoiceNif = data.invoiceNif || null;
+  form.value.invoicePhone = data.invoicePhone || null;
+  form.value.invoiceEmail = data.contactEmail || null;
+  form.value.invoicePostcode = data.invoicePostcode || null;
+  form.value.invoiceAddressCountry = data.invoiceAddressCountry || null;
+  form.value.invoiceAddressProvince = data.invoiceAddressProvince || null;
+  form.value.invoiceAddressDetail = data.invoiceAddressDetail || null;
+  form.value.customerPriceLevel = data.levelPrice || 1;
+  form.value.customerDiscountRate = data.levelDiscount || 0;
+  form.value.salesmanId = data.salesmanId || null;
+  form.value.salesmanName = data.salesmanName || null;
   // 更新价格和折扣
   updateDetailPriceAndDiscount();
 }
@@ -1557,18 +1586,18 @@ const updateDetailPriceAndDiscount = () => {
       item.detailPrice = priceMap[form.value.customerPriceLevel] || item.skuPrice;
       // 更新折扣率
       item.detailDiscountRate = form.value.customerDiscountRate || 0;
-
       // 计算订单金额
       item.detailAmount = item.detailPrice * item.detailQuantity;
       item.detailDiscountAmount = item.detailAmount * (item.detailDiscountRate / 100);
       item.detailSalesAmount = item.detailAmount - item.detailDiscountAmount;
 
       // 根据是否含税计算净金额、基础金额和税额
-      const {detailNetAmount, detailBaseAmount, detailTaxAmount} = calculateAmounts(item.detailSalesAmount, item.detailTaxRate)
-      item.detailNetAmount = detailNetAmount;
+      const {detailBaseAmount, detailTaxAmount, detailReAmount , detailNetAmount} = calculateAmounts(item.detailSalesAmount, item.detailTaxRate, item.detailReRate)
       item.detailBaseAmount = detailBaseAmount;
+      item.detailNetAmount = detailNetAmount;
+      item.detailReAmount = detailReAmount;
       item.detailTaxAmount = detailTaxAmount;
-      console.log("订单明细计算结果：", item);
+      console.log("订单明细计算结果---：", item);
     });
 
   }
@@ -1700,23 +1729,45 @@ const focusSkuInput = () => {
 
 // -------------------------------------- 9 订单明细计算 start ------------------------------------------
 /** 计算含税和不含税的金额 */
-function calculateAmounts(detailSalesAmount, detailTaxRate) {
+function calculateAmounts(detailSalesAmount, detailTaxRate, detailReRate) {
   const rateValue = (detailTaxRate || 0)/100;
-  let detailBaseAmount, detailTaxAmount, detailNetAmount;
+  const reRate = form.value.customerRegimen == CustomerRegimenEnum.CUSTOMER_REGIMEN_RE ? (detailReRate || 0)/100  : 0 ;
+  let detailBaseAmount, detailTaxAmount, detailReAmount, detailNetAmount;
 
-  if (form.value.inTax == '0') {
+  if (form.value.inTax == orderInTaxEnum.IN_Tax) {
     // 含税
     detailBaseAmount = detailSalesAmount / (1 + rateValue);
-    detailTaxAmount = detailSalesAmount - detailBaseAmount;
-    detailNetAmount = detailSalesAmount;
+    // 是否免税
+    if(form.value.customerCalificacion !=  CustomerCalificacionEnum.CUSTOMER_CALIFICACION_NORMAL){
+      // 免税
+      detailTaxAmount = 0
+      detailReAmount = 0
+      detailNetAmount = detailBaseAmount;
+    } else {
+      // 非免税
+      detailTaxAmount = detailBaseAmount * rateValue;
+      detailReAmount = detailBaseAmount * reRate;
+      detailNetAmount = detailBaseAmount + detailTaxAmount + detailReAmount;
+    }
+    
   } else {
     // 不含税
     detailBaseAmount = detailSalesAmount;
-    detailTaxAmount = detailSalesAmount * (rateValue);
-    detailNetAmount = detailSalesAmount + detailTaxAmount;
+    // 是否免税
+    if(form.value.customerCalificacion !=  CustomerCalificacionEnum.CUSTOMER_CALIFICACION_NORMAL){
+      // 免税
+      detailTaxAmount = 0
+      detailReAmount = 0
+      detailNetAmount = detailBaseAmount;
+    } else {
+      // 非免税
+      detailTaxAmount = detailBaseAmount * rateValue;
+      detailReAmount = detailBaseAmount * reRate;
+      detailNetAmount = detailBaseAmount + detailTaxAmount + detailReAmount;
+    }
   }
 
-  return { detailBaseAmount, detailTaxAmount, detailNetAmount };
+  return { detailBaseAmount, detailTaxAmount, detailReAmount, detailNetAmount };
 }
 
 const comboDialog = ref()
@@ -1730,7 +1781,7 @@ const handleAddComboDetails = (comboDetail) => {
 /** 销售订单明细添加按钮操作 */
 function handleAddSalesOrderDetail(sku) {
   const obj = initOrderDetailData();
-  const { skuId, skuCode, skuImage, skuName, assistName, skuType, comboId, skuValue, batchNo, unitVo, productRateVo, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6 } = sku;
+  const { skuId, skuCode, skuImage, skuName, assistName, skuType, comboId, skuValue, batchNo, unitCode, rateValue, rateRe, skuPrice, skuPrice2, skuPrice3, skuPrice4, skuPrice5, skuPrice6 } = sku;
   obj.detailMainSkuId = null;
   obj.skuId = skuId;
   obj.skuCode = skuCode;
@@ -1742,7 +1793,7 @@ function handleAddSalesOrderDetail(sku) {
   obj.skuValue = skuValue;
   obj.batchNo = batchNo;
   obj.detailSn = null;
-  obj.skuUnit = unitVo?.unitCode;
+  obj.skuUnit = unitCode;
   obj.skuPrice = skuPrice;
   obj.skuPrice2 = skuPrice2;
   obj.skuPrice3 = skuPrice3;
@@ -1769,14 +1820,17 @@ function handleAddSalesOrderDetail(sku) {
   obj.activityDiscountRate = 0;
   obj.detailDiscountAmount = 0;
   obj.detailSalesAmount = sku.skuPrice;
-  obj.detailTaxRate = productRateVo?.rateValue || 0;
+  obj.detailTaxRate = rateValue || 0;
+  obj.detailReRate = rateRe || 0;
   // 3 含税/不含税
-  const { detailBaseAmount, detailTaxAmount, detailNetAmount } = calculateAmounts(
+  const { detailBaseAmount, detailTaxAmount, detailReAmount, detailNetAmount } = calculateAmounts(
     obj.detailSalesAmount,
     obj.detailTaxRate,
+    obj.detailReRate,
   );
   obj.detailBaseAmount = detailBaseAmount;
   obj.detailTaxAmount = detailTaxAmount;
+  obj.detailReAmount = detailReAmount;
   obj.detailNetAmount = detailNetAmount;
   
   // 4 套餐确认

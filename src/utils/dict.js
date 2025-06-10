@@ -28,7 +28,7 @@ export function useDict(...args) {
 }
 
 /**
- * 根据字典标签获取字典值
+ * 根据字典标签获取字典值 - 胡
  */
 export function useDictLabel(dictList, label) {
   console.log("--字典数据：", dictList);
@@ -41,7 +41,7 @@ export function useDictLabel(dictList, label) {
 
 
 /**
- * 根据字典值获取字典标签
+ * 根据字典值获取字典标签 - 胡
  */
 export function useDictLabelByValue(dictList, value) {
   const item = dictList.value.find(item => item.value === value);

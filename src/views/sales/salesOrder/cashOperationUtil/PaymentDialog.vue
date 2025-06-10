@@ -128,7 +128,7 @@
             <el-button 
               type="success" 
               @click="handlePrintTicket"
-              :disabled="orderData.orderPayStatus != OrderPayStatusEnum.PAID"
+              :disabled="orderData.orderPayStatus == OrderPayStatusEnum.UN_PAID"
             >
               打印小票
             </el-button>

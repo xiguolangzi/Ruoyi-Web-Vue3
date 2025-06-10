@@ -25,6 +25,7 @@ import { changeLanguage } from '../../api/login';
 import { ElMessage } from 'element-plus';
 
 const languageStore = useLanguageStore()
+console.log("当前的语言状态是：",languageStore.language)
 // 实时更新 i18n
 const {locale} = useI18n()
 const {t} = useI18n()

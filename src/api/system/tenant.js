@@ -69,3 +69,32 @@ export function addTenantAdmin(data) {
     data: data
   })
 }
+
+// verifac 签发Emisor
+export function vrifacRegisterEmisor(data) {
+  return request({
+    url: '/verifuc/emisor/registerEmisor',
+    method: 'post',
+    data: data
+  })
+}
+
+
+// verifac 查询Emisor
+export function vrifacSelectEmisorList(data) {
+  return request({
+    url: '/verifuc/emisor/selectEmisorList',
+    method: 'post',
+    data: data
+  })
+}
+
+
+// verifac 删除Emisor
+export function vrifacDeleteEmisor(data) {
+  return request({
+    url: '/verifuc/emisor/delEmisor',
+    method: 'post',
+    data: data
+  })
+}

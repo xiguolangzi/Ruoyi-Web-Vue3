@@ -20,8 +20,8 @@
           <el-form-item label="客户名称: " prop="customerName">
             <el-input v-model="queryParams.customerName" placeholder="请输入客户名称" clearable @keyup.enter="handleQuery" />
           </el-form-item>
-          <el-form-item label="CIF/NIE: " prop="invoiceNif">
-            <el-input v-model="queryParams.invoiceNif" placeholder="请输入纳税人税号" clearable @keyup.enter="handleQuery" />
+          <el-form-item label="证件号: " prop="invoiceNif">
+            <el-input v-model="queryParams.invoiceNif" placeholder="请输入证件号" clearable @keyup.enter="handleQuery" />
           </el-form-item>
           <el-form-item label="发票名称: " prop="invoiceNombre">
             <el-input v-model="queryParams.invoiceNombre" placeholder="请输入纳税人名称" clearable @keyup.enter="handleQuery" />
@@ -185,12 +185,22 @@
           </el-tab-pane>
           <!-- 发票信息 -->
           <el-tab-pane label="发票信息" name="invoiceInfo">
-            <el-form-item label="CIF/NIE: " prop="invoiceNif">
-              <el-input v-model="form.invoiceNif" placeholder="请输入纳税人税号" type="textarea" maxlength="50" show-word-limit
+            <el-form-item label="证件类型: " prop="invoiceNifTipo">
+              <el-select v-model="form.invoiceNifTipo" placeholder="请选择证件类型">
+                <el-option v-for="dict in customer_type_nif " :key="dict.value" :label="dict.label"
+                  :value="dict.value"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="CIF/NIE: " prop="invoiceNif" v-if="form.invoiceNifTipo == '01'">
+              <el-input v-model="form.invoiceNif" placeholder="请输入纳税人税号" type="textarea" maxlength="9" show-word-limit
+                :rows="1" />
+            </el-form-item>
+            <el-form-item label="证件号: " prop="invoiceNif" v-else>
+              <el-input v-model="form.invoiceNif" placeholder="请输入证件号" type="textarea" maxlength="20" show-word-limit
                 :rows="1" />
             </el-form-item>
             <el-form-item label="发票名称: " prop="invoiceNombre">
-              <el-input v-model="form.invoiceNombre" placeholder="请输入纳税人名称" type="textarea" maxlength="50" show-word-limit
+              <el-input v-model="form.invoiceNombre" placeholder="请输入纳税人名称" type="textarea" maxlength="100" show-word-limit
                 :rows="1" />
             </el-form-item>
             <el-form-item label="发票电话: " prop="invoicePhone">
@@ -271,8 +281,11 @@
             </div>
           </template>
           <el-descriptions  :column="2" size="small">
-            <el-descriptions-item label="纳税人税号:">{{ currentRow.invoiceNif }}</el-descriptions-item>
-            <el-descriptions-item label="纳税人名称:">{{ currentRow.invoiceNombre }}</el-descriptions-item>
+            <el-descriptions-item label="证件类型:">
+              <dict-tag :options="customer_type_nif" :value="currentRow.invoiceNifTipo" />
+            </el-descriptions-item>
+            <el-descriptions-item label="证件号:">{{ currentRow.invoiceNif }}</el-descriptions-item>
+            <el-descriptions-item label="纳税人名称:" :span="2">{{ currentRow.invoiceNombre }}</el-descriptions-item>
             <el-descriptions-item label="纳税人电话:">{{ currentRow.invoicePhone }}</el-descriptions-item>
             <el-descriptions-item label="纳税人邮编:">{{ currentRow.invoicePostcode }}</el-descriptions-item>
             <el-descriptions-item label="纳税人地址:" :span="2">
@@ -330,6 +343,7 @@ const userStore = useUserStore();
 const { proxy } = getCurrentInstance();
 const { invoice_regimen, invoice_calificacion, project_general_status, sys_yes_or_no } = proxy.useDict('invoice_regimen', 'invoice_calificacion', 'project_general_status', 'sys_yes_or_no');
 
+const {customer_type_nif } = proxy.useDict('customer_type_nif');
 const customerList = ref([]);
 const open = ref(false);
 const loading = ref(true);
@@ -589,6 +603,7 @@ function reset() {
     invoiceRegimen: '01',
     invoiceCalificacion: 'S1',
     levelId: null,
+    invoiceNifTipo: '01',
     invoiceNif: null,
     invoiceNombre: null,
     invoicePhone: null,

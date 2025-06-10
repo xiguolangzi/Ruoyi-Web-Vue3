@@ -1,24 +1,26 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="公司名称" prop="tenantName">
+      <el-form-item label="租户名称" prop="tenantName">
         <el-input
           v-model="queryParams.tenantName"
           placeholder="请输入租户名称"
           clearable
           @keyup.enter="handleQuery"
+          size="small"
         />
       </el-form-item>
-      <el-form-item label="CIF/NIF" prop="invoiceTaxNumber">
+      <el-form-item label="CIF/NIF" prop="invoiceNif">
         <el-input
-          v-model="queryParams.invoiceTaxNumber"
+          v-model="queryParams.invoiceNif"
           placeholder="请输入CIF/NIF"
           clearable
           @keyup.enter="handleQuery"
+          size="small"
         />
       </el-form-item>
       <el-form-item label="租户类型" prop="tenantType">
-        <el-select v-model="queryParams.tenantType" placeholder="请选择租户类型" clearable style="width: 200px">
+        <el-select v-model="queryParams.tenantType" placeholder="请选择租户类型" clearable style="width: 200px" size="small">
           <el-option
             v-for="dict in sys_tenant_type"
             :key="dict.value"
@@ -28,7 +30,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="帐号状态" prop="tenantStatus">
-        <el-select v-model="queryParams.tenantStatus" placeholder="请选择帐号状态" clearable style="width: 200px">
+        <el-select v-model="queryParams.tenantStatus" placeholder="请选择帐号状态" clearable style="width: 200px" size="small">
           <el-option
             v-for="dict in sys_tenant_status"
             :key="dict.value"
@@ -43,6 +45,7 @@
           placeholder="请输入手机号"
           clearable
           @keyup.enter="handleQuery"
+          size="small"
         />
       </el-form-item>
       <el-form-item label="邮箱" prop="email">
@@ -51,6 +54,7 @@
           placeholder="请输入邮箱"
           clearable
           @keyup.enter="handleQuery"
+          size="small"
         />
       </el-form-item>
       <el-form-item>
@@ -157,29 +161,29 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table class="table-container" v-loading="loading" :data="tenantList" @selection-change="handleSelectionChange" >
+    <el-table class="table-container" v-loading="loading" :data="tenantList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="公司编码" align="center" prop="tenantCode" />
-      <el-table-column label="公司名称" align="center" prop="tenantName" />
-      <el-table-column label="公司类型" align="center" prop="tenantType" width="80">
+      <el-table-column label="租户编码" align="center" prop="tenantCode" />
+      <el-table-column label="租户名称" align="center" prop="tenantName" show-overflow-tooltip=""/>
+      <el-table-column label="租户类型" align="center" prop="tenantType" width="80">
         <template #default="scope">
           <dict-tag :options="sys_tenant_type" :value="scope.row.tenantType"/>
         </template>
       </el-table-column>
-      <el-table-column label="公司状态" align="center" prop="tenantStatus" width="80">
+      <el-table-column label="租户状态" align="center" prop="tenantStatus" width="80">
         <template #default="scope">
           <dict-tag :options="sys_tenant_status" :value="scope.row.tenantStatus"/>
         </template>
       </el-table-column>
-      <el-table-column label="成本计算" align="center" prop="costMethod">
+      <el-table-column label="成本计算" align="center" prop="costMethod" width="80">
         <template #default="scope">
           <dict-tag :options="product_cost_method" :value="scope.row.costMethod"/>
         </template>
       </el-table-column>
 
-      <el-table-column label="CIF/NIF" align="center" prop="invoiceTaxNumber"  show-overflow-tooltip/>
+      <el-table-column label="CIF/NIF" align="center" prop="invoiceNif"  show-overflow-tooltip/>
       <el-table-column label="欧盟增值税号" align="center" prop="invoiceVatNumber"  show-overflow-tooltip/>
-      <el-table-column label="法定名称" align="center" prop="invoiceCompanyName" show-overflow-tooltip/>
+      <el-table-column label="公司名称" align="center" prop="invoiceNombre" show-overflow-tooltip/>
       <el-table-column label="手机号" align="center" prop="invoicePhoneNumber" show-overflow-tooltip/>
       <el-table-column label="邮编" align="center" prop="invoicePostalCode" show-overflow-tooltip/>
       <el-table-column label="地址国家" align="center" prop="invoiceAddressCountry" show-overflow-tooltip/>
@@ -208,15 +212,15 @@
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="tenantRef" :model="form" :rules="rules" label-width="80px">
         <el-tabs class="tab-container" v-model="activeName" type="border-card" style="margin: 0 20px" >
-          <!-------   基础信息部分   --------->
+          <!-- 基础信息部分 -->
           <el-tab-pane  label="商品基础信息" name="first">
-            <el-form-item label="公司编码:" prop="tenantCode">
+            <el-form-item label="租户编码:" prop="tenantCode">
               <el-input v-model="form.tenantCode" placeholder="请输入租户名称" type="textarea" maxlength="30" show-word-limit :rows="1"/>
             </el-form-item>
-            <el-form-item label="公司名称:" prop="tenantName">
+            <el-form-item label="租户名称:" prop="tenantName">
               <el-input v-model="form.tenantName" placeholder="请输入租户名称" type="textarea" maxlength="100" show-word-limit :rows="1"/>
             </el-form-item>
-            <el-form-item label="公司类型:" prop="tenantType">
+            <el-form-item label="租户类型:" prop="tenantType">
               <el-select v-model="form.tenantType" placeholder="请选择租户类型">
                 <el-option
                   v-for="dict in sys_tenant_type"
@@ -226,7 +230,7 @@
                 ></el-option>
               </el-select>
             </el-form-item>
-            <el-form-item label="帐号状态:" prop="tenantStatus">
+            <el-form-item label="租户状态:" prop="tenantStatus">
               <el-select v-model="form.tenantStatus" placeholder="请选择帐号状态">
                 <el-option
                   v-for="dict in sys_tenant_status"
@@ -250,16 +254,16 @@
               <el-input v-model="form.remark" placeholder="请输入内容" type="textarea" maxlength="200" show-word-limit :rows="2"/>
             </el-form-item>
           </el-tab-pane>
-          <!-----------------   发票信息  ----------------->
+          <!--  发票信息 -->
           <el-tab-pane label="发票信息" name="second">
-            <el-form-item label="CIF/NIF:" prop="invoiceTaxNumber">
-              <el-input v-model="form.invoiceTaxNumber" placeholder="请输入CIF企业/NIF个人" type="textarea" maxlength="20" show-word-limit :rows="1"/>
+            <el-form-item label="CIF/NIF:" prop="invoiceNif">
+              <el-input v-model="form.invoiceNif" placeholder="请输入CIF企业/NIF个人" type="textarea" maxlength="9" show-word-limit :rows="1"/>
             </el-form-item>
-            <el-form-item label="欧盟增值税号:" prop="invoiceVatNumber">
-              <el-input v-model="form.invoiceVatNumber" placeholder="请输入欧盟增值税号" type="textarea" maxlength="20" show-word-limit :rows="1"/>
+            <el-form-item label="欧盟税号:" prop="invoiceVatNumber">
+              <el-input v-model="form.invoiceVatNumber" placeholder="请输入欧盟增值税号" type="textarea" maxlength="9" show-word-limit :rows="1"/>
             </el-form-item>
-            <el-form-item label="法定名称:" prop="invoiceCompanyName">
-              <el-input v-model="form.invoiceCompanyName" placeholder="公司名称" type="textarea" maxlength="100" show-word-limit :rows="1"/>
+            <el-form-item label="公司名称:" prop="invoiceNombre">
+              <el-input v-model="form.invoiceNombre" placeholder="公司名称" type="textarea" maxlength="100" show-word-limit :rows="1"/>
             </el-form-item>
             <el-form-item label="手机号:" prop="invoicePhoneNumber">
               <el-input v-model="form.invoicePhoneNumber" placeholder="请输入手机号" />
@@ -302,17 +306,157 @@
 
           <!-- 注册信息 -->
           <el-tab-pane label="注册信息" name="third">
-            <el-form-item label="注册信息:" prop="apiKey">
+            <el-form-item label="注册ID:" prop="apiIdEmisor">
               <el-input
-                v-model="form.apiKey"
+                v-model="form.apiIdEmisor"
                 style="max-width: 600px"
-                placeholder="注册信息"
-              >
-                <template #append>
-                  <el-button type="primary"  @click="getApiKey">注册API</el-button>
-                </template>
-              </el-input>
+                placeholder="系统自动生成"
+                disabled
+              />
             </el-form-item>
+            <el-form-item label="注册代码:" prop="apiCodigo">
+              <el-input
+                v-model="form.apiCodigo"
+                style="max-width: 600px"
+                placeholder="系统自动生成"
+                disabled
+              />
+            </el-form-item>
+            <el-row>
+              <el-form-item label="激活状态:" prop="apiActivo">
+                <span v-if="form.apiActivo == ActiveEnum.ACTIVE"> 已激活 </span>
+                <span v-else style="color: crimson;"> 未激活 </span>
+              </el-form-item>
+              <el-form-item label="授权状态:" prop="apiAutorizacion">
+                <span v-if="form.apiAutorizacion == AuthorizationEnum.AUTHORIZATION" > 已授权 </span>
+                <span v-else style="color: crimson;"> 未授权 </span>
+              </el-form-item>
+            </el-row>
+            <el-form-item label="税种:" prop="apiImpuesto">
+              <el-input
+                v-model="form.apiImpuesto"
+                style="max-width: 600px"
+                placeholder="税种 默认01-IVA"
+                :disabled="disabledEmisorData"
+              />
+            </el-form-item>
+            <el-form-item label="税务制度: " prop="apiRegimen">
+              <el-select v-model="form.apiRegimen" placeholder="请选择税务制度" clearable :disabled="disabledEmisorData">
+                <el-option v-for="dict in invoice_regimen" :key="dict.value" :label="dict.label"
+                  :value="dict.value" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="应税类型: " prop="apiCalificacion">
+              <el-select v-model="form.apiCalificacion" placeholder="请选择纳税类型" clearable :disabled="disabledEmisorData">
+                <el-option v-for="dict in invoice_calificacion" :key="dict.value" :label="dict.label"
+                  :value="dict.value" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="发票类型: " prop="apiTipoFactura">
+              <el-select v-model="form.apiTipoFactura" placeholder="请选择发票类型" clearable :disabled="disabledEmisorData">
+                <el-option v-for="dict in varifac_invoice_type" :key="dict.value" :label="dict.label"
+                  :value="dict.value" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="税率:" prop="apiIva">
+              <el-select v-model="form.apiIva" placeholder="请选择税率" :disabled="disabledEmisorData">
+                <el-option v-for="item in rateList" :key="item.rateId" :label="item.rateName"
+                  :value="item.rateValue" :disabled="item.rateStatus != 0" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="F1系列号:" prop="apiSerieF1">
+              <el-input
+                v-model="form.apiSerieF1"
+                style="max-width: 600px"
+                placeholder="请输入 F1系列号"
+                type="textarea" maxlength="10" show-word-limit :rows="1"
+                :disabled="disabledEmisorData"
+              />
+            </el-form-item>
+            <el-form-item label="F2系列号:" prop="apiSerieF2">
+              <el-input
+                v-model="form.apiSerieF2"
+                style="max-width: 600px"
+                placeholder="请输入 F2系列号"
+                type="textarea" maxlength="10" show-word-limit :rows="1"
+                :disabled="disabledEmisorData"
+              />
+            </el-form-item>
+            <el-form-item label="F3系列号:" prop="apiSerieF3">
+              <el-input
+                v-model="form.apiSerieF3"
+                style="max-width: 600px"
+                placeholder="请输入 F3系列号"
+                type="textarea" maxlength="10" show-word-limit :rows="1"
+                :disabled="disabledEmisorData"
+              />
+            </el-form-item>
+            <el-form-item label="R系列号:" prop="apiSerieR">
+              <el-input
+                v-model="form.apiSerieR"
+                style="max-width: 600px"
+                placeholder="请输入 R系列号"
+                type="textarea" maxlength="10" show-word-limit :rows="1"
+                :disabled="disabledEmisorData"
+              />
+            </el-form-item>
+            <el-form-item label="是否年连续:" prop="apiSeriesAnuales">
+              <el-radio-group v-model="form.apiSeriesAnuales" :disabled="disabledEmisorData">
+                <el-radio :value="0" size="large">年连续</el-radio>
+                <el-radio :value="1" size="large">非年连续</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="F2限制金额:" prop="apiLimiteImporte">
+              <el-input-number
+                v-model="form.apiLimiteImporte"
+                placeholder="请输入 F2限制金额"
+                :min="0" :max="999999" :precision='2'
+                v-focusSelect
+                style="width: 100%;"
+                :disabled="disabledEmisorData"
+              >
+                <template #suffix>€</template>
+              </el-input-number>
+            </el-form-item>
+            <el-button-group style="width: 100%;">
+              <el-button type="primary" style="width: 33%;"  :disabled="disabledEmisorData" @click="registerEmisor">首次签发注册</el-button>
+              <el-button type="warning" style="width: 33%;"    @click="changeEmisor">选择已有注册</el-button>
+              <el-button type="danger" style="width: 33%;"  :disabled="!disabledEmisorData" @click="refreshEmisor">刷新注册</el-button>
+            </el-button-group>
+            
+          </el-tab-pane>
+
+          <!-- 注册信息查询 -->
+          <el-tab-pane label="注册信息" name="catchApi">
+            <el-input
+              v-model="form.invoiceNif"
+              style="max-width: 600px; margin-bottom: 5px;"
+              placeholder="系统自动生成"
+              disabled
+            >
+              <template #append>
+                <el-button style="background-color: #FFA500; border-color: #FFA500; color: white;"  @click="selectEmisorList">Verifac 查询结果</el-button>
+              </template>
+            </el-input>
+
+            <!-- 查询结果 -->
+            <el-table class="table-container"  :data="emisorList" style="width: 100%;" >
+              <el-table-column label="ID" prop="idEmisor"  align="center" show-overflow-tooltip />
+              <el-table-column label="NIF" prop="nif"  align="center" show-overflow-tooltip />
+              <el-table-column label="Codigo" prop="codigo"  align="center" show-overflow-tooltip />
+              <el-table-column label="激活状态" prop="activo"  align="center" show-overflow-tooltip >
+                <template #default="scope">
+                  <el-tag v-if="scope.row.activo == ActiveEnum.NO_ACTIVE" type="danger" size="small">未激活</el-tag>
+                  <el-tag v-else type="success" size="small">已激活</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" align="center" >
+                <template #default="scope">
+                  <el-button  type="danger" size="small" @click="deleteEmisor(scope.row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+
             
           </el-tab-pane>
         </el-tabs>
@@ -321,30 +465,55 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
+          <el-button type="primary" @click="submitForm">{{ buttonTital }}</el-button>
           <el-button @click="cancel">取 消</el-button>
         </div>
       </template>
 
+    </el-dialog>
+
+    <el-dialog title="选择已注册信息" v-model="openChangeDialog" width="500px" append-to-body  >
+      <el-table class="table-container"  :data="emisorList" style="width: 100%;" @current-change="handleSelectionEmisor" highlight-current-row>
+        <el-table-column label="ID" prop="idEmisor"  align="center" show-overflow-tooltip />
+          <el-table-column label="NIF" prop="nif"  align="center" show-overflow-tooltip />
+          <el-table-column label="Codigo" prop="codigo"  align="center" show-overflow-tooltip />
+          <el-table-column label="激活状态" prop="activo"  align="center" show-overflow-tooltip >
+            <template #default="scope">
+              <el-tag v-if="scope.row.activo == ActiveEnum.NO_ACTIVE" type="danger" size="small">未激活</el-tag>
+              <el-tag v-else type="success" size="small">已激活</el-tag>
+            </template>
+          </el-table-column>
+      </el-table>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button type="primary" :disabled="currentEmisor == null" @click="confirmChangeEmisor">确认更换</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup name="Tenant">
 import { listTenant, getTenant, delTenant, addTenant, updateTenant, addTenantDept, addTenantAdmin } from "@/api/system/tenant";
+import { vrifacRegisterEmisor, vrifacSelectEmisorList, vrifacDeleteEmisor} from "@/api/system/tenant";
 import useUserStore from "@/store/modules/user";
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { listAddressCountry } from "@/api/address/addressCountry";
 import { listAddressProvince } from "@/api/address/addressProvince";
+import { listProductRate } from "@/api/product/productRate";
+import { ref } from "vue";
+import { computed } from "vue";
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
 
 const { proxy } = getCurrentInstance();
 const { sys_tenant_status, sys_tenant_type, product_cost_method } = proxy.useDict('sys_tenant_status', 'sys_tenant_type', 'product_cost_method');
+const { invoice_regimen, invoice_calificacion, varifac_invoice_type} = proxy.useDict('invoice_regimen', 'invoice_calificacion', 'varifac_invoice_type');
 
 const tenantList = ref([]);
 const open = ref(false);
+const openChangeDialog = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
 const ids = ref([]);
@@ -352,14 +521,144 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
-// 标签菜单默认首页
-const activeName = ref("first");
+const buttonTital = ref("确定");
+const rateList = ref([]);
+const activeName = ref("first");  // 标签菜单默认首页
 const addressCountryList = ref([]);
 const addressProvinceList = ref([]);
+const emisorList = ref([]);
 
-function getApiKey(){
-  ElMessage.error("getApiKey暂未实现！")
+
+// -------------------------- 签发注册业务 start ------------------------------------
+/** 签发注册  */
+function registerEmisor () {
+  if(form.value.tenantId  == null){
+    proxy.$modal.msgError("请先新增租户信息");
+    return;
+  }
+  vrifacRegisterEmisor(form.value).then((response) => { 
+      proxy.$modal.msgSuccess("修改成功");
+      form.value = response.data;
+  });
 }
+
+/** 获取签发注册列表 */
+async function selectEmisorList () {
+  vrifacSelectEmisorList(form.value).then((response) => {
+    if  (response.data) {
+      console.log("前端查询的结果是：",response.data);
+      emisorList.value = response.data;
+    }
+  });
+
+}
+
+/** 删除签发注册记录 */
+function deleteEmisor(row){
+  proxy.$modal.confirm('是否确认删除当前注册ID"' + row.idEmisor + '"的数据项？').then(function() {
+    vrifacDeleteEmisor(row).then((response) => {
+        selectEmisorList();
+        if(response){
+          ElMessage.success(response.msg);
+        }
+        
+    })
+    .catch(()=>{
+      selectEmisorList();
+    })
+  });
+  
+}
+
+/**
+ * 更换已注册的信息 - 如果已被租户引用不可以更换
+ */
+function changeEmisor(){
+  selectEmisorList().then((response) => {
+    // 弹出已签发的注册信息
+    openChangeDialog.value  = true;
+  });
+}
+
+const currentEmisor = ref(null);
+function handleSelectionEmisor(selection){
+  currentEmisor.value = selection
+  console.log("当前选择的是：",currentEmisor.value)
+
+}
+
+/** 确认更换 */
+function confirmChangeEmisor(){
+  console.log("当前更换的信息是", currentEmisor.value)
+  fromEmisorToForm(currentEmisor.value)
+  ElMessage.warning("注册信息更换成功，需要确认新增/修改 才会生效！！")
+  openChangeDialog.value  = false;
+}
+
+function fromEmisorToForm(emisor){
+  if(emisor){
+    form.value.apiIdEmisor = emisor.idEmisor;
+    form.value.apiCodigo = emisor.codigo;
+    form.value.apiActivo = emisor.activo;
+    form.value.apiAutorizacion = emisor.autorizacion;
+    form.value.apiImpuesto = emisor.impuesto;
+    form.value.apiRegimen = emisor.regimen;
+    form.value.apiCalificacion = emisor.calificacion;
+    form.value.apiTipoFactura = emisor.tipoFactura;
+    form.value.apiIva = emisor.iva;
+    form.value.apiSerieF1 = emisor.serieF1;
+    form.value.apiSerieF2 = emisor.serieF2;
+    form.value.apiSerieF3 = emisor.serieF3;
+    form.value.apiSerieR = emisor.serieR;
+    form.value.apiSeriesAnuales = emisor.seriesAnuales;
+    form.value.apiLimiteImporte = emisor.limiteImporte;
+  }
+}
+
+/** 刷新注册 - 更新注册，替换之前的注册信息 */
+function refreshEmisor(){
+  proxy.$modal.confirm('是否确认重新注册，更换当前注册ID"' + form.value.apiIdEmisor + '"的数据项？').then(function() {
+    return registerEmisor();
+  }).then(() => {
+    getList();
+  }).catch(() => {});
+}
+
+const disabledEmisorData= computed(() => {
+  if(form.value.apiIdEmisor == null){
+    return false;
+  } else{
+    return true;
+  }
+})
+
+/**
+ * 激活状态： 0-未激活，1-激活
+ */
+const ActiveEnum = {
+  NO_ACTIVE: 0,
+  ACTIVE: 1,
+};
+
+/**
+ * 授权状态： 0-未授权，1-已授权
+ */
+const AuthorizationEnum = {
+  NO_AUTHORIZATION: 0,
+  AUTHORIZATION: 1,
+};
+
+/** 获取税率下拉数据 */
+function getRateList(){
+  listProductRate().then(response => {
+    rateList.value = response.rows;
+  }).catch(error => {
+    console.error("获取税率列表失败：", error);
+  })
+}
+getRateList();
+
+// -------------------------- 签发注册业务 end ------------------------------------
 
 
 /**
@@ -421,7 +720,7 @@ const data = reactive({
     tenantName: null,
     tenantType: null,
     tenantStatus: null,
-    invoiceTaxNumber: null,
+    invoiceNif: null,
     invoiceVatNumber: null,
     invoicePhoneNumber: null,
     email: null,
@@ -436,10 +735,10 @@ const data = reactive({
     tenantType: [
       { required: true, message: "公司类型不能为空", trigger: "change" }
     ],
-    invoiceTaxNumber: [
+    invoiceNif: [
       { required: true, message: "发票税号不能为空", trigger: "blur" }
     ],
-    invoiceCompanyName: [
+    invoiceNombre: [
       { required: true, message: "发票公司不能为空", trigger: "blur" }
     ],
     invoicePhoneNumber: [
@@ -492,8 +791,8 @@ function reset() {
     tenantType: 2,
     tenantStatus: 0,
     costMethod: 1,
-    invoiceTaxNumber: null,
-    invoiceCompanyName: null,
+    invoiceNif: null,
+    invoiceNombre: null,
     invoicePhoneNumber: null,
     invoicePostalCode: null,
     invoiceAddressCountry: null,
@@ -501,7 +800,22 @@ function reset() {
     invoiceAddressDetail: null,
     invoiceVatNumber: null,
     email: null,
-    remark: null
+    remark: null,
+    apiIdEmisor: null,
+    apiCodigo: null,
+    apiActivo: ActiveEnum.NO_ACTIVE,
+    apiAutorizacion: AuthorizationEnum.NO_AUTHORIZATION,
+    apiImpuesto: '01',
+    apiRegimen: '01',
+    apiCalificacion: 'S1',
+    apiTipoFactura: 'F1',
+    apiIva: 21,
+    apiSerieF1: 'C',
+    apiSerieF2: 'S',
+    apiSerieF3: 'X',
+    apiSerieR: 'R',
+    apiSeriesAnuales: 0,
+    apiLimiteImporte: 3000,
   };
   proxy.resetForm("tenantRef");
   activeName.value = "first";
@@ -531,6 +845,7 @@ function handleAdd() {
   reset();
   open.value = true;
   title.value = "添加租户信息";
+  buttonTital.value = "确认添加";
   getAddressCountryList()
 }
 
@@ -542,6 +857,7 @@ function handleUpdate(row) {
     form.value = response.data;
     open.value = true;
     title.value = "修改租户信息";
+    buttonTital.value  = "确认修改";
   });
   getAddressCountryList()
 }

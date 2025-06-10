@@ -2,12 +2,11 @@ import request from '@/utils/request';
 import { MaxLengthEnum } from '@/api/constants/commonConstants';
 
 /** 订单查询商品 SKU */
-export function listSkuByAddOrder(query = {}) {
-  const pageSize = query.pageSize || MaxLengthEnum.maxQuerySize;
+export function suggest(keyword) {
   return request({
-    url: '/product/sku/listSkuByAddOrder',
+    url: '/product/sku/suggest',
     method: 'get',
-    params: { pageSize, ...query }
+    params: { keyword }
   })
 }
 

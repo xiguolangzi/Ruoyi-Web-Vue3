@@ -153,9 +153,29 @@
         <dict-tag :options="erp_product_sku_type" :value="scope.row.skuType" />
       </template>
     </el-table-column>
-    <el-table-column label="操作" align="center" width="50">
-      <template #default="scope">
-        <el-button type="danger" size="small" :icon="Delete" circle @click="removeItem(scope.$index)" />
+    <el-table-column prop="refundedQuantity" label="已退数量" align="center" width="70"/>
+    <el-table-column label="可退数量" align="center" width="70">
+      <template #default="{ row }">
+        <span :style="{color : (row.refundedAvailableQuantity - row.refundedCurrentQuantity) <= 0 ? 'red' : 'green'}">{{  row.refundedAvailableQuantity || 0 }}</span>
+      </template>
+    </el-table-column>
+    <el-table-column label="退货数量"  align="center" width="150">
+      <template #default="{ row }">
+        <el-input-number
+          v-model="row.refundedCurrentQuantity"
+          :min="0"
+          :max="row.refundedAvailableQuantity || 0"
+          size="small"
+          @change="validateReturnQuantity(row)"
+          :disabled="(row.refundedAvailableQuantity || 0) <= 0"
+          style="width: 100%"
+          v-focusSelect
+        />
+      </template>
+    </el-table-column>
+    <el-table-column label="退货金额" align="center" width="80">
+      <template #default="{ row }">
+        <span> {{ formatTwo(row.detailNetAmount / row.detailQuantity * row.refundedCurrentQuantity)}} €</span>
       </template>
     </el-table-column>
   </el-table>

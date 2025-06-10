@@ -1,7 +1,10 @@
 import request from '@/utils/request'
+import { encryptForJava } from '@/utils/jsencryptForJava'
 
 // 登录方法
 export function login(tenantCode, username, password, code, uuid) {
+  // 前->后 端传输加密
+  password = encryptForJava(password)
   const data = {
     tenantCode,
     username,

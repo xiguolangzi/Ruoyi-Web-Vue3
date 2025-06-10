@@ -70,8 +70,17 @@
     <el-table class="table-container" v-loading="loading" :data="productRateList" @selection-change="handleSelectionChange" size="small">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="税率ID" align="center" prop="rateId" />
-      <el-table-column label="税率值(%)" align="center" prop="rateValue" />
-      <el-table-column label="税率名称" align="center" prop="rateName" />
+      <el-table-column label="税率名称" align="left" sortable  prop="rateName" />
+      <el-table-column label="普通增值税率" align="right" prop="rateValue" >
+        <template #default="scope">
+          {{ scope.row.rateValue + ' %' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="RE税率" align="right" prop="rateRe" >
+        <template #default="scope">
+          {{ scope.row.rateRe || 0 + ' %' }}
+        </template>
+      </el-table-column>
       <el-table-column label="税率状态" align="center" prop="rateStatus">
         <template #default="scope">
           <dict-tag :options="sys_tenant_status" :value="scope.row.rateStatus"/>
@@ -89,7 +98,7 @@
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
+      <el-table-column label="备注" align="left" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['product:productRate:edit']">修改</el-button>
@@ -109,11 +118,18 @@
     <!-- 添加或修改产品税率管理对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="productRateRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="税率值(%)" prop="rateValue">
-          <el-input-number v-model="form.rateValue" placeholder="请输入税率值(%)" style="width: auto;" :min="0"/>
-        </el-form-item>
         <el-form-item label="税率名称" prop="rateName">
-          <el-input v-model="form.rateName" placeholder="请输入税率名称" type="textarea" :maxlength="50" show-word-limit :rows="1"/>
+          <el-input v-model="form.rateName" placeholder="请输入税率名称" type="textarea" :maxlength="50" show-word-limit :rows="1" style="width: 80%;" />
+        </el-form-item>
+        <el-form-item label="普通增值税率" prop="rateValue">
+          <el-input-number v-model="form.rateValue" placeholder="请输入普通增值税率"  :min="0" :max="100" style="width: 80%;" v-focusSelect >
+            <template #suffix>%</template>
+          </el-input-number>
+        </el-form-item>
+        <el-form-item label="RE税率" prop="rateRe">
+          <el-input-number v-model="form.rateRe" placeholder="请输入RE税率" :min="0" :max="100" style="width: 80%;" v-focusSelect >
+            <template #suffix>%</template>
+          </el-input-number>
         </el-form-item>
         <el-form-item label="税率状态" prop="rateStatus">
           <el-radio-group v-model="form.rateStatus">

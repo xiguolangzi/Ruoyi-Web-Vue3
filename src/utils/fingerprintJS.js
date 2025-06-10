@@ -6,7 +6,7 @@ const DB_NAME = "configDB";
 const STORE_NAME = "fingerprint";
 const idStr = "device_fingerprint"
 
-// 1 先判断 DB_NAME 和 STORE_NAME 是否存加入配置
+// 1 先判断 DB_NAME 和 STORE_NAME 是否存入配置
 const dbObject = dbConfig.find((db) => db.dbName === DB_NAME);
 if (!dbObject) {
   throw new Error(`未找到数据库 '${DB_NAME}' 的配置`);

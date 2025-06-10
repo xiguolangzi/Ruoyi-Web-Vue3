@@ -22,6 +22,8 @@ export const initOrderDetailData = () => ({
   detailBaseAmount: 0,
   detailTaxRate: 0,
   detailTaxAmount: 0,
+  detailReRate: 0,
+  detailReAmount: 0,
   detailNetAmount: 0,
   promotionId: null,
   promotionName: null,

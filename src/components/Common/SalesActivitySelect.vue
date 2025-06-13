@@ -45,8 +45,9 @@ const pageSize = MaxLengthEnum.maxQuerySize;
 const total = ref(0);
 
 const fetchData = async (query = "") => {
+  query = query.trim();
   console.log("搜索关键词:", query);
-  if (query.length < KeywordLength) {
+  if (query.length < KeywordLength || !query) {
     dataList.value = [];
     return;
   }

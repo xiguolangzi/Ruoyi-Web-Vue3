@@ -51,11 +51,12 @@ const focus = () => {
 
 /** 搜索函数 */
 const fetchData = async (keyword = "") => {
+  keyword = keyword.trim();
   console.log("搜索关键词:", keyword);
   console.log("开始请求时间:", new Date().getTime());
 
   // 输入长度小于指定长度时，清空列表
-  if (keyword.length < KeywordLength) {
+  if (keyword.length < KeywordLength || !keyword) {
     dataList.value = [];
     return;
   }
@@ -63,16 +64,33 @@ const fetchData = async (keyword = "") => {
   loading.value = true;
 
   try {
-    // 3 请求参数
-    // const queryParams = {
-    //   keyword: query,
-    //   pageNum: pageNum.value,
-    //   pageSize
-    // };
+    let response;
     console.log("请求参数:", keyword);
-
-    // 调用后端接口获取客户列表
-    const response = await suggest(keyword);
+    // 使用正则表达式检查 keyword 是否是 +数字 或 -数字（支持小数）
+    const pattern = /^[+-]\d+(\.\d+)?$/;
+    if (pattern.test(keyword)) {
+      // 提取数字部分（去掉 + 或 -），使用 parseFloat 保留小数
+      const number = parseFloat(keyword.slice(1), 10);
+      // 确定价格（保留符号）
+      const price = keyword.startsWith('+') ? number : -number;
+      // 返回临时商品对象
+      keyword = "default";
+      response = await suggest(keyword);
+      if  (response.data) { 
+        response.data.forEach(item => {
+          item.skuPrice = price;
+          item.skuPrice2 = price;
+          item.skuPrice3 = price;
+          item.skuPrice4 = price;
+          item.skuPrice5 = price;
+          item.skuPrice6 = price;
+        });
+      }
+      console.log("---------临时商品response.data", response.data);
+    } else {
+      // 否则，使用 suggest 接口进行搜索
+      response = await suggest(keyword);
+    }
     console.log("返回数据:", response.data);
     if(!response.data){
       dataList.value = [];

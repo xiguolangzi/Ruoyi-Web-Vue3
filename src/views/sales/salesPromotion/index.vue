@@ -535,7 +535,6 @@
 import { listSalesPromotion, getSalesPromotion, delSalesPromotion, addSalesPromotion, updateSalesPromotion } from "@/api/sales/salesPromotion";
 import useUserStore from "@/store/modules/user";
 import { ElMessage } from "element-plus";
-import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
 import { listCategory } from "@/api/product/category";
 import salesPromotionScope from "./salesPromotionScope.vue";
 import salesPromotionScopeGift from "./salesPromotionScopeGift.vue";

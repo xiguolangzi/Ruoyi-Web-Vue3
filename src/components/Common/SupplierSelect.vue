@@ -45,11 +45,12 @@ const total = ref(0);
 
 /** 搜索函数 */
 const fetchData = async (query = "") => {
+  query = query.trim();
   console.log("搜索关键词:", query);
   // 打印开始请求的事件 毫秒级别
   console.log("开始请求时间:", new Date().getTime());
   // 输入长度小于指定长度时，清空列表
-  if (query.length < KeywordLength) {
+  if (query.length < KeywordLength || !query) {
     dataList.value = [];
     return;
   }

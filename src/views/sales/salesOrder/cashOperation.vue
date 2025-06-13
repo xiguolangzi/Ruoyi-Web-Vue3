@@ -436,7 +436,7 @@ import { getSalesCajaByMacAddress } from "@/api/sales/salesCaja";
 import { ElMessageBox, ElNotification } from 'element-plus';
 import { getShiftRecordsIsActive, getLastShiftRecords, addSalesShiftRecords, continueSalesShiftRecords, getSalesShiftRecords, finishSalesShiftRecords } from '@/api/sales/SalesShiftRecords';
 import { initOrderDetailData, CajaStatusEnum, ShiftStatusEnum, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, OrderIsHoldEnum } from './cashOperationUtil/cashOperationEnum.js';
-import {canEditPriceEnum, canEditDiscountRateEnum, paymentAutoPrintEnum, canRemainAmountEnum, canDeleteOrderDetailEnum, cajaShowKeyboardEnum, orderInTaxEnum} from './cashOperationUtil/tenantConfigEnum.js';
+import { canEditPriceEnum, canEditDiscountRateEnum, paymentAutoPrintEnum, canRemainAmountEnum, canDeleteOrderDetailEnum, cajaShowKeyboardEnum, orderInTaxEnum } from '@/views/sales/salesOrder/cashOperationUtil/tenantConfigEnum.js';
 import { CustomerNormalEnum, CustomerRegimenEnum,  CustomerCalificacionEnum} from "@/views/order/customer/customerEnum.js"
 import { OperateLogTypeEnum } from './cashOperationUtil/operateLogTypeEnum.js';
 import { OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"

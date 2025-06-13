@@ -90,7 +90,7 @@
       </el-table-column>
       <el-table-column label="单位"  width="80" align="center" show-overflow-tooltip>
         <template #default="scope">
-          <span>{{scope.row.unitVo?.unitCode || '--'}}</span>
+          <span>{{scope.row.unitCode || '--'}}</span>
         </template>
       </el-table-column>
       <el-table-column label="sku单价" header-align="center" align="left" :width="270" show-overflow-tooltip>
@@ -132,7 +132,7 @@
 
       <el-table-column label="库存数量" align="center" width="80">
         <template #default="scope">
-          <span>{{ scope.row.productInventoryForSkuVo?.currentStock || 0 }}</span>
+          <span>{{ scope.row.currentStock || 0 }}</span>
         </template>
       </el-table-column>
       <el-table-column label="sku状态" align="center" prop="skuStatus" width="80">
@@ -240,7 +240,7 @@
               </div>
             </el-descriptions-item>
             <el-descriptions-item label="库存" align="center" width="50%">
-              <span>{{ currentRow.productInventoryForSkuVo?.currentStock || '--' }}</span>
+              <span>{{ currentRow.currentStock || '--' }}</span>
             </el-descriptions-item>
             <el-descriptions-item label="创建人" align="center">
               <span>{{ currentRow.createBy }} </span>

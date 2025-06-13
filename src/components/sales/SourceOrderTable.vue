@@ -1,13 +1,6 @@
 <template>
-  <el-table 
-    ref="tableRef" 
-    :data="tableData"  
-    show-summary :summary-method="getSummaries" 
-    :stripe="true"
-    size="small" border style="width: 100%; height: 100%;" 
-    @cell-click="handleCellClick" 
-    :row-class-name="setRowClassName"
-  >
+  <el-table ref="tableRef" :data="tableData" show-summary :summary-method="getSummaries" :stripe="true" size="small"
+    border style="width: 100%; height: 100%;" @cell-click="handleCellClick" :row-class-name="setRowClassName">
     <!-- 动态控制展开列显示 -->
     <el-table-column v-if="hasComboItems" type="expand" width="50">
       <template #default="scope">
@@ -26,15 +19,10 @@
 
     <!-- 正常显示的列 -->
     <el-table-column type="index" label="序号" align="center" width="50" />
-    <el-table-column label="SKU 条码" prop="skuCode" align="center" width="150"  show-overflow-tooltip>
+    <el-table-column label="SKU 条码" prop="skuCode" align="center" width="150" show-overflow-tooltip>
       <template #default="scope">
-        <SkuSelect 
-          :ref="(el) => setInputRef(el, scope.row, 'skuCode')"
-          v-model="scope.row.skuCode"
-          @selectedData="(data) => handleSkuSelected(data, scope.row)"
-          style="width: 100%"
-          :teleported="true"
-        />
+        <SkuSelect :ref="(el) => setInputRef(el, scope.row, 'skuCode')" v-model="scope.row.skuCode"
+          @selectedData="(data) => handleSkuSelected(data, scope.row)" style="width: 100%" :teleported="true" />
       </template>
     </el-table-column>
     <el-table-column prop="skuName" label="商品名称" align="center" min-width="120" show-overflow-tooltip>
@@ -65,47 +53,33 @@
         </div>
       </template>
     </el-table-column>
-    <el-table-column prop="unitCode" align="center" label="单位" width="55"/>
-    <el-table-column prop="currentStock" align="center" label="现存量" width="55"/>
+    <el-table-column prop="unitCode" align="center" label="单位" width="55" />
     <el-table-column prop="detailPrice" align="center" label="单价">
       <template #default="scope">
-        <el-input-number 
-          v-if="isEditing(scope.row, 'detailPrice')" 
-          v-model.number="scope.row.detailPrice" :controls="false" :min="0" :max="9999999" :step="0"
-          :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
-          @blur="handleBlur(scope.row, 'detailPrice')"
-          @change="updateAmount(scope.row)" 
-          style="width: 100%;" type="number" size="small" 
-          v-focusSelect
-        />
+        <el-input-number v-if="isEditing(scope.row, 'detailPrice')" v-model.number="scope.row.detailPrice"
+          :controls="false" :min="0" :max="9999999" :step="0" :ref="(el) => setInputRef(el, scope.row, 'detailPrice')"
+          @blur="handleBlur(scope.row, 'detailPrice')" @change="updateAmount(scope.row)" style="width: 100%;"
+          type="number" size="small" v-focusSelect />
         <span v-else>{{ formatTwo(scope.row.detailPrice) + ' €' }}</span>
       </template>
     </el-table-column>
-    
+
     <el-table-column prop="detailQuantity" align="center" label="数量">
       <template #default="scope">
-        <el-input-number 
-          v-if="isEditing(scope.row, 'detailQuantity')"
-          v-model.number="scope.row.detailQuantity" :controls="false" :min="-9999999" :max="9999999" :step="0"
-          :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" 
-          @blur="handleBlur(scope.row, 'detailQuantity')" 
-          @change="updateAmount(scope.row)" style="width: 100%;" size="small" 
-          v-focusSelect
-        />
+        <el-input-number v-if="isEditing(scope.row, 'detailQuantity')" v-model.number="scope.row.detailQuantity"
+          :controls="false" :min="-9999999" :max="9999999" :step="0"
+          :ref="(el) => setInputRef(el, scope.row, 'detailQuantity')" @blur="handleBlur(scope.row, 'detailQuantity')"
+          @change="updateAmount(scope.row)" style="width: 100%;" size="small" v-focusSelect />
         <span v-else>{{ scope.row.detailQuantity || 0 }}</span>
       </template>
     </el-table-column>
     <el-table-column prop="detailDiscountRate" align="center" label="折扣">
       <template #default="scope">
-        <el-input-number 
-          v-if="isEditing(scope.row, 'detailDiscountRate')"
-          v-model.number="scope.row.detailDiscountRate" :controls="false" :min="0" :max="100" :step="0"
-          :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')" 
-          @blur="handleBlur(scope.row, 'detailDiscountRate')" 
-          @change="updateAmount(scope.row)" 
-          style="width: 100%;" size="small"  
-          v-focusSelect
-        />
+        <el-input-number v-if="isEditing(scope.row, 'detailDiscountRate')" v-model.number="scope.row.detailDiscountRate"
+          :controls="false" :min="0" :max="100" :step="0"
+          :ref="(el) => setInputRef(el, scope.row, 'detailDiscountRate')"
+          @blur="handleBlur(scope.row, 'detailDiscountRate')" @change="updateAmount(scope.row)" style="width: 100%;"
+          size="small" v-focusSelect />
         <span v-else>{{ showDetailDiscountRate(scope.row) || 0 }} %</span>
       </template>
     </el-table-column>
@@ -119,22 +93,17 @@
         <span>{{ scope.row.detailTaxRate || 0 }} %</span>
       </template>
     </el-table-column>
-    <el-table-column prop="detailNetAmount" label="总金额"  align="center" width="70">
+    <el-table-column prop="detailNetAmount" label="总金额" align="center" width="70">
       <template #default="scope">
         <span> {{ formatTwo(scope.row.detailNetAmount)}} €</span>
       </template>
-    </el-table-column> 
+    </el-table-column>
     <el-table-column prop="detailSn" align="left" header-align="center" label="机器码" show-overflow-tooltip>
       <template #default="scope">
-        <el-input 
-          v-if="isEditing(scope.row, 'detailSn')" 
-          v-model="scope.row.detailSn" 
-          :ref="(el) => setInputRef(el, scope.row, 'detailSn')"
-          @blur="handleBlur(scope.row, 'detailSn')" 
-          @change="updateAmount(scope.row)" 
-          style="width: 100%;" size="small"  type="text" :maxlength="20" 
-          v-focusSelect
-        />
+        <el-input v-if="isEditing(scope.row, 'detailSn')" v-model="scope.row.detailSn"
+          :ref="(el) => setInputRef(el, scope.row, 'detailSn')" @blur="handleBlur(scope.row, 'detailSn')"
+          @change="updateAmount(scope.row)" style="width: 100%;" size="small" type="text" :maxlength="20"
+          v-focusSelect />
         <span v-else>{{ scope.row.detailSn ?? '--'}}</span>
       </template>
     </el-table-column>
@@ -153,29 +122,23 @@
         <dict-tag :options="erp_product_sku_type" :value="scope.row.skuType" />
       </template>
     </el-table-column>
-    <el-table-column prop="refundedQuantity" label="已退数量" align="center" width="70"/>
-    <el-table-column label="可退数量" align="center" width="70">
+    <el-table-column prop="refundedQuantity" label="已退数量" align="center" width="70" />
+    <el-table-column prop="refundedAvailableQuantity" label="可退数量" align="center" width="70">
       <template #default="{ row }">
-        <span :style="{color : (row.refundedAvailableQuantity - row.refundedCurrentQuantity) <= 0 ? 'red' : 'green'}">{{  row.refundedAvailableQuantity || 0 }}</span>
+        <span :style="{color : (row.refundedAvailableQuantity - row.refundedCurrentQuantity) <= 0 ? 'red' : 'green'}">{{
+          row.refundedAvailableQuantity || 0 }}</span>
       </template>
     </el-table-column>
-    <el-table-column label="退货数量"  align="center" width="150">
+    <el-table-column prop="refundedCurrentQuantity" label="退货数量" align="center" width="150">
       <template #default="{ row }">
-        <el-input-number
-          v-model="row.refundedCurrentQuantity"
-          :min="0"
-          :max="row.refundedAvailableQuantity || 0"
-          size="small"
-          @change="validateReturnQuantity(row)"
-          :disabled="(row.refundedAvailableQuantity || 0) <= 0"
-          style="width: 100%"
-          v-focusSelect
-        />
+        <el-input-number v-model="row.refundedCurrentQuantity" :min="0" :max="row.refundedAvailableQuantity || 0"
+          size="small" @change="changeRefundData(row)" :disabled="(row.refundedAvailableQuantity || 0) <= 0"
+          style="width: 100%" v-focusSelect />
       </template>
     </el-table-column>
-    <el-table-column label="退货金额" align="center" width="80">
+    <el-table-column prop="refundedAmount" label="退货金额" align="center" width="80">
       <template #default="{ row }">
-        <span> {{ formatTwo(row.detailNetAmount / row.detailQuantity * row.refundedCurrentQuantity)}} €</span>
+        <span> {{ formatTwo(row.refundedAmount) }} €</span>
       </template>
     </el-table-column>
   </el-table>
@@ -212,7 +175,6 @@ const props = defineProps({
   },
   inTax: {
     type: String,
-    required: true,
     default: orderInTaxEnum.IN_Tax,
   },
   customerPriceLevel:{
@@ -233,6 +195,21 @@ const props = defineProps({
   },
 
 });
+
+/**
+ *  验证退货数量
+ * @param row  
+ */
+const changeRefundData = (row) => {
+  if (row.refundedCurrentQuantity > row.refundedAvailableQuantity) {
+    ElMessage.warning(`不能超过最大可退数量 ${row.refundedAvailableQuantity}`)
+  }
+  if (row.refundedAmount > row.detailNetAmount){
+    ElMessage.warning(`退货金额不能超过商品金额 ${row.detailNetAmount}`)
+  } else {
+    row.refundedAmount = row.detailNetAmount / row.detailQuantity * row.refundedCurrentQuantity
+  }
+}
 
 /** 当前订单明细的行数 */ 
 const salesOrderDetailLength = computed(()=>{
@@ -393,6 +370,18 @@ const getSummaries = (param) => {
     } else if (column.property === 'detailSalesAmount') {
       // 计算金额合计
       sums[index] = data.reduce((sum, row) => sum + (Number(row.detailSalesAmount) || 0), 0).toFixed(2) + ' €';
+    } else if (column.property === 'detailNetAmount') {
+      // 计算金额合计
+      sums[index] = data.reduce((sum, row) => sum + (Number(row.detailNetAmount) || 0), 0).toFixed(2) + ' €';
+    } else if (column.property === 'refundedAvailableQuantity') {
+      // 计算数量合计
+      sums[index] = data.reduce((sum, row) => sum + (Number(row.refundedAvailableQuantity) || 0), 0);
+    } else if (column.property === 'refundedCurrentQuantity') {
+      // 计算数量合计
+      sums[index] = data.reduce((sum, row) => sum + (Number(row.refundedCurrentQuantity) || 0), 0);
+    } else if (column.property === 'refundedAmount') {
+      // 计算金额合计
+      sums[index] = data.reduce((sum, row) => sum + (Number(row.refundedAmount) || 0), 0).toFixed(2) + ' €';
     } else {
       // 其他列不合计
       sums[index] = '';

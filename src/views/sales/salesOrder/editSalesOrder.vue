@@ -151,12 +151,16 @@
           <el-form-item label="订单号:" prop="orderNo">
             <el-input v-model="form.orderNo" placeholder="系统自动生成" disabled size="small" />
           </el-form-item>
+          <el-form-item label="原始单号:" prop="parentOrderInitNo" v-if="form.orderDirection == OrderDirectionEnum.RETURN">
+            <el-input v-model="form.parentOrderInitNo" placeholder="系统自动生成" disabled size="small" />
+          </el-form-item>
           <el-form-item label="订单方向:" prop="orderDirection">
             <el-select v-model="form.orderDirection" placeholder="请选择订单方向" clearable :disabled="!!form.orderId">
               <el-option v-for="dict in sales_order_direction" :key="dict.value" :label="dict.label"
                 :value="Number(dict.value)" />
             </el-select>
           </el-form-item>
+          <!-- 业务员信息 -->
           <el-form-item label=" 业务员:" prop="salesmanID">
             <SalesmanSelect v-model="form.salesmanName" @selectedData="selectedSalesmanData" size="small"
               :disabled="form.orderStatus != OrderStatusEnum.INIT" />
@@ -258,8 +262,7 @@
                   :inactive-value="orderInTaxEnum.NOT_IN_TAX" active-text="含税" inactive-text="不含税" inline-prompt
                   :disabled="!canEditStatus"
                   style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949; margin: 0px;padding: 0px;"
-                  v-hasPermi="['sales:salesCaja:edit']" size="small" 
-                  @change="updateDetailPriceAndDiscount()"/>
+                  v-hasPermi="['sales:salesCaja:edit']" size="small" @change="updateDetailPriceAndDiscount()" />
               </div>
             </el-col>
 
@@ -300,9 +303,9 @@
             </el-col>
 
             <!-- 分割线 -->
-            <div class="divider vertical" ></div>
+            <div class="divider vertical"></div>
             <!-- 第4个区域：二维码 -->
-            <el-col class="footer-col" :span="2" >
+            <el-col class="footer-col" :span="2">
               <div class="qrcode">
                 <a v-if="form.verifacInvoice?.invoiceQr" :href="form.verifacInvoice.invoiceQr" target="_blank">
                   <qrcode-vue :value="form.verifacInvoice?.invoiceQr || null" :size="120" level="H" />
@@ -891,7 +894,7 @@ const openApprovalDialog = (title, action) => {
 // 订单操作记录
 const operateLog = ref([])
 
-/** 添加采购订单操作记录 */ 
+/** 添加订单操作记录 */ 
 const addApprovalLog = (action, status, remark, actionValue) => {
   const newLog = {
     time: new Date().toLocaleString(),

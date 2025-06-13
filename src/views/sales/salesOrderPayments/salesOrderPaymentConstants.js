@@ -1,10 +1,12 @@
 /**
  * 支付方式:
- * 1-现金 2-银行
+ * CASH-现金, BANK-银行, CHEQUE-支票, VOUCHER-代金券
  */
 export const PaymentMethodEnum = {
   CASH: 1,
-  BANK: 2
+  BANK: 2,
+  CHEQUE: 3,
+  VOUCHER: 4
 }
 
 /**
@@ -24,7 +26,7 @@ export const initOrderPaymentData = () => ({
 
 /**
  * 销售订单支付状态
- * 1-欠款单 2-现结单
+ * UN_PAID-欠款单 PAID-现结单 PART_PAID-部分付款
  */
 export const OrderPayStatusEnum = {
   // 欠款单

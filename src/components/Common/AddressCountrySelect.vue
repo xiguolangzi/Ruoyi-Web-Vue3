@@ -56,8 +56,9 @@ const languageDisplayMap = {
 };
 
 const fetchData = async (query = "") => {
+  query  = query.trim();
   console.log("搜索关键词:", query);
-  if (query.length < 1) {
+  if (query.length < 1 || !query) {
     dataList.value = [];
     return;
   }

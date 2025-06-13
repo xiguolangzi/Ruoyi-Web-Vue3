@@ -195,11 +195,11 @@ const props = defineProps({
   },
   paymentAutoPrint: {
     type: String,
-    default: false,
+    default: '0',
   },
   canRemainAmount: {
     type: String,
-    default: false,
+    default: '1',
   },
   notificationContainer: {
     type: [String, Object],

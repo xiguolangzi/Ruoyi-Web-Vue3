@@ -67,7 +67,7 @@ const fetchData = async (keyword = "") => {
     let response;
     console.log("请求参数:", keyword);
     // 使用正则表达式检查 keyword 是否是 +数字 或 -数字（支持小数）
-    const pattern = /^[+-]\d+(\.\d+)?$/;
+    const pattern = /^[+]\d+(\.\d+)?$/;
     if (pattern.test(keyword)) {
       // 提取数字部分（去掉 + 或 -），使用 parseFloat 保留小数
       const number = parseFloat(keyword.slice(1), 10);

@@ -1232,7 +1232,7 @@ const handleAction = (action) => {
     case "refund":
       console.log("退货"); 
       playKeyHappySound()
-      openReturnView()
+      openRefundView()
       console.log("跳转至退货窗口");
       break;
     case "print":
@@ -1363,7 +1363,7 @@ const handlerPayment = () => {
 };
 
 /** 退货 */
-const openReturnView = () => {
+const openRefundView = () => {
   // 跳转
   router.push({ path: "/cashier/refundedOperation" })
 }

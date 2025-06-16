@@ -152,18 +152,23 @@
             <el-input v-model="form.orderNo" placeholder="系统自动生成" disabled size="small" />
           </el-form-item>
           <el-form-item label="原始单号:" prop="parentOrderInitNo" v-if="form.orderDirection == OrderDirectionEnum.RETURN">
-            <el-input v-model="form.parentOrderInitNo" placeholder="系统自动生成" disabled size="small" />
+            <el-input v-model="form.parentOrderInitNo" placeholder="有票退货原始单号" size="small" />
           </el-form-item>
-          <el-form-item label="订单方向:" prop="orderDirection">
+          <!-- <el-form-item label="订单方向:" prop="orderDirection">
             <el-select v-model="form.orderDirection" placeholder="请选择订单方向" clearable :disabled="!!form.orderId">
               <el-option v-for="dict in sales_order_direction" :key="dict.value" :label="dict.label"
                 :value="Number(dict.value)" />
             </el-select>
-          </el-form-item>
+          </el-form-item> -->
           <!-- 业务员信息 -->
           <el-form-item label=" 业务员:" prop="salesmanID">
             <SalesmanSelect v-model="form.salesmanName" @selectedData="selectedSalesmanData" size="small"
               :disabled="form.orderStatus != OrderStatusEnum.INIT" />
+          </el-form-item>
+          <el-form-item label=" 佣金点数:" prop="baseCommissionRate"> 
+            <el-input-number v-model="form.baseCommissionRate" :min="0" :max="100" :precision="2" :controls="false" :step="0.01" size="small" >
+              <template #suffix>%</template>
+            </el-input-number>
           </el-form-item>
           <!-- 客户信息 -->
           <el-form-item label="客户信息:" prop="customerId">
@@ -367,7 +372,7 @@
 <script setup>
 import { onMounted, ref  } from 'vue'
 import { ElMessage } from 'element-plus'
-import { listSalesOrder, addSalesOrder, updateSalesOrder, getSalesOrder, delSalesOrder, updateByOtherOperate, refundGoods, generateInvoice } from "@/api/sales/salesOrder";
+import { listSalesOrder, addSalesOrder, updateSalesOrder, getSalesOrder, delSalesOrder, updateByOtherOperate, generateInvoice } from "@/api/sales/salesOrder";
 import useUserStore from "@/store/modules/user"
 import { useRouter, useRoute } from "vue-router";
 import { initOrderDetailData, OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum } from './cashOperationUtil/cashOperationEnum.js';
@@ -486,6 +491,7 @@ function reset() {
   canEditStatus.value = true;
 
 }
+
 
 
 // 当前订单明细的行数
@@ -720,7 +726,7 @@ const handleSaveEdit = () => {
 
 // 删除订单
 const handleDelete = () => {
-  proxy.$modal.confirm('是否确认删除采购订单初始编号为"' + form.value.orderInitNo + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除销售订单初始编号为"' + form.value.orderInitNo + '"的数据项？').then(function() {
     return delSalesOrder(form.value.orderId);
   }).then(() => {
     ElMessage.success("删除成功");
@@ -757,7 +763,7 @@ const handleSave = () => {
   }) 
 }
 
-/** 检查采购条目的必输项 */
+/** 检查订单明细的必输项 */
 const validateItems = (salesOrderDetailList) => {
   for (const item of salesOrderDetailList){
     // 数量校验

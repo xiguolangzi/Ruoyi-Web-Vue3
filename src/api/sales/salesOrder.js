@@ -62,15 +62,6 @@ export function completePayment(data) {
   })
 }
 
-// 退货接口(有票退货、无票退货)
-export function refundGoods(data) {
-  return request({
-    url: '/sales/salesOrder/refundGoods',
-    method: 'post',
-    data: data
-  })
-}
-
 // 订单的其他操作(初始化、拣货、复核、打包)
 export function updateByOtherOperate(data) {
   return request({

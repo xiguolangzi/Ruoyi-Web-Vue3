@@ -37,11 +37,11 @@ export const useCajaStore = defineStore('caja', () => {
   }
 
   return {
-    caja: readonly(caja),
+    caja,
     setCaja,
     clearCaja,
     getCaja,
-    shift: readonly(shift),
+    shift,
     setShift,
     clearShift,
     getShift,

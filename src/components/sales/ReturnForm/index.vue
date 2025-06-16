@@ -59,15 +59,16 @@
         <el-descriptions-item label="当前收银" :width="100">{{ form.shiftUserName }}</el-descriptions-item>
         <el-descriptions-item label="客户" :width="150">
           <CustomerSelect v-model="form.customerName" @selectedData="selectedCustomerData" size="small"
-            :disabled="form.orderStatus != OrderStatusEnum.INIT" style="width: 100%;" />
+            :disabled=" form.orderStatus && form.orderStatus != OrderStatusEnum.INIT" style="width: 100%;" />
         </el-descriptions-item>
         <el-descriptions-item label="业务员" :width="150">
           <SalesmanSelect v-model="form.salesmanName" @selectedData="selectedSalesmanData" size="small"
-            :disabled="form.orderStatus != OrderStatusEnum.INIT" style="width: 100%;" />
+            :disabled="form.orderStatus && form.orderStatus != OrderStatusEnum.INIT" style="width: 100%;" />
         </el-descriptions-item>
         <el-descriptions-item label="佣金点数" :width="150">
           <el-input-number v-model="form.baseCommissionRate" :min="0" :max="100" :controls="false" :step="0"
-            size="small" style="width: 100%;" v-focusSelect>
+            size="small" style="width: 100%;" v-focusSelect
+            :disabled=" form.orderStatus && form.orderStatus != OrderStatusEnum.INIT">
             <template #suffix>
               <span> %</span>
             </template>
@@ -115,7 +116,7 @@
     <!-- 提交操作 -->
     <div class="action-bar">
       <el-button @click="resetForm">重置</el-button>
-      <el-button type="primary" @click="createForm" :disabled="totalReturnQuantity <= 0 || !remark"
+      <el-button type="primary" @click="generateRefundOrder" :disabled="totalReturnQuantity <= 0 || !remark"
         :loading="submitting">
         {{ buttonTitle }}
       </el-button>
@@ -129,7 +130,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getSalesOrderByOrderInitNo, addSalesOrder, generateInvoice } from '@/api/sales/salesOrder'
+import { getSalesOrderByOrderInitNo, addSalesOrder, generateInvoice, updateByOtherOperate } from '@/api/sales/salesOrder'
 import SnowflakeID from '@/utils/SnowflakeID.js';
 import useUserStore from "@/store/modules/user";
 import {useCajaStore} from "@/store/modules/caja";
@@ -142,14 +143,16 @@ import RefundTable from '@/components/sales/RefundTable.vue';
 import NoTicketRefundTable from '@/components/sales/NoTicketRefundTable.vue';
 import { InvoiceTypeEnum } from '@/views/verifuc/verifacInvoice/invoiceConstants.js';
 import { completePayment } from '@/api/sales/salesOrder.js';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, get } from 'lodash';
 import CustomerSelect from '@/components/Common/CustomerSelect.vue';
 import SalesmanSelect from '@/components/Common/SalesmanSelect.vue';
 import { CustomerNormalEnum, CustomerRegimenEnum, CustomerCalificacionEnum } from "@/views/order/customer/customerEnum.js"
+import { useRoute } from "vue-router";
 
 
 const userStore = useUserStore();
 const cajaStore = useCajaStore();
+const route = useRoute();
 
 const { proxy } = getCurrentInstance();
 const { erp_refunded_reason } = proxy.useDict('erp_refunded_reason');
@@ -315,8 +318,15 @@ const loadTenantConfig = async () => {
   }
 }
 
+// 发票类型
+const invoiceTipo = ref(InvoiceTypeEnum.SIMPLIFICADA)
+const getInvoiceTipo = async () => {
+  invoiceTipo.value = route.query.invoiceTipo || InvoiceTypeEnum.SIMPLIFICADA;
+}
+
 onMounted(() => {
   loadTenantConfig();
+  getInvoiceTipo();
 });
 
 // ------------------ 获取租户配置 end ------------------
@@ -385,8 +395,8 @@ function initForm() {
     customerId: null,
     activityId: null,
     orderType: OrderTypeEnum.PRE_ORDER,
-    orderStatus: OrderStatusEnum.INIT,
-    orderPayStatus: OrderPayStatusEnum.UN_PAID,
+    //orderStatus: OrderStatusEnum.INIT,
+    //orderPayStatus: OrderPayStatusEnum.UN_PAID,
     totalQuantity: 0,
     totalAmount: 0,
     totalDiscountAmount: 0,
@@ -405,6 +415,7 @@ function initForm() {
     totalGiftQuantity: 0,
     remark: null,
     operateLog: null,
+    invoiceTipo: invoiceTipo.value,
     salesOrderDetailList: [
       initOrderDetailData()
     ],
@@ -481,23 +492,6 @@ function fetchOriginalOrder (){
 }
 
 
-/**
- * 展示折扣
- * @param row 
- */
-const showDetailDiscountRate = (row) => {
-  const { detailDiscountRate, promotionDiscountRate, activityDiscountRate } = row;
-  const rates = [];
-  
-  if (detailDiscountRate > 0) rates.push(detailDiscountRate);
-  if (promotionDiscountRate > 0) rates.push(promotionDiscountRate);
-  if (activityDiscountRate > 0) rates.push(activityDiscountRate);
-  
-  return rates.length > 0 ? rates.join('+') : 0;
-};
-
-
-
 /** 计算退货总数量 */
 const totalReturnQuantity = computed(() =>{
   if(refundType.value == refundTypeEnum.HAS_TICKET){
@@ -561,44 +555,53 @@ const validateItems = (salesOrderDetailList) => {
   return true;
 };
 
-// -------------------------------- 1 添加明细 start --------------------------------
-const onceAddItemLength = 1;  // 每次添加新增的条数
-/** 添加商品行 */
-const addItem = () => {
-  // 创建一个空数组来存储n条新记录
-  const newItems = Array.from({ length: onceAddItemLength }, () => (
-    initOrderDetailData()
-  ))
-  // 将新记录数组添加到现有数组中
-  form.value.salesOrderDetailList.push(...newItems)
-}
 
 // 当前订单明细的行数
 const salesOrderDetailLength = computed(() => {
   return form.value.salesOrderDetailList.length || 0;
 })
 
-// -------------------------------- 1 添加明细 end --------------------------------
-
-function filterSalesOrderDetailList(){
+function filterAndCheckDetailList(){
   // 1 过滤空数据
   form.value.salesOrderDetailList = form.value.salesOrderDetailList.filter(item => item.skuId)
   if (salesOrderDetailLength.value <= 0) {
     ElMessage.error("订单明细不能为空!");
-    if(refundType.value = refundTypeEnum.NO_TICKET){
-      addItem();
+    if(refundType.value == refundTypeEnum.NO_TICKET){
+      addItem()
     }
-    return;
+    return false;
   }
   // 2 检查采购条目的输入项 false不通过
   if (!validateItems(form.value.salesOrderDetailList)) {
-    return;
+    if(refundType.value == refundTypeEnum.NO_TICKET){
+      addItem()
+    }
+    return false;
   }
+  // 3 完整发票必须绑定客户信息
+  if(form.value.invoiceTipo == InvoiceTypeEnum.COMPLETA){
+    if(!form.value.customerId){
+      if(refundType.value == refundTypeEnum.NO_TICKET){
+        addItem()
+      }
+      ElMessage.error("完整发票必须绑定客户信息！");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function addItem(){
+  if (!form.value.salesOrderDetailList) {
+    form.value.salesOrderDetailList = [];
+  }
+  form.value.salesOrderDetailList.push(initOrderDetailData())
 }
 
 
 /** 生成退货表单 */
-function createForm(){
+function generateRefundOrder(){
   // 1 判断退货数量
   if (totalReturnQuantity.value <= 0){
     ElMessage.warning('退货数量不能小于等于0');
@@ -607,8 +610,10 @@ function createForm(){
   // 2 有票退货
   if(refundType.value == refundTypeEnum.HAS_TICKET){
     createFormBySourceOrder();
-    // 去除空行数据
-    filterSalesOrderDetailList();
+    // 去除空行数据 + 明细校验
+    if(!filterAndCheckDetailList()){
+      return;
+    }
     // 调用后端退货接口，返回生成的退货订单 form
     addSalesOrder(form.value).then(res => { 
       if  (!res.data) {
@@ -626,7 +631,9 @@ function createForm(){
   // 3 无票退货
   if(refundType.value == refundTypeEnum.NO_TICKET){ 
     // 去除空行数据
-    filterSalesOrderDetailList();
+    if(!filterAndCheckDetailList()){
+      return;
+    }
     // 无票退货的业务逻辑
     addSalesOrder(form.value).then(res => {
       if (!res.data) {
@@ -662,6 +669,7 @@ function createFormBySourceOrder() {
   form.value.inTax = sourceOrderForm.value.inTax;
   form.value.refundReason = refundReason.value;
   form.value.remark = remark.value;
+  form.value.invoiceTipo = sourceOrderForm.value.invoiceTipo;
   if(!form.value.cajaId){
     form.value.cajaId = cajaStore?.caja?.cajaId || null;
   }
@@ -703,28 +711,40 @@ function handleCompletePayment (salesOrderPayment){
   })
 }
 
+
 /**
- * 打印小票
+ * 打印发票
  */
 const handlePrintTicket = () => {
   console.log('退货主页开始打印小票业务:')
-  form.value.invoiceTipo = InvoiceTypeEnum.SIMPLIFICADA
   // 生成发票 - 返回带有QR的订单信息
   generateInvoice(form.value).then((res) => {
     console.log("确认发票响应的结果：", res)
     if (res.data) {
       form.value = res.data;
       if (form.value.verifacInvoice && form.value.verifacInvoice.invoiceQr) {
-        // 打印简易发票
-        printTicket80(form.value)
+        if(form.value.invoiceTipo == InvoiceTypeEnum.COMPLETA){
+          // 打印完整发票
+          printTicket(form.value)
+        } else{
+          // 打印简易发票
+          printTicket80(form.value)
+        }
+        
       } else {
         ElMessageBox.confirm('发票信息异常，请稍后再试，是否打印临时小票？', '警告提示', {
           confirmButtonText: 'OK',
           showCancelButton: false,
           type: 'error',
         }).then(() => {
-          // 打印订单
-          printPedido80(form.value)
+          if(form.value.invoiceTipo == InvoiceTypeEnum.COMPLETA){
+            // 打印完整订单
+            printPedido(form.value)
+          } else {
+            // 打印临时小票
+            printPedido80(form.value)
+          }
+          
         })
       }
     }
@@ -752,7 +772,19 @@ function printTicket80(orderFormData) {
 /** 没有QR，打印pedido临时订单 */
 function printPedido80(orderFormData) {
   // TODO: 业务待完成
-  console.log("打印的临时订单信息是：", orderFormData)
+  console.log("打印的临时小票信息是：", orderFormData)
+}
+
+/** 打印简易发票 */
+function printTicket(orderFormData) {
+  // TODO: 业务待完成
+  console.log("打印的完整发票信息是：", orderFormData)
+}
+
+/** 没有QR，打印pedido临时订单 */
+function printPedido(orderFormData) {
+  // TODO: 业务待完成
+  console.log("打印的完整订单信息是：", orderFormData)
 }
 
 

@@ -16,7 +16,7 @@
               完成付款
             </el-button>
             <el-button type="warning" @click="handlePrintTicket">打印单据</el-button>
-            <el-button type="danger" @click="handleClose">取消</el-button>
+            <el-button  @click="handleClose">取消</el-button>
           </el-button-group>
 
         </div>
@@ -264,7 +264,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['printTicket','payment'])
+const emit = defineEmits(['printTicket','payment','voided'])
 
 /** 完成支付 */
 function handleCompletePayment (salesOrderPayment){
@@ -300,14 +300,16 @@ const openDialog = () => {
 // 关闭对话框
 const handleClose = () => {
   // 先完成付款业务
-  if (props.orderData?.orderStatus != OrderStatusEnum.CONFIRM){
-    ElMessageBox.confirm('请先完成付款业务!', '提示', {
+  if (props.orderData?.orderStatus != OrderStatusEnum.CONFIRM && props.orderData?.orderStatus != OrderStatusEnum.VOIDED){
+    ElMessageBox.confirm('还未完成付款业务 ! 是否确认退出 ? ', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
-    }).then(() => {}).catch(() => {})
+    }).then(() => {
+      dialogVisible.value = false
+    }).catch(() => {})
   } else {
-    ElMessageBox.confirm('确定要取消退货吗? ', '提示', {
+    ElMessageBox.confirm('确定要退出吗? ', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
@@ -317,6 +319,7 @@ const handleClose = () => {
     })
   }
 }
+
 
 function completePayment () { 
   // 确认退货订单

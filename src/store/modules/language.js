@@ -32,7 +32,7 @@ export const useLanguageStore = defineStore('language', () => {
   }
 
   return {
-    language: readonly(language),
+    language,
     setLanguage
   }
 }, {

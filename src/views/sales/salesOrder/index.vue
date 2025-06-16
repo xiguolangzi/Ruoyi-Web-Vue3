@@ -113,9 +113,18 @@
           type="primary"
           plain
           icon="Plus"
-          @click="handleAdd"
+          @click="handleAddSalesOrder"
           v-hasPermi="['sales:salesOrder:add']"
-        >新增</el-button>
+        >新增销售</el-button>
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
+          type="primary"
+          plain
+          icon="Plus"
+          @click="handleAddRefundOrder"
+          v-hasPermi="['sales:salesOrder:add']"
+        >新增退货</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -423,6 +432,7 @@ import { OrderDirectionEnum, orderSourceEnum, OrderTypeEnum, OrderStatusEnum, Or
 import { OrderPayStatusEnum} from "@/views/sales/salesOrderPayments/salesOrderPaymentConstants.js"
 import SnowflakeID from '@/utils/SnowflakeID.js';
 import { useRouter, useRoute } from "vue-router";
+import { InvoiceTypeEnum } from '@/views/verifuc/verifacInvoice/invoiceConstants.js';
 
 // 租户ID字段过滤使用
 const userStore = useUserStore();
@@ -563,11 +573,20 @@ function handleSelectionChange(selection) {
 }
 
 /** 新增按钮操作 */
-function handleAdd() {
+function handleAddSalesOrder() {
   const obj = {path: "/salesManager/editSalesOrder", name:"editSalesOrder"}
   proxy.$tab.closePage(obj).then(
     () => {
       router.push({ path: "/salesManager/editSalesOrder" });
+    } 
+  ) 
+}
+
+function handleAddRefundOrder(){
+  const obj = {path: "/cashier/refundedOperation", name:"refundedOperation"}
+  proxy.$tab.closePage(obj).then(
+    () => {
+      router.push({ path: "/cashier/refundedOperation", query: { invoiceTipo: InvoiceTypeEnum.COMPLETA } })
     } 
   ) 
 }

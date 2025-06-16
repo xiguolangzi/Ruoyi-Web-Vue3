@@ -70,7 +70,7 @@ export const useTenantConfigStore = defineStore('tenantConfig', () => {
   }
 
   return {
-    tenantConfig: readonly(tenantConfig),
+    tenantConfig,
     setTenantConfig,
     getTenantConfig,
     initTenantConfig,

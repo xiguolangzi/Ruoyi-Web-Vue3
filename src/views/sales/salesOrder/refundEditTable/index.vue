@@ -42,7 +42,7 @@
         <el-popover trigger="hover" placement="left">
           <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
           <template #reference>
-            <el-link type="primary" :underline="false">
+            <el-link type="primary" underline="never">
               <span>
                 {{ scope.row.skuName || '' }}{{ scope.row.skuName && scope.row.assistName ? ' *** ' : '' }}{{
                 scope.row.assistName || '' }}

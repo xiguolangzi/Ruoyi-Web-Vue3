@@ -73,7 +73,7 @@
           <el-popover trigger="hover" placement="left">
             <image-preview :src="scope.row.skuImage" :width="60" :height="60" />
             <template #reference>
-              <el-link type="primary" :underline="false">{{ scope.row.skuCode }}</el-link>
+              <el-link type="primary" underline="never">{{ scope.row.skuCode }}</el-link>
             </template>
         </el-popover>
         </template>

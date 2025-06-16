@@ -220,7 +220,7 @@
 import { ref, computed, onMounted  } from 'vue'
 import { ElAutocomplete, ElButton, ElIcon, ElInputNumber, ElMessage, ElTooltip } from 'element-plus'
 import { listSupplier } from "@/api/order/supplier"
-import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
+import { listSku, selectStockBySkuId } from "@/api/product/sku"
 import { listBuyer } from "@/api/system/user"
 import useUserStore from "@/store/modules/user"
 import { h } from 'vue'
@@ -987,7 +987,7 @@ const getBuyers = () => {
 const skuList = ref([])
 /** 商品 - 获取列表 */
 const getSkuList = () => {
-  listSkuByAddOrder().then(response => {
+  listSku().then(response => {
     skuList.value = response.rows || []
     console.log("----------商品列表：",skuList.value)
     

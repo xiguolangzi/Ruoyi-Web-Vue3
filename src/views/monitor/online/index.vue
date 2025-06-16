@@ -64,18 +64,18 @@ import useUserStore from "@/store/modules/user";
 // 租户ID字段过滤使用
 const userStore = useUserStore();
 
-const { proxy } = getCurrentInstance();
+const { proxy } = getCurrentInstance()
 
-const onlineList = ref([]);
-const loading = ref(true);
-const total = ref(0);
-const pageNum = ref(1);
-const pageSize = ref(10);
+const onlineList = ref([])
+const loading = ref(true)
+const total = ref(0)
+const pageNum = ref(1)
+const pageSize = ref(10)
 
 const queryParams = ref({
   ipaddr: undefined,
   userName: undefined
-});
+})
 
 /** 查询登录日志列表 */
 function getList() {
@@ -83,35 +83,35 @@ function getList() {
   // 请求参数增加租户ID
   queryParams.value.tenantId = userStore.tenantId;
   initData(queryParams.value).then(response => {
-    onlineList.value = response.rows;
-    total.value = response.total;
-    loading.value = false;
-  });
+    onlineList.value = response.rows
+    total.value = response.total
+    loading.value = false
+  })
 }
 
 /** 搜索按钮操作 */
 function handleQuery() {
-  pageNum.value = 1;
-  getList();
+  pageNum.value = 1
+  getList()
 }
 
 /** 重置按钮操作 */
 function resetQuery() {
-  proxy.resetForm("queryRef");
-  handleQuery();
+  proxy.resetForm("queryRef")
+  handleQuery()
 }
 
 /** 强退按钮操作 */
 function handleForceLogout(row) {
     proxy.$modal.confirm('是否确认强退名称为"' + row.userName + '"的用户?').then(function () {
-  return forceLogout(row.tokenId);
+  return forceLogout(row.tokenId)
   }).then(() => {
-    getList();
-    proxy.$modal.msgSuccess("删除成功");
-  }).catch(() => {});
+    getList()
+    proxy.$modal.msgSuccess("删除成功")
+  }).catch(() => {})
 }
 
-getList();
+getList()
 </script>
 
 

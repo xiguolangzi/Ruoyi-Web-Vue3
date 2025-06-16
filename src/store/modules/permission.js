@@ -78,7 +78,7 @@ function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
         route.component = ParentView
       } else if (route.component === 'InnerLink') {
         route.component = InnerLink
-      // 其他组件路径的绑定组件
+        // 其他组件路径的绑定组件
       } else {
         route.component = loadView(route.component)
       }
@@ -99,28 +99,13 @@ function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
 
 function filterChildren(childrenMap, lastRouter = false) {
   var children = []
-  childrenMap.forEach((el, index) => {
-    if (el.children && el.children.length) {
-      if (el.component === 'ParentView' && !lastRouter) {
-        el.children.forEach(c => {
-          c.path = el.path + '/' + c.path
-          if (c.children && c.children.length) {
-            children = children.concat(filterChildren(c.children, c))
-            return
-          }
-          children.push(c)
-        })
-        return
-      }
+  childrenMap.forEach(el => {
+    el.path = lastRouter ? lastRouter.path + '/' + el.path : el.path
+    if (el.children && el.children.length && el.component === 'ParentView') {
+      children = children.concat(filterChildren(el.children, el))
+    } else {
+      children.push(el)
     }
-    if (lastRouter) {
-      el.path = lastRouter.path + '/' + el.path
-      if (el.children && el.children.length) {
-        children = children.concat(filterChildren(el.children, el))
-        return
-      }
-    }
-    children = children.concat(el)
   })
   return children
 }
@@ -143,18 +128,18 @@ export function filterDynamicRoutes(routes) {
 }
 
 export const loadView = (view) => {
-  let res;
+  let res
   // 遍历views里面所有的.vue文件 
   for (const path in modules) {
     // 文件路径，例如 views/system/user/index.vue -> 切割选取结果:"system/user/index"
-    const dir = path.split('views/')[1].split('.vue')[0];
+    const dir = path.split('views/')[1].split('.vue')[0]
     // 如果 路由组件路径 匹配到文件路径 -> 返回文件路径所对应的组件
     if (dir === view) {
-      res = () => modules[path]();
+      res = () => modules[path]()
     }
   }
   // 返回对应组件
-  return res;
+  return res
 }
 
 export default usePermissionStore

@@ -23,17 +23,17 @@
 </template>
 
 <script setup>
-import { updateUserProfile } from "@/api/system/user";
+import { updateUserProfile } from "@/api/system/user"
 
 const props = defineProps({
   user: {
     type: Object
   }
-});
+})
 
-const { proxy } = getCurrentInstance();
+const { proxy } = getCurrentInstance()
 
-const form = ref({});
+const form = ref({})
 const rules = ref({
   nickName: [{ required: true, message: "用户昵称不能为空", trigger: "blur" }],
   email: [{ required: true, message: "邮箱地址不能为空", trigger: "blur" }, { type: "email", message: "请输入正确的邮箱地址", trigger: ["blur", "change"] }],
@@ -50,18 +50,18 @@ function submit() {
         props.user.email = form.value.email;
       });
     }
-  });
-};
+  })
+}
 
 /** 关闭按钮 */
 function close() {
-  proxy.$tab.closePage();
-};
+  proxy.$tab.closePage()
+}
 
 // 回显当前登录用户信息
 watch(() => props.user, user => {
   if (user) {
     form.value = { nickName: user.nickName, phoneNumber: user.phoneNumber, email: user.email, sex: user.sex };
   }
-},{ immediate: true });
+},{ immediate: true })
 </script>

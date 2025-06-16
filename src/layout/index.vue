@@ -20,8 +20,6 @@
 import { useWindowSize } from '@vueuse/core'
 import Sidebar from './components/Sidebar/index.vue'
 import { AppMain, Navbar, Settings, TagsView } from './components'
-import defaultSettings from '@/settings'
-
 import useAppStore from '@/store/modules/app'
 import useSettingsStore from '@/store/modules/settings'
 
@@ -29,12 +27,12 @@ import LockScreen from '@/components/LockScreen/index.vue'
 import { ElMessageBox, ElNotification } from 'element-plus'
 
 const settingsStore = useSettingsStore()
-const theme = computed(() => settingsStore.theme);
-const sideTheme = computed(() => settingsStore.sideTheme);
-const sidebar = computed(() => useAppStore().sidebar);
-const device = computed(() => useAppStore().device);
-const needTagsView = computed(() => settingsStore.tagsView);
-const fixedHeader = computed(() => settingsStore.fixedHeader);
+const theme = computed(() => settingsStore.theme)
+const sideTheme = computed(() => settingsStore.sideTheme)
+const sidebar = computed(() => useAppStore().sidebar)
+const device = computed(() => useAppStore().device)
+const needTagsView = computed(() => settingsStore.tagsView)
+const fixedHeader = computed(() => settingsStore.fixedHeader)
 
 const classObj = computed(() => ({
   hideSidebar: !sidebar.value.opened,
@@ -43,8 +41,8 @@ const classObj = computed(() => ({
   mobile: device.value === 'mobile'
 }))
 
-const { width, height } = useWindowSize();
-const WIDTH = 992; // refer to Bootstrap's responsive design
+const { width, height } = useWindowSize()
+const WIDTH = 992 // refer to Bootstrap's responsive design
 
 watch(() => device.value, () => {
   if (device.value === 'mobile' && sidebar.value.opened) {
@@ -65,9 +63,9 @@ function handleClickOutside() {
   useAppStore().closeSideBar({ withoutAnimation: false })
 }
 
-const settingRef = ref(null);
+const settingRef = ref(null)
 function setLayout() {
-  settingRef.value.openSetting();
+  settingRef.value.openSetting()
 }
 
 // --------------------------     2 锁屏 start     -------------------------
@@ -120,11 +118,11 @@ const lockScreen = async () => {
 </script>
 
 <style lang="scss" scoped>
-  @import "@/assets/styles/mixin.scss";
-  @import "@/assets/styles/variables.module.scss";
+@use "@/assets/styles/mixin.scss" as mix;
+@use "@/assets/styles/variables.module.scss" as vars;
 
 .app-wrapper {
-  @include clearfix;
+  @include mix.clearfix;
   position: relative;
   height: 100%;
   width: 100%;
@@ -150,7 +148,7 @@ const lockScreen = async () => {
   top: 0;
   right: 0;
   z-index: 9;
-  width: calc(100% - #{$base-sidebar-width});
+  width: calc(100% - #{vars.$base-sidebar-width});
   transition: width 0.28s;
 }
 

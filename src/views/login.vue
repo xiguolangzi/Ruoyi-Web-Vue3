@@ -79,17 +79,17 @@
 </template>
 
 <script setup>
-import { getCodeImg } from "@/api/login";
-import Cookies from "js-cookie";
-import { encrypt, decrypt } from "@/utils/jsencrypt";
+import { getCodeImg } from "@/api/login"
+import Cookies from "js-cookie"
+import { encrypt, decrypt } from "@/utils/jsencrypt"
 import useUserStore from '@/store/modules/user'
 import LangSelect from "@/components/LangSelect";
 
+const title = import.meta.env.VITE_APP_TITLE
 const userStore = useUserStore()
-const route = useRoute();
-const router = useRouter();
-const { proxy } = getCurrentInstance();
-const title = import.meta.env.VITE_APP_TITLE;
+const route = useRoute()
+const router = useRouter()
+const { proxy } = getCurrentInstance()
 
 const loginForm = ref({
   tenantCode:"",
@@ -98,7 +98,7 @@ const loginForm = ref({
   rememberMe: false,
   code: "",
   uuid: ""
-});
+})
 
 const loginRules = {
   tenantCode: [
@@ -108,12 +108,12 @@ const loginRules = {
   username: [{ required: true, trigger: "blur", message: "请输入您的账号" }],
   password: [{ required: true, trigger: "blur", message: "请输入您的密码" }],
   code: [{ required: true, trigger: "change", message: "请输入验证码" }]
-};
+}
 
-const codeUrl = ref("");
-const loading = ref(false);
+const codeUrl = ref("")
+const loading = ref(false)
 // 验证码开关
-const captchaEnabled = ref(true);
+const captchaEnabled = ref(true)
 // 注册开关
 const register = ref(false);
 const redirect = ref(undefined);
@@ -198,8 +198,8 @@ const handleSelect = (item) => {
 
 
 watch(route, (newRoute) => {
-    redirect.value = newRoute.query && newRoute.query.redirect;
-}, { immediate: true });
+    redirect.value = newRoute.query && newRoute.query.redirect
+}, { immediate: true })
 
 function handleLogin() {
   // 通知权限提示：
@@ -230,9 +230,9 @@ function handleLogin() {
         Cookies.set("rememberMe", loginForm.value.rememberMe, { expires: 30 });
       } else {
         // 否则移除
-        Cookies.remove("username");
-        Cookies.remove("password");
-        Cookies.remove("rememberMe");
+        Cookies.remove("username")
+        Cookies.remove("password")
+        Cookies.remove("rememberMe")
       }
       // 调用action的登录方法
       userStore.login(loginForm.value).then(() => {
@@ -241,31 +241,31 @@ function handleLogin() {
         // 获取除 redirect 外的其他查询参数
         const otherQueryParams = Object.keys(query).reduce((acc, cur) => {
           if (cur !== "redirect") {
-            acc[cur] = query[cur];
+            acc[cur] = query[cur]
           }
           return acc;
         }, {});
         // 跳转路由 ： http://localhost:8080/login?redirect=/index ->  参数 redirect.value == "/index"
         router.push({ path: redirect.value || "/", query: otherQueryParams });
       }).catch(() => {
-        loading.value = false;
+        loading.value = false
         // 重新获取验证码
         if (captchaEnabled.value) {
-          getCode();
+          getCode()
         }
-      });
+      })
     }
-  });
+  })
 }
 
 function getCode() {
   getCodeImg().then(res => {
-    captchaEnabled.value = res.captchaEnabled === undefined ? true : res.captchaEnabled;
+    captchaEnabled.value = res.captchaEnabled === undefined ? true : res.captchaEnabled
     if (captchaEnabled.value) {
-      codeUrl.value = "data:image/gif;base64," + res.img;
-      loginForm.value.uuid = res.uuid;
+      codeUrl.value = "data:image/gif;base64," + res.img
+      loginForm.value.uuid = res.uuid
     }
-  });
+  })
 }
 
 function getCookie() {
@@ -279,7 +279,7 @@ function getCookie() {
     // decrypt(password) 解析cookie中密码
     password: password === undefined ? loginForm.value.password : decrypt(password),
     rememberMe: rememberMe === undefined ? false : Boolean(rememberMe)
-  };
+  }
 }
 
 getCode();            // 获取验证码

@@ -30,7 +30,7 @@
 import { ref, computed } from 'vue';
 
 // 记录未匹配的项
-const unmatchArray = ref([]);
+const unmatchArray = ref([])
 
 const props = defineProps({
   // 数据
@@ -53,15 +53,15 @@ const props = defineProps({
     type: String,
     default: "default",
   }
-});
+})
 
 const values = computed(() => {
-  if (props.value === null || typeof props.value === 'undefined' || props.value === '') return [];
-  return Array.isArray(props.value) ? props.value.map(item => '' + item) : String(props.value).split(props.separator);
-});
+  if (props.value === null || typeof props.value === 'undefined' || props.value === '') return []
+  return Array.isArray(props.value) ? props.value.map(item => '' + item) : String(props.value).split(props.separator)
+})
 
 const unmatch = computed(() => {
-  unmatchArray.value = [];
+  unmatchArray.value = []
   // 没有value不显示
   if (props.value === null || typeof props.value === 'undefined' || props.value === '' || !Array.isArray(props.options) || props.options.length === 0) return false
   // 传入值为数组
@@ -71,14 +71,16 @@ const unmatch = computed(() => {
       unmatchArray.value.push(item);
       hasUnmatch = true; // 如果有未匹配项，将标志设置为true
     }
-  });
-  return hasUnmatch; // 返回标志的值
-});
+  })
+  return unmatch // 返回标志的值
+})
 
-const formattedUnmatchArray = computed(() => {
-  if (unmatchArray.value.length === 0) return "";
-  return unmatchArray.value.join(" ");
-});
+function handleArray(array) {
+  if (array.length === 0) return ""
+  return array.reduce((pre, cur) => {
+    return pre + " " + cur
+  })
+}
 </script>
 
 <style scoped>

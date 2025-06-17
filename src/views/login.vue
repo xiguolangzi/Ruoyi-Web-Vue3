@@ -80,7 +80,6 @@
 
 <script setup>
 import { getCodeImg } from "@/api/login"
-import Cookies from "js-cookie"
 import { encrypt, decrypt } from "@/utils/jsencrypt"
 import useUserStore from '@/store/modules/user'
 import LangSelect from "@/components/LangSelect";
@@ -172,7 +171,7 @@ function handleLogin() {
       // 登录按钮 切换成 登陆中状态
       loading.value = true;
       // 存储当前税号
-      Cookies.set("tenantCode", loginForm.value.tenantCode, { expires: 30 });
+      localStorage.setItem("tenantCode", loginForm.value.tenantCode, { expires: 30 });
       // 存储将当前税号存储到税号查询列表
       let newTaxRecentList = taxRecentList.value || []
       if (!newTaxRecentList.some(item => item.value === loginForm.value.tenantCode)) {
@@ -185,15 +184,15 @@ function handleLogin() {
       }
       // 勾选了需要记住密码设置在 cookie 中设置记住用户名和密码
       if (loginForm.value.rememberMe) {
-        Cookies.set("username", loginForm.value.username, { expires: 30 });
+        localStorage.setItem("username", loginForm.value.username, { expires: 30 });
         // encrypt() 自定义密码加密，一定要更换密钥对 
-        Cookies.set("password", encrypt(loginForm.value.password), { expires: 30 });
-        Cookies.set("rememberMe", loginForm.value.rememberMe, { expires: 30 });
+        localStorage.setItem("password", encrypt(loginForm.value.password), { expires: 30 });
+        localStorage.setItem("rememberMe", loginForm.value.rememberMe, { expires: 30 });
       } else {
         // 否则移除
-        Cookies.remove("username")
-        Cookies.remove("password")
-        Cookies.remove("rememberMe")
+        localStorage.removeItem("username")
+        localStorage.removeItem("password")
+        localStorage.removeItem("rememberMe")
       }
       // 调用action的登录方法
       userStore.login(loginForm.value).then(() => {
@@ -230,10 +229,10 @@ function getCode() {
 }
 
 function getCookie() {
-  const tenantCode = Cookies.get("tenantCode");
-  const username = Cookies.get("username");
-  const password = Cookies.get("password");
-  const rememberMe = Cookies.get("rememberMe");
+  const tenantCode = localStorage.getItem("tenantCode");
+  const username = localStorage.getItem("username");
+  const password = localStorage.getItem("password");
+  const rememberMe = localStorage.getItem("rememberMe");
   loginForm.value = {
     tenantCode: tenantCode === undefined ? loginForm.value.tenantCode : tenantCode,
     username: username === undefined ? loginForm.value.username : username,

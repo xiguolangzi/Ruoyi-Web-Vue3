@@ -303,7 +303,7 @@
 import { listProductCombo, getProductCombo, delProductCombo, addProductCombo, updateProductCombo } from "@/api/product/productCombo";
 import useUserStore from "@/store/modules/user";
 import { computed } from "vue";
-import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
+import { listSku, selectStockBySkuId } from "@/api/product/sku"
 import { listProductRate } from "@/api/product/productRate";
 import { InTaxEnum, ComboStatusEnum, ComboItemIsOptionalEnum, ComboItemSetTypeEnum } from "./productComboEnum.js"
 
@@ -546,7 +546,7 @@ const getSkuList = () => {
     pageSize: 2000,
     skuType: 1, // 普通商品类型
   };
-  listSkuByAddOrder(quarryParams).then(response => {
+  listSku(quarryParams).then(response => {
     skuList.value = response.rows || []
   }).catch(error => {
     console.error("获取SKU列表失败：", error);

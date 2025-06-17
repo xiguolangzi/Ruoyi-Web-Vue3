@@ -341,7 +341,7 @@ import { debounce } from 'lodash'
 import { TableV2SortOrder } from 'element-plus'
 import { listReceipts, getReceipts, delReceipts, addReceipts, updateReceipts, updateReceiptsStatus, received, unReceived, bindInvoiced, unBindInvoiced } from "@/api/order/receipts";
 import { listSupplier } from "@/api/order/supplier"
-import { listSkuByAddOrder, selectStockBySkuId } from "@/api/product/sku"
+import { listSku,selectStockBySkuId } from "@/api/product/sku"
 import { listContainers } from "@/api/transportation/containers";
 import { listLogisticsCompanies} from "@/api/order/logisticsCompanies";
 import { listWarehouse} from "@/api/product/warehouse";
@@ -1505,7 +1505,7 @@ const formatAmount = (amount) => {
 const skuList = ref([])
 /** 商品 - 获取列表 */
 const getSkuList = () => {
-  listSkuByAddOrder().then(response => {
+  listSku().then(response => {
     skuList.value = response.rows || [] ;
   })
 }
